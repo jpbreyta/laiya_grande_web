@@ -5,18 +5,21 @@
             <!-- Logo -->
             <div class="flex items-center">
                 <a href="{{ url('/') }}" class="flex items-center gap-2">
-                    <img src="{{ asset('images/resort-logo.png') }}" alt="Resort Logo" class="h-10 w-10 rounded-full shadow-md">
+                    <img src="{{ asset('images/laiyagrande.png') }}" alt="Resort Logo" class="h-10 w-10 rounded-full shadow-md">
                     <span class="text-white font-bold text-xl tracking-wide">Laiya Grande</span>
                 </a>
             </div>
 
             <!-- Desktop Menu -->
-            <div class="hidden md:flex space-x-8">
+            <div class="hidden md:flex items-center space-x-6">
                 <a href="{{ url('/') }}" class="text-white font-medium hover:text-yellow-200 transition">Home</a>
                 <a href="{{ url('/rooms') }}" class="text-white font-medium hover:text-yellow-200 transition">Rooms</a>
-                <a href="{{ url('/amenities') }}" class="text-white font-medium hover:text-yellow-200 transition">Amenities</a>
                 <a href="{{ url('/gallery') }}" class="text-white font-medium hover:text-yellow-200 transition">Gallery</a>
                 <a href="{{ url('/contact') }}" class="text-white font-medium hover:text-yellow-200 transition">Contact</a>
+                <a href="{{ url('/register') }}" 
+                class="ml-4 inline-block bg-blue-600 text-white font-medium px-6 py-2 rounded-lg hover:bg-blue-700 hover:text-yellow-200 transition">
+                    Reserve Now!
+                </a>
             </div>
 
             <!-- Mobile Menu Button -->
