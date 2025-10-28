@@ -5,8 +5,11 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use App\Models\Room;
 use App\Models\Booking;
+use App\Mail\BookingConfirmationMail;
 
 class BookingController extends Controller
 {
@@ -162,15 +165,19 @@ class BookingController extends Controller
             return redirect()->route('booking.index')->with('error', 'Your cart is empty.');
         }
 
+        $createdBookings = [];
+        
         foreach ($cart as $item) {
             // Save booking to database
-            Booking::create([
+            $booking = Booking::create([
                 'room_id' => $item['room_id'],
                 'user_id' => Auth::check() ? Auth::id() : 1,
                 'check_in' => $request->check_in,
                 'check_out' => $request->check_out,
                 'total_price' => $item['room_price'] * $item['quantity'],
             ]);
+            
+            $createdBookings[] = $booking;
 
             /** @var \App\Models\Room $room */
             $room = Room::findOrFail($item['room_id']);
@@ -180,41 +187,84 @@ class BookingController extends Controller
             $room->save();
         }
 
+        // Send confirmation email with QR code for the first booking (or all if needed)
+        if (!empty($createdBookings)) {
+            $this->sendBookingConfirmationEmail($createdBookings[0], $request);
+        }
+
         session()->forget('cart'); // Clear cart after booking
-        return response()->json(['success' => true, 'message' => 'Booking confirmed!']);
+        return response()->json(['success' => true, 'message' => 'Booking confirmed! Check your email for confirmation details.']);
     }
 
-/**
- * Finalize booking and save to DB
- */
-public function confirmBooking(Request $request)
-{
-    $cart = session()->get('cart', []);
+    /**
+     * Finalize booking and save to DB
+     */
+    public function confirmBooking(Request $request)
+    {
+        $cart = session()->get('cart', []);
 
-    if (empty($cart)) {
-        return response()->json(['success' => false, 'message' => 'Cart is empty.']);
+        if (empty($cart)) {
+            return response()->json(['success' => false, 'message' => 'Cart is empty.']);
+        }
+
+        $createdBookings = [];
+
+        foreach ($cart as $item) {
+
+            // Save booking to database
+            $booking = Booking::create([
+                'room_id' => $item['room_id'],
+                'user_id' => Auth::check() ? Auth::id() : 1,
+                'check_in' => $request->check_in ?? now(),
+                'check_out' => $request->check_out ?? now()->addDays(2),
+                'total_price' => $item['room_price'] * $item['quantity'],
+            ]);
+            
+            $createdBookings[] = $booking;
+
+            /** @var \App\Models\Room $room */
+            $room = Room::findOrFail($item['room_id']);
+
+            // Reduce availability
+            $room->availability -= $item['quantity'];
+            $room->save();
+        }
+
+        // Send confirmation email with QR code for the first booking
+        if (!empty($createdBookings)) {
+            $this->sendBookingConfirmationEmail($createdBookings[0], $request);
+        }
+
+        session()->forget('cart'); // Clear cart after booking
+        return response()->json(['success' => true, 'message' => 'Booking confirmed! Check your email for confirmation details.']);
     }
 
-    foreach ($cart as $item) {
+    /**
+     * Send booking confirmation email with QR code
+     */
+    private function sendBookingConfirmationEmail(Booking $booking, Request $request)
+    {
+        try {
+            $bookingDetails = [
+                'guest_name' => trim(($request->first_name ?? 'Guest') . ' ' . ($request->last_name ?? '')),
+                'guest_email' => $request->email ?? 'guest@example.com',
+                'guest_phone' => $request->phone ?? 'N/A',
+                'guests' => $request->guests ?? 1,
+            ];
 
-        // Save booking to database
-        Booking::create([
-            'room_id' => $item['room_id'],
-            'user_id' => Auth::check() ? Auth::id() : 1,
-            'check_in' => $request->check_in ?? now(),
-            'check_out' => $request->check_out ?? now()->addDays(2),
-            'total_price' => $item['room_price'] * $item['quantity'],
-        ]);
-
-        /** @var \App\Models\Room $room */
-        $room = Room::findOrFail($item['room_id']);
-
-        // Reduce availability
-        $room->availability -= $item['quantity'];
-        $room->save();
+            Mail::to($bookingDetails['guest_email'])->send(new BookingConfirmationMail($booking, $bookingDetails));
+            
+            Log::info('Booking confirmation email sent successfully', [
+                'booking_id' => $booking->id,
+                'email' => $bookingDetails['guest_email']
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to send booking confirmation email', [
+                'booking_id' => $booking->id,
+                'email' => $bookingDetails['guest_email'] ?? 'unknown',
+                'error' => $e->getMessage()
+            ]);
+        }
     }
-
-    session()->forget('cart'); // Clear cart after booking
-    return response()->json(['success' => true, 'message' => 'Booking confirmed!']);
-}
 }
