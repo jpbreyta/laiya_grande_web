@@ -16,8 +16,43 @@
 
         .reserve-container {
             background: linear-gradient(135deg, var(--light-bg) 0%, #e8f4f8 100%);
-            min-height: 80vh;
+            min-height: 100vh;
             padding: 2rem 0;
+            display: flex;
+            align-items: center; /* vertically center the card */ 
+        }
+
+        /* Center the layout regardless of Bootstrap grid presence */
+        .reserve-container .container {
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .reserve-container .row {
+            display: flex;
+            justify-content: center;
+        }
+
+        .reserve-container .col-lg-8 {
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .reserve-card {
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 1536px) {
+            .reserve-container .container {
+                max-width: 1440px; /* better use of ultrawide screens */
+            }
+            .reserve-container .col-lg-8 {
+                max-width: 1200px;
+            }
         }
 
         .reserve-card {
@@ -53,16 +88,47 @@
         .form-control {
             border: 2px solid var(--border-color);
             border-radius: 8px;
-            padding: 0.75rem 1rem;
+            padding: 0.9rem 1rem;
             font-size: 1rem;
             transition: all 0.3s ease;
             width: 100%;
+            background: #fff;
         }
 
         .form-control:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 0.2rem rgba(26, 77, 109, 0.25);
             outline: none;
+        }
+
+        /* Responsive, sleek layout for the form */
+        .reserve-form .row {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1rem 1.25rem;
+        }
+
+        .reserve-form .col-md-6 {
+            grid-column: span 12;
+        }
+
+        @media (min-width: 768px) {
+            .reserve-form .col-md-6 {
+                grid-column: span 6;
+            }
+        }
+
+        /* Action buttons layout */
+        .form-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .form-actions {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         .btn-reserve {
@@ -138,6 +204,78 @@
             margin-bottom: 1.5rem;
             color: #1976d2;
         }
+
+        /* Payment section */
+        .payment-section {
+            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .payment-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        .qr-wrap {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            align-items: center;
+        }
+        @media (min-width: 768px) {
+            .qr-wrap { grid-template-columns: 260px 1fr; }
+        }
+        .qr-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+        .qr-card img {
+            width: 220px;
+            height: 220px;
+            object-fit: contain;
+            display: inline-block;
+        }
+        .payment-list {
+            margin: 0;
+            padding-left: 1.25rem;
+            list-style: disc;
+            color: #dc2626; /* red for emphasis */
+        }
+
+        /* Payment option buttons */
+        .pay-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .75rem;
+            margin-top: .75rem;
+        }
+        .pay-btn {
+            border: 2px solid var(--border-color);
+            background: #fff;
+            border-radius: 8px;
+            padding: .75rem 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s ease;
+            width: 100%;
+        }
+        .pay-btn:hover { border-color: var(--primary-color); }
+        .pay-btn.active {
+            background: linear-gradient(135deg, #1a4d6d 0%, #2563eb 100%);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        /* Utility hidden class for conditional sections */
+        .hidden { display: none !important; }
     </style>
 
     <div class="reserve-container">
@@ -190,7 +328,7 @@
                                 You can confirm your booking within this period to secure your stay.
                             </div>
 
-                            <form method="POST" action="{{ route('booking.confirm') }}" id="reserveForm">
+                            <form method="POST" action="{{ route('booking.confirm') }}" id="reserveForm" enctype="multipart/form-data">
                                 @csrf
 
                                 <div class="row">
@@ -199,7 +337,7 @@
                                             <label class="form-label">
                                                 <i class="fas fa-user"></i> First Name *
                                             </label>
-                                            <input type="text" class="form-control" name="first_name" required>
+                                            <input type="text" class="form-control" name="first_name" placeholder="Juan" autocomplete="given-name" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -207,7 +345,7 @@
                                             <label class="form-label">
                                                 <i class="fas fa-user"></i> Last Name *
                                             </label>
-                                            <input type="text" class="form-control" name="last_name" required>
+                                            <input type="text" class="form-control" name="last_name" placeholder="Dela Cruz" autocomplete="family-name" required>
                                         </div>
                                     </div>
                                 </div>
@@ -216,14 +354,14 @@
                                     <label class="form-label">
                                         <i class="fas fa-envelope"></i> Email Address *
                                     </label>
-                                    <input type="email" class="form-control" name="email" required>
+                                    <input type="email" class="form-control" name="email" placeholder="you@example.com" autocomplete="email" required>
                                 </div>
 
                                 <div class="form-group">
                                     <label class="form-label">
                                         <i class="fas fa-phone"></i> Phone Number *
                                     </label>
-                                    <input type="tel" class="form-control" name="phone" required>
+                                    <input type="tel" class="form-control" name="phone" placeholder="09xx xxx xxxx" autocomplete="tel" required>
                                 </div>
 
                                 <div class="row">
@@ -232,7 +370,7 @@
                                             <label class="form-label">
                                                 <i class="fas fa-calendar"></i> Check-in Date *
                                             </label>
-                                            <input type="date" class="form-control" name="check_in" required>
+                                            <input type="date" class="form-control" name="check_in" autocomplete="off" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -240,7 +378,7 @@
                                             <label class="form-label">
                                                 <i class="fas fa-calendar"></i> Check-out Date *
                                             </label>
-                                            <input type="date" class="form-control" name="check_out" required>
+                                            <input type="date" class="form-control" name="check_out" autocomplete="off" required>
                                         </div>
                                     </div>
                                 </div>
@@ -249,7 +387,7 @@
                                     <label class="form-label">
                                         <i class="fas fa-users"></i> Number of Guests
                                     </label>
-                                    <input type="number" class="form-control" name="guests" min="1" value="2">
+                                    <input type="number" class="form-control" name="guests" min="1" value="2" placeholder="2">
                                 </div>
 
                                 <div class="form-group">
@@ -260,8 +398,84 @@
                                         placeholder="Any special requirements or requests..."></textarea>
                                 </div>
 
+                                <!-- Payment Section with QR Code (moved below Special Requests) -->
+                                <div class="payment-section">
+                                    <div class="payment-header">
+                                        <i class="fas fa-receipt"></i>
+                                        <span>Payment</span>
+                                    </div>
+                                    <div class="qr-wrap">
+                                        <div class="qr-card">
+                                            <img src="{{ asset('storage/qr_codes/resort_qr.png') }}" alt="Scan to Pay QR Code">
+                                            <div class="text-sm mt-2" style="color: var(--text-light);">Scan QR to pay</div>
+                                        </div>
+                                        <div>
+                                            <div class="info-item" style="border-bottom:none; padding:0; margin-bottom: .5rem;">
+                                                <span class="info-label">Amount Due</span>
+                                                <span class="info-value"><strong id="amountDue">PHP {{ number_format(($cartTotal ?? 0) * 0.5, 2) }}</strong></span>
+                                            </div>
+                                            <input type="hidden" name="payment_multiplier" id="paymentMultiplier" value="0.5">
+                                            <div class="form-group" style="margin-top:.75rem;">
+                                                <label class="form-label">
+                                                    <i class="fas fa-wallet"></i> Mode of Payment *
+                                                </label>
+                                                <select name="payment_method" class="form-control" required>
+                                                    <option value="" disabled selected>Select a payment method</option>
+                                                    <option value="gcash">GCash</option>
+                                                    <option value="paymaya">PayMaya</option>
+                                                    <option value="bank_transfer">Bank Transfer</option>
+                                                </select>
+                                                <!-- Bank transfer specifics -->
+                                                <div id="bankTransferFields" class="hidden" style="margin-top: .75rem;">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label"><i class="fas fa-university"></i> Bank Name *</label>
+                                                                <input type="text" class="form-control" name="bank_name" placeholder="e.g., BDO / BPI / Metrobank">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label"><i class="fas fa-id-card"></i> Account Name *</label>
+                                                                <input type="text" class="form-control" name="bank_account_name" placeholder="Laiya Grande Beach Resort">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label"><i class="fas fa-hashtag"></i> Account Number *</label>
+                                                                <input type="text" class="form-control" name="bank_account_number" placeholder="0000-0000-0000">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="form-label"><i class="fas fa-receipt"></i> Reference # *</label>
+                                                                <input type="text" class="form-control" name="bank_reference" placeholder="Transaction reference number">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <ul class="payment-list">
+                                                <li>Use your email as Reference/Note in your transfer.</li>
+                                                <li>After payment, upload the proof below so we can verify.</li>
+                                                <li>Reservations are held for <strong>24 hours</strong> pending payment.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-file-upload"></i> Upload Proof of Payment (optional)
+                                    </label>
+                                    <input type="file" class="form-control" name="payment_proof" accept="image/*,application/pdf">
+                                    <small style="color: var(--text-light);">Accepted: JPG, PNG, PDF. Max ~5MB.</small>
+                                </div>
+
                                 <!-- Action Buttons -->
-                                <div class="row mt-4">
+                                <div class="row mt-4 form-actions">
                                     <div class="col-md-6 mb-3">
                                         <a href="{{ route('booking.index') }}" class="btn-back">
                                             <i class="fas fa-arrow-left me-2"></i>
@@ -291,6 +505,30 @@
                 const today = new Date().toISOString().split('T')[0];
                 document.querySelector('input[name="check_in"]').setAttribute('min', today);
                 document.querySelector('input[name="check_out"]').setAttribute('min', today);
+
+                // Payment option toggling and dynamic amount due
+                const baseTotal = {{ $cartTotal ?? 0 }};
+                const amountDueEl = document.getElementById('amountDue');
+                const multiplierInput = document.getElementById('paymentMultiplier');
+                // Only half payment now, ensure amount due shows 50%
+                if (amountDueEl) {
+                    const newAmount = (baseTotal * 0.5).toFixed(2);
+                    amountDueEl.textContent = 'PHP ' + newAmount.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                }
+
+                // Show/hide bank transfer fields and toggle required attributes
+                const paymentSelect = document.querySelector('select[name="payment_method"]');
+                const bankWrap = document.getElementById('bankTransferFields');
+                const bankInputs = bankWrap ? bankWrap.querySelectorAll('input') : [];
+                function syncBankFields() {
+                    const isBank = paymentSelect && paymentSelect.value === 'bank_transfer';
+                    if (bankWrap) bankWrap.classList.toggle('hidden', !isBank);
+                    bankInputs.forEach(inp => inp.toggleAttribute('required', isBank));
+                }
+                if (paymentSelect) {
+                    paymentSelect.addEventListener('change', syncBankFields);
+                    syncBankFields();
+                }
 
                 // Update checkout minimum when checkin changes
                 document.querySelector('input[name="check_in"]').addEventListener('change', function() {

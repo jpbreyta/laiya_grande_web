@@ -85,70 +85,29 @@
     </style>
 
 
-    <!-- Hero Section with Search Bar -->
-    <section class="relative min-h-[500px] flex items-center text-white bg-cover bg-center"
-        style="background: linear-gradient(rgba(248, 248, 248, 0.88), rgba(29, 91, 130, 0.7)), url('{{ asset('images/user/elegant-villa-bedroom.jpg') }}');">
-        <div class="container mx-auto w-full px-4">
-            <!-- Search Form -->
-            <div class="bg-white p-8 rounded-xl shadow-2xl border border-[#1a4d6d]">
-                <form method="GET" action="" id="searchForm">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-gray-800 font-semibold mb-2">
-                                <i class="fas fa-calendar"></i> Check-in Date
-                            </label>
-                            <input type="date"
-                                class="w-full border border-gray-300 rounded-md px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                                name="check_in" value="{{ request('check_in') }}" required>
-                        </div>
-                        <div>
-                            <label class="block text-gray-800 font-semibold mb-2">
-                                <i class="fas fa-calendar"></i> Check-out Date
-                            </label>
-                            <input type="date"
-                                class="w-full border border-gray-300 text-black rounded-md px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                name="check_out" value="{{ request('check_out') }}" required>
-                        </div>
-                        <div>
-                            <label class="block text-gray-800 font-semibold mb-2">
-                                <i class="fas fa-door-open"></i> Rooms & Guests
-                            </label>
-                            <button type="button"
-                                class="w-full text-left border border-gray-300 rounded-md px-3 py-3 text-gray-800 hover:border-gray-400 transition"
-                                data-bs-toggle="modal" data-bs-target="#guestModal">
-                                <span id="guestDisplay">1 Room, 2 Guests</span>
-                            </button>
-                            <input type="hidden" name="rooms" id="roomsInput" value="{{ request('rooms', 1) }}">
-                            <input type="hidden" name="guests" id="guestsInput" value="{{ request('guests', 2) }}">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mt-4">
-                        <div class="md:col-span-8">
-                            <input type="text"
-                                class="w-full border border-gray-300 rounded-md px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                                name="promo_code" value="{{ request('promo_code') }}"
-                                placeholder="Add promo code (optional)">
-                        </div>
-                        <div class="md:col-span-4 flex gap-2">
-                            <button type="submit"
-                                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition duration-300">
-                                Apply
-                            </button>
-                            <button type="reset"
-                                class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-md transition duration-300">
-                                Clear
-                            </button>
-                        </div>
-                    </div>
-                </form>
+    <!-- Reservation Hero -->
+    <section class="relative isolate bg-center min-h-[40svh] overflow-hidden flex items-center justify-center text-center">
+        <div class="absolute inset-0 -z-10">
+            <img src="{{ asset('images/laiyagrande.png') }}" alt="" aria-hidden="true" class="h-full w-full object-cover">
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-teal-900/50 dark:from-black/70 dark:via-black/50 dark:to-teal-900/60"></div>
+        <div class="relative mx-auto max-w-7xl px-6 py-16 flex min-h-[40svh] items-center justify-center">
+            <div class="text-center text-white max-w-4xl">
+                <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-balance font-heading mb-4 animate-slide-up">
+                    <span class="block bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent">
+                        Make Your Reservation
+                    </span>
+                </h1>
+                <p class="text-lg md:text-xl leading-relaxed text-white/90 mb-6 animate-fade-in" style="animation-delay: 0.3s;">
+                    Fill out the form below to secure your perfect getaway
+                </p>
             </div>
         </div>
     </section>
 
 
-    <!-- Guest Selection Modal -->
-    <div class="modal fade" id="guestModal" tabindex="-1">
+    <!-- Guest Selection Modal (Tailwind) -->
+    <div class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50" id="guestModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-xl border-0">
                 <div class="modal-header bg-gray-50 border-b border-gray-200">
@@ -200,7 +159,7 @@
     </div>
 
     <!-- Main Content with Cart Sidebar -->
-    <div class="flex gap-8 bg-gray-50 py-8">
+    <div class="container mx-auto px-4 flex gap-8 bg-gray-50 py-8">
         <!-- Availability Section -->
         <section class="flex-1 py-8">
             <div class="container mx-auto px-4">
@@ -348,7 +307,7 @@
 
     <!-- Room Detail Modals -->
     @foreach ($rooms ?? [] as $room)
-        <div class="modal fade" id="roomModal{{ $room->id }}" tabindex="-1">
+        <div class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50" id="roomModal{{ $room->id }}" tabindex="-1">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content rounded-xl border-0">
                     <div class="modal-header border-b border-gray-200">
@@ -357,7 +316,7 @@
                     </div>
                     <div class="modal-body p-0">
                         <!-- Gallery Carousel -->
-                        <div id="roomCarousel{{ $room->id }}" class="carousel slide" data-bs-ride="carousel">
+                        <div id="roomCarousel{{ $room->id }}" class="carousel slide">
                             <div class="carousel-inner">
                                 @php
                                     $images = is_array($room->images) ? $room->images : explode(',', $room->images);
@@ -492,6 +451,29 @@
                     .catch(error => console.error('Error:', error));
             }
 
+            // Minimal modal toggling (Tailwind) for this page
+            document.addEventListener('click', (e) => {
+                const opener = e.target.closest('[data-bs-toggle="modal"]');
+                if (opener) {
+                    const targetSel = opener.getAttribute('data-bs-target');
+                    if (targetSel) {
+                        const el = document.querySelector(targetSel);
+                        if (el) {
+                            e.preventDefault();
+                            el.classList.remove('hidden');
+                        }
+                    }
+                }
+                const closer = e.target.closest('[data-bs-dismiss="modal"]');
+                if (closer) {
+                    const modal = closer.closest('.modal');
+                    if (modal) {
+                        e.preventDefault();
+                        modal.classList.add('hidden');
+                    }
+                }
+            });
+
 
             function removeFromCart(roomId) {
                 fetch('{{ route('cart.remove') }}', {
@@ -550,7 +532,7 @@
             }
 
             function reserveRoom() {
-                window.location.href = '{{ route('user.booking.reserve') }}';
+                window.location.href = '{{ route('user.reserve.index') }}';
             }
 
             function increaseAdults() {
