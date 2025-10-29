@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Booking extends Model
+class Reservation extends Model
 {
     use HasFactory;
 
@@ -19,12 +19,11 @@ class Booking extends Model
         'check_out',
         'number_of_guests',
         'special_request',
-        'payment_method',
         'payment',
         'total_price',
-        'status',
     ];
 
+    // Relationship: Each reservation belongs to a room
     public function room()
     {
         return $this->belongsTo(Room::class);

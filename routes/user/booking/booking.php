@@ -2,6 +2,17 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\BookingController;
+Route::prefix('user/booking')->group(function () {
+    Route::view('/book', 'user.booking.book')->name('user.booking.book');
+});
+
+Route::controller(BookingController::class)->group(function () {
+    Route::get('/booking', 'index')->name('booking.index');
+    Route::post('/cart/add', 'addToCart')->name('cart.add');
+    Route::post('/cart/remove', 'removeFromCart')->name('cart.remove');
+    Route::post('/cart/clear', 'clearCart')->name('cart.clear');
+    Route::post('/booking/confirm', 'confirmBooking')->name('booking.confirm');
+});
 
 // Booking step routes
 Route::prefix('booking')->group(function () {
@@ -15,5 +26,5 @@ Route::prefix('booking')->group(function () {
 
     // Confirm booking routes (replaced booking-step2)
     Route::post('/confirmbooking', [BookingController::class, 'showConfirmBooking'])->name('booking.confirmbooking');
-    Route::post('/process-booking', [BookingController::class, 'processBooking'])->name('booking.process');
+    Route::post('/booking/confirm', [BookingController::class, 'confirmBooking'])->name('booking.confirm');
 });
