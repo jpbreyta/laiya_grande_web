@@ -1,27 +1,29 @@
-<nav 
-    id="sidebar"
-    class="bg-[#2C5F5F] w-64 min-h-screen flex flex-col py-6 shadow-lg transition-all duration-300 ease-in-out"
->
+<nav id="sidebar"
+    class="bg-[#2C5F5F] w-64 min-h-screen flex flex-col py-6 shadow-lg transition-all duration-300 ease-in-out">
     <!-- Sidebar Header -->
     <div class="flex items-center justify-between px-6 mb-8">
         <h1 class="text-white text-lg font-semibold nav-text">Laiya Admin</h1>
-        <button 
-            id="toggleSidebarBtn"
-            class="text-white hover:text-yellow-400 transition-colors"
-        >
+        <button id="toggleSidebarBtn" class="text-white hover:text-yellow-400 transition-colors">
             <i class="fas fa-bars text-xl"></i>
         </button>
     </div>
 
     <!-- Navigation Links -->
     <div class="flex flex-col space-y-6 px-6 flex-1">
-        <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+        <a href="{{ route('admin.dashboard') }}"
+            class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-home text-xl w-6"></i>
             <span class="nav-text text-sm font-medium">Dashboard</span>
         </a>
-        <a href="{{ route('admin.booking.index') }}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+        <a href="{{ route('admin.booking.index') }}"
+            class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-calendar-check text-xl w-6"></i>
             <span class="nav-text text-sm font-medium">Manage Bookings</span>
+        </a>
+        <a href="{{ route('admin.reservation.index') }}"
+            class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+            <i class="fas fa-calendar-check text-xl w-6"></i>
+            <span class="nav-text text-sm font-medium">Manage Reservation</span>
         </a>
         <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-user-check text-xl w-6"></i>
@@ -81,8 +83,8 @@
     const sidebar = document.getElementById('sidebar');
 
     toggleBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('w-64');   // expanded
-        sidebar.classList.toggle('w-20');   // collapsed
+        sidebar.classList.toggle('w-64'); // expanded
+        sidebar.classList.toggle('w-20'); // collapsed
 
         const texts = sidebar.querySelectorAll('.nav-text');
         texts.forEach(text => {
