@@ -31,6 +31,12 @@ class BookingController extends Controller
         $booking = Booking::with('room')->findOrFail($id);
         return view('admin.booking.show', compact('booking'));
     }
+    public function edit($id)
+    {
+        $booking = Booking::with('room')->findOrFail($id);
+        $rooms = Room::all();
+        return view('admin.booking.edit', compact('booking', 'rooms'));
+    }
 
     /**
      * Approve booking: update status, send email, send SMS
