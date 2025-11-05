@@ -5,18 +5,21 @@ use App\Http\Controllers\User\ReservationController;
 
 /*
 |--------------------------------------------------------------------------
-| User Reservation Routes
-|--------------------------------------------------------------------------
-| These routes handle all user-side reservation features.
-| They’re grouped under the "user/reservation" prefix.
+| User Reservation Routes (Singular)
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('user/reserve')->group(function () {
-    Route::view('/', 'user.reserve.index')->name('user.reserve.index');
-});
+// Route to show reservation page (old index - shows all reservations directly)
+Route::get('/user/reserve', function () {
+    $reservations = \App\Models\Reservation::with('room')->latest()->get();
+    return view('user.reserve.index', compact('reservations'));
+})->name('user.reserve.index');
 
-Route::prefix('user/reservations')->name('user.reservations.')->group(function () {
+// Route to lookup reservations by email and phone
+Route::post('/user/reservation/lookup', [ReservationController::class, 'lookup'])->name('user.reservation.lookup');
+
+// Routes for reservation CRUD (singular)
+Route::prefix('user/reservation')->name('user.reservation.')->group(function () {
 
     // List all reservations
     Route::get('/', [ReservationController::class, 'index'])->name('index');
@@ -24,8 +27,8 @@ Route::prefix('user/reservations')->name('user.reservations.')->group(function (
     // Show reservation creation form
     Route::get('/create', [ReservationController::class, 'create'])->name('create');
 
-    // Store new reservation
-    Route::post('/', [ReservationController::class, 'store'])->name('store');
+    // Store new reservation (AJAX form)
+    Route::post('/store', [ReservationController::class, 'store'])->name('store');
 
     // Show specific reservation details
     Route::get('/{id}', [ReservationController::class, 'show'])->name('show');
@@ -38,4 +41,10 @@ Route::prefix('user/reservations')->name('user.reservations.')->group(function (
 
     // Delete reservation
     Route::delete('/{id}', [ReservationController::class, 'destroy'])->name('destroy');
+
+    // Continue payment for reservation
+    Route::match(['GET', 'POST'], '/{id}/continue', [ReservationController::class, 'continuePaying'])->name('continue');
+
+    // Update payment for reservation
+    Route::post('/{id}/update-payment', [ReservationController::class, 'updatePayment'])->name('updatePayment');
 });

@@ -328,7 +328,7 @@
                                 You can confirm your booking within this period to secure your stay.
                             </div>
 
-                            <form method="POST" action="{{ route('booking.confirm') }}" id="reserveForm" enctype="multipart/form-data">
+                            <form method="POST" action="{{ route('user.reservation.store') }}" id="reserveForm" enctype="multipart/form-data">
                                 @csrf
 
                                 <div class="row">
@@ -470,7 +470,7 @@
                                     <label class="form-label">
                                         <i class="fas fa-file-upload"></i> Upload Proof of Payment (optional)
                                     </label>
-                                    <input type="file" class="form-control" name="payment_proof" accept="image/*,application/pdf">
+                                    <input type="file" class="form-control" name="payment" accept="image/*,application/pdf">
                                     <small style="color: var(--text-light);">Accepted: JPG, PNG, PDF. Max ~5MB.</small>
                                 </div>
 
@@ -587,7 +587,7 @@
                                             confirmButtonColor: '#d4a853'
                                         }).then(() => {
                                             window.location.href =
-                                                '{{ route('booking.index') }}';
+                                                '{{ route("user.reservation.index") }}';
                                         });
                                     } else {
                                         Swal.fire({

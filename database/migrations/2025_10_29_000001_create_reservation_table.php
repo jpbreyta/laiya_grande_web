@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->string('firstname');
             $table->string('lastname');
             $table->string('email');
-            $table->unsignedBigInteger('phone_number');
+            $table->string('phone_number'); // changed to string
 
             // Reservation details
             $table->date('check_in');
@@ -28,8 +28,14 @@ return new class extends Migration {
 
             // Payment method and proof
             $table->enum('payment_method', ['gcash', 'paymaya', 'bank_transfer'])->nullable();
-            $table->string('payment')->nullable(); // Store filename or reference to image
+            $table->string('payment')->nullable(); // store filename or reference
             $table->decimal('total_price', 10, 2)->default(0);
+
+            // Reservation status
+            $table->enum('status', ['pending', 'paid', 'confirmed', 'cancelled'])->default('pending');
+
+            // Optional expiration for reservation
+            $table->timestamp('expires_at')->nullable();
 
             $table->timestamps();
         });
