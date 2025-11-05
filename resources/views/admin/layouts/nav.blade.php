@@ -31,6 +31,11 @@
         </a>
 
         <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+            <i class="fas fa-user- text-xl w-6"></i>
+            <span class="nav-text text-sm font-medium">Foods</span>
+        </a>
+
+        <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-bed text-xl w-6"></i>
             <span class="nav-text text-sm font-medium">Room & Cottage</span>
         </a>
