@@ -1,140 +1,250 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Models\Booking;
 use App\Models\Room;
+use App\Models\Booking;
 use App\Mail\BookingConfirmationMail;
+use Carbon\Carbon;
 
 class BookingController extends Controller
 {
     /**
-     * Display all bookings
+     * Show all available rooms and handle filters/search.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $bookings = Booking::with('room')->latest()->get();
-        return view('admin.booking.index', compact('bookings'));
-    }
+        $query = Room::query();
 
-    /**
-     * Show single booking details
-     */
-    public function show($id)
-    {
-        $booking = Booking::with('room')->findOrFail($id);
-        return view('admin.booking.show', compact('booking'));
-    }
-
-    /**
-     * Approve booking: update status, send email, send SMS
-     */
-    public function approve($id)
-    {
-        $booking = Booking::findOrFail($id);
-
-        if ($booking->status === 'confirmed') {
-            return response()->json([
-                'success' => false,
-                'message' => 'This booking is already confirmed.'
-            ]);
+        // Filter by guest capacity
+        if ($request->filled('guests')) {
+            $query->where('capacity', '>=', $request->guests);
         }
 
-        $booking->update(['status' => 'confirmed']);
+        // Filter by price range
+        if ($request->filled('min_price') && $request->filled('max_price')) {
+            $query->whereBetween('price', [$request->min_price, $request->max_price]);
+        }
+
+        // Filter by availability based on date overlap
+        if ($request->filled('check_in') && $request->filled('check_out')) {
+            $checkIn = $request->check_in;
+            $checkOut = $request->check_out;
+
+            $query->whereDoesntHave('bookings', function ($bookingQuery) use ($checkIn, $checkOut) {
+                $bookingQuery->where(function ($dateFilter) use ($checkIn, $checkOut) {
+                    $dateFilter
+                        ->whereBetween('check_in', [$checkIn, $checkOut])
+                        ->orWhereBetween('check_out', [$checkIn, $checkOut])
+                        ->orWhere(function ($q) use ($checkIn, $checkOut) {
+                            $q->where('check_in', '<=', $checkIn)
+                                ->where('check_out', '>=', $checkOut);
+                        });
+                });
+            });
+        }
+
+        $rooms = $query->where('availability', '>', 0)->get();
+        return view('user.booking.index', compact('rooms'));
+    }
+
+    /**
+     * Add room to booking cart (session-based)
+     */
+    public function addToCart(Request $request)
+    {
+        $cart = session()->get('cart', []);
+        $roomId = $request->room_id;
+
+        if (isset($cart[$roomId])) {
+            $cart[$roomId]['quantity'] += $request->quantity;
+        } else {
+            $cart[$roomId] = [
+                'room_id' => $roomId,
+                'room_name' => $request->room_name,
+                'room_price' => $request->room_price,
+                'quantity' => $request->quantity,
+            ];
+        }
+
+        session(['cart' => $cart]);
+        return response()->json(['success' => true, 'cart' => $cart]);
+    }
+
+    /**
+     * Remove item from cart
+     */
+    public function removeFromCart(Request $request)
+    {
+        $cart = session()->get('cart', []);
+
+        if (isset($cart[$request->room_id])) {
+            unset($cart[$request->room_id]);
+            session()->put('cart', $cart);
+        }
+
+        return response()->json(['success' => true, 'cart' => $cart]);
+    }
+
+    /**
+     * Clear entire cart
+     */
+    public function clearCart()
+    {
+        session()->forget('cart');
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Show confirmation page before final submission
+     */
+    public function showConfirmBooking(Request $request)
+    {
+        $cart = session()->get('cart', []);
+        $cart_total = collect($cart)->sum(fn($item) => $item['room_price'] * $item['quantity']);
+        $tax = $cart_total * 0.12;
+        $total = $cart_total + $tax;
+
+        $checkIn = Carbon::parse($request->check_in);
+        $checkOut = Carbon::parse($request->check_out);
+        $nights = $checkIn->diffInDays($checkOut);
+
+        // --- Payment Proof Logic ---
+        $paymentProofPath = null;
+        $paymentProofUrl = null;
+
+        if ($request->hasFile('payment_proof')) {
+            // Store temporarily in storage/app/public/temp/payments
+            $path = $request->file('payment_proof')->store('temp/payments', 'public');
+            $paymentProofPath = $path;
+            $paymentProofUrl = asset('storage/' . $path);
+        }
+
+        return view('user.booking.confirmbooking', compact(
+            'request',
+            'cart',
+            'cart_total',
+            'tax',
+            'total',
+            'nights',
+            'paymentProofPath',
+            'paymentProofUrl'
+        ));
+    }
 
 
-        // Send confirmation email
+    /**
+     * Save booking to DB — mark as pending, wait for admin approval
+     * Handles payment proof upload
+     */
+    public function confirmBooking(Request $request)
+    {
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:20',
+            'check_in' => 'required|date',
+            'check_out' => 'required|date|after:check_in',
+            'guests' => 'required|integer|min:1',
+            'total_price' => 'required|numeric|min:0',
+            'agree_terms' => 'required|accepted',
+            'payment_method' => 'required|string|in:gcash,paymaya,bank_transfer',
+            'payment_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        $cart = session()->get('cart', []);
+        if (empty($cart)) {
+            return response()->json(['success' => false, 'message' => 'Cart is empty.']);
+        }
+
+
+        $createdBookings = [];
+
+        foreach ($cart as $item) {
+            $paymentPath = null;
+
+            //  Handle payment proof — uploaded or from temp storage
+            if ($request->hasFile('payment_proof')) {
+                $path = $request->file('payment_proof')->store('temp/payments', 'public');
+                $url = asset('storage/' . $path);
+                return response()->json(['url' => $url, 'path' => $path]);
+            } elseif ($request->filled('payment_proof_temp')) {
+                // Move from temp to permanent storage
+                $tempPath = $request->payment_proof_temp;
+                if (Storage::disk('public')->exists($tempPath)) {
+                    $filename = basename($tempPath);
+                    $newPath = 'payments/' . $filename;
+                    Storage::disk('public')->move($tempPath, $newPath);
+                    $paymentPath = $newPath;
+                }
+            }
+
+            $booking = Booking::create([
+                'room_id' => $item['room_id'],
+                'firstname' => $request->first_name,
+                'lastname' => $request->last_name,
+                'email' => $request->email,
+                'phone_number' => $request->phone,
+                'check_in' => $request->check_in,
+                'check_out' => $request->check_out,
+                'number_of_guests' => $request->guests,
+                'special_request' => $request->special_request ?? null,
+                'payment_method' => $request->payment_method ?? null,
+                'payment' => $paymentPath, // now always defined
+                'total_price' => $item['room_price'] * $item['quantity'],
+                'status' => 'pending',
+            ]);
+
+            // Reduce room availability
+            $room = Room::findOrFail($item['room_id']);
+            $room->availability -= $item['quantity'];
+            $room->save();
+        }
+
+
+        // Clear the cart
+        session()->forget('cart');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking submitted successfully! Please wait for admin confirmation via email or SMS.',
+        ]);
+    }
+
+    /**
+     * Keep email logic for admin confirmation stage
+     */
+    private function sendBookingConfirmationEmail(Booking $booking, Request $request)
+    {
         try {
             $bookingDetails = [
-                'guest_name' => $booking->firstname . ' ' . $booking->lastname,
-                'guest_email' => $booking->email,
-                'guest_phone' => $booking->phone_number,
-                'guests' => $booking->number_of_guests,
+                'guest_name' => trim(($request->first_name ?? 'Guest') . ' ' . ($request->last_name ?? '')),
+                'guest_email' => $request->email ?? 'guest@example.com',
+                'guest_phone' => $request->phone ?? 'N/A',
+                'guests' => $request->guests ?? 1,
             ];
 
-            Mail::to($booking->email)->send(new BookingConfirmationMail($booking, $bookingDetails));
+            Mail::to($bookingDetails['guest_email'])->send(
+                new BookingConfirmationMail($booking, $bookingDetails)
+            );
 
             Log::info('Booking confirmation email sent successfully', [
                 'booking_id' => $booking->id,
-                'email' => $booking->email,
+                'email' => $bookingDetails['guest_email'],
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to send booking confirmation email', [
                 'booking_id' => $booking->id,
+                'email' => $bookingDetails['guest_email'] ?? 'unknown',
                 'error' => $e->getMessage(),
             ]);
         }
-
-        // Send SMS via IPROG
-        try {
-            $apiUrl = env('IPROG_SMS_API_URL', 'https://sms.iprogtech.com/api/v1/sms_messages');
-            $token  = env('IPROG_SMS_API_TOKEN');
-            $phone  = $booking->phone_number;
-
-            // Convert to international format if starts with 0 (Philippines)
-            if (Str::startsWith($phone, '0')) {
-                $phone = '63' . substr($phone, 1);
-            }
-
-            $message = "Hi {$booking->firstname}, your booking is confirmed! Check your email for details and QR code.";
-
-            $payload = [
-                'api_token'    => $token,
-                'phone_number' => $phone,
-                'message'      => $message,
-                'sender_id'    => 'LaiyaGrande',
-            ];
-
-            $response = Http::post($apiUrl, $payload);
-
-            Log::info('IPROG SMS response', [
-                'booking_id' => $booking->id,
-                'response'   => $response->body(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to send SMS via IPROG', [
-                'booking_id' => $booking->id,
-                'error'      => $e->getMessage(),
-            ]);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Booking confirmed – email sent and SMS triggered.'
-        ]);
-    }
-
-
-    /**
-     * Reject / Cancel booking
-     */
-    public function reject($id)
-    {
-        $booking = Booking::findOrFail($id);
-
-        if ($booking->status === 'cancelled') {
-            return response()->json([
-                'success' => false,
-                'message' => 'This booking is already cancelled.'
-            ]);
-        }
-
-        $booking->update(['status' => 'cancelled']);
-        $room = Room::find($booking->room_id);
-        if ($room) {
-            $room->availability += 1;
-            $room->save();
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Booking has been cancelled successfully.'
-        ]);
     }
 }
