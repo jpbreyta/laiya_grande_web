@@ -60,9 +60,6 @@
                 </div>
 
                 <div class="flex items-center space-x-4">
-                    <button class="bg-[var(--teal-primary)] hover:bg-[var(--teal-dark)] text-white px-4 py-2 rounded-lg font-medium transition">
-                        + NEW
-                    </button>
 
                     <button class="relative text-gray-600 hover:text-[var(--teal-primary)] transition-colors">
                         <i class="fas fa-bell text-xl"></i>
