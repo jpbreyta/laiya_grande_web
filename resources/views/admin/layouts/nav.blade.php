@@ -40,7 +40,8 @@
             <span class="nav-text text-sm font-medium">Room & Cottage</span>
         </a>
 
-        <a href="{{ route('admin.packages.index')}}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+        <a href="{{ route('admin.packages.index') }}"
+            class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-box text-xl w-6"></i>
             <span class="nav-text text-sm font-medium">Packages</span>
         </a>
@@ -76,10 +77,14 @@
 
     <!-- Footer -->
     <div class="px-6">
-        <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
-            <i class="fas fa-user text-xl w-6"></i>
-            <span class="nav-text text-sm font-medium">Profile / Logout</span>
-        </a>
+        <form method="POST" action="{{ route('admin.logout') }}" class="inline">
+            @csrf
+            <button type="submit"
+                class="flex items-center space-x-3 text-white hover:text-yellow-400 transition w-full text-left">
+                <i class="fas fa-sign-out-alt text-xl w-6"></i>
+                <span class="nav-text text-sm font-medium">Logout</span>
+            </button>
+        </form>
     </div>
 </nav>
 

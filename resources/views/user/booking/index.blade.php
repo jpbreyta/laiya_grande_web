@@ -106,58 +106,6 @@
     </section>
 
 
-    <!-- Guest Selection Modal (Tailwind) -->
-    <div class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50" id="guestModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-xl border-0">
-                <div class="modal-header bg-gray-50 border-b border-gray-200">
-                    <h5 class="modal-title font-serif text-gray-800">Select Rooms & Guests</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-8">
-                    <div class="mb-6">
-                        <label class="block font-semibold text-gray-800 mb-4">Room 1</label>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm text-gray-600 mb-2">Adults (Ages 12+)</label>
-                                <div class="flex items-center border border-gray-300 rounded-md">
-                                    <button class="px-4 py-2 hover:bg-gray-100" type="button"
-                                        onclick="decreaseAdults()">−</button>
-                                    <input type="number" class="flex-1 text-center border-0 focus:outline-none"
-                                        id="adultsInput" value="2" min="1" readonly>
-                                    <button class="px-4 py-2 hover:bg-gray-100" type="button"
-                                        onclick="increaseAdults()">+</button>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-600 mb-2">Children (Ages 1-11)</label>
-                                <div class="flex items-center border border-gray-300 rounded-md">
-                                    <button class="px-4 py-2 hover:bg-gray-100" type="button"
-                                        onclick="decreaseChildren()">−</button>
-                                    <input type="number" class="flex-1 text-center border-0 focus:outline-none"
-                                        id="childrenInput" value="0" min="0" readonly>
-                                    <button class="px-4 py-2 hover:bg-gray-100" type="button"
-                                        onclick="increaseChildren()">+</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <button type="button"
-                        class="w-full border border-gray-300 text-gray-800 py-2 rounded-md hover:bg-gray-50 mb-4 transition"
-                        onclick="addRoom()">
-                        + Add additional room
-                    </button>
-                </div>
-                <div class="modal-footer bg-gray-50 border-t border-gray-200">
-                    <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition"
-                        data-bs-dismiss="modal" onclick="updateGuestDisplay()">
-                        Done
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Main Content with Cart Sidebar -->
     <div class="container mx-auto px-4 flex gap-8 bg-gray-50 py-8">
         <!-- Availability Section -->
@@ -169,7 +117,7 @@
                         <div
                             class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
                             <!-- Room Image -->
-                            <div class="relative h-[300px] overflow-hidden cursor-pointer" data-bs-toggle="modal"
+                            <div class="relative h-[300px] overflow-hidden cursor-pointer" 
                                 data-bs-target="#roomModal{{ $room->id }}">
                                 <img src="{{ asset($room->image ?? 'images/user/luxury-ocean-view-suite-hotel-room.jpg') }}"
                                     class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
