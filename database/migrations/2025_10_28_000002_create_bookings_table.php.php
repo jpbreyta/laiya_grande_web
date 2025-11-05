@@ -10,14 +10,29 @@ return new class extends Migration {
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
 
-            // Make sure this matches the "rooms" table definition
+            // Foreign key to rooms table
             $table->unsignedBigInteger('room_id');
             $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
 
-            $table->unsignedBigInteger('user_id')->nullable();
-            $table->date('check_in')->nullable();
-            $table->date('check_out')->nullable();
+            // Guest details
+            $table->string('firstname');
+            $table->string('lastname');
+            $table->string('email');
+            $table->unsignedBigInteger('phone_number');
+
+            // Booking details
+            $table->date('check_in');
+            $table->date('check_out');
+            $table->unsignedInteger('number_of_guests');
+            $table->text('special_request')->nullable();
+
+            // Payment info
+            $table->enum('payment_method', ['gcash', 'paymaya', 'bank_transfer'])->nullable();
+            $table->string('payment')->nullable();
             $table->decimal('total_price', 10, 2)->default(0);
+
+            $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed'])->default('pending');
+
             $table->timestamps();
         });
     }
@@ -27,4 +42,3 @@ return new class extends Migration {
         Schema::dropIfExists('bookings');
     }
 };
-
