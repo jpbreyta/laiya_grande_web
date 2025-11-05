@@ -204,10 +204,16 @@
                             </span>
                         </div>
                     </div>
-                    <div class="p-4 rounded-lg border">
-                        <div class="text-xs font-bold uppercase tracking-wider mb-1">Reservation Code</div>
-                        <div class="text-xl font-bold text-black bg-clip-text">
-                            {{ $booking->reservation_number ?? $booking->id }}</div>
+                    <div class="p-4 rounded-lg border flex items-center justify-between gap-4">
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-wider mb-1">Reservation Code</div>
+                            <div class="text-xl font-bold text-black bg-clip-text">
+                                {{ $booking->reservation_number ?? $booking->id }}</div>
+                        </div>
+                        <button id="openPassModal"
+                            class="shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                            View QR & Code
+                        </button>
                     </div>
                     <!-- Payment Proof -->
                     @if ($booking->payment && file_exists(storage_path('app/public/' . $booking->payment)))
@@ -265,9 +271,87 @@
         </div>
     </section>
 
+    <!-- Reservation Pass Modal -->
+    <div id="reservationPassOverlay" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"></div>
+    <div id="reservationPassModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between">
+                <h3 class="text-lg font-bold">Reservation Pass</h3>
+                <button class="text-white/80 hover:text-white" data-close-reservation-pass>&times;</button>
+            </div>
+            <div id="reservationPassPrintArea" class="p-6 space-y-4">
+                <div>
+                    <div class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Reservation Code</div>
+                    <div id="reservationCodeValue" class="text-2xl font-extrabold text-gray-900 tracking-wide">
+                        {{ $booking->reservation_number ?? $booking->id }}
+                    </div>
+                </div>
+                <div class="flex items-center justify-center">
+                    <div class="bg-white p-4 rounded-xl shadow border">
+                        {!! QrCode::size(200)->margin(1)->generate(($booking->reservation_number ?? $booking->id)) !!}
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 text-center">Present this at the front desk for quick verification.</p>
+            </div>
+            <div class="px-6 py-4 border-t bg-gray-50 flex items-center justify-end gap-2">
+                <button id="copyReservationCodeBtn" class="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100">Copy Code</button>
+                <button id="printReservationPassBtn" class="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700">Print</button>
+                <button class="px-4 py-2 rounded-lg bg-white border hover:bg-gray-50" data-close-reservation-pass>Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Reservation Pass Modal
+        (function() {
+            const openBtn = document.getElementById('openPassModal');
+            const modal = document.getElementById('reservationPassModal');
+            const overlay = document.getElementById('reservationPassOverlay');
+            const closeBtns = document.querySelectorAll('[data-close-reservation-pass]');
+            const copyBtn = document.getElementById('copyReservationCodeBtn');
+            const printBtn = document.getElementById('printReservationPassBtn');
+
+            const toggle = (show) => {
+                if (!modal || !overlay) return;
+                if (show) {
+                    overlay.classList.remove('hidden');
+                    modal.classList.remove('hidden');
+                } else {
+                    overlay.classList.add('hidden');
+                    modal.classList.add('hidden');
+                }
+            };
+
+            openBtn?.addEventListener('click', () => toggle(true));
+            overlay?.addEventListener('click', () => toggle(false));
+            closeBtns.forEach(btn => btn.addEventListener('click', () => toggle(false)));
+
+            copyBtn?.addEventListener('click', () => {
+                const codeEl = document.getElementById('reservationCodeValue');
+                if (!codeEl) return;
+                navigator.clipboard.writeText(codeEl.textContent.trim()).then(() => {
+                    Swal.fire({ icon: 'success', title: 'Copied', text: 'Reservation code copied.', timer: 1200, showConfirmButton: false });
+                });
+            });
+
+            printBtn?.addEventListener('click', () => {
+                const printArea = document.getElementById('reservationPassPrintArea');
+                if (!printArea) return;
+                const win = window.open('', 'PRINT', 'height=600,width=800');
+                win.document.write('<html><head><title>Reservation Pass</title>');
+                win.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">');
+                win.document.write('</head><body>');
+                win.document.write(printArea.innerHTML);
+                win.document.write('</body></html>');
+                win.document.close();
+                win.focus();
+                win.print();
+                win.close();
+            });
+        })();
+
         // Image Carousel Functionality
         (function() {
             const slides = document.querySelectorAll('.carousel-slide');
