@@ -37,7 +37,7 @@
         </a>
 
         <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
-            <i class="fas fa-user- text-xl w-6 shrink-0"></i>
+            <i class="fas fa-seedling text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Foods</span>
         </a>
 
@@ -62,7 +62,7 @@
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Analytics & Reports</span>
         </a>
 
-        <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+        <a href="{{ route('admin.qr.scanner')}}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-qrcode text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Documents & QR</span>
         </a>
