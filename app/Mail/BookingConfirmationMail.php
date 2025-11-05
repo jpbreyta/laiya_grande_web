@@ -37,6 +37,7 @@ class BookingConfirmationMail extends Mailable
     {
         $qrData = [
             'booking_id' => $this->booking->id,
+            'reservation_number' => $this->booking->reservation_number,
             'check_in' => $this->booking->check_in,
             'check_out' => $this->booking->check_out,
             'room_id' => $this->booking->room_id,
@@ -46,12 +47,13 @@ class BookingConfirmationMail extends Mailable
         ];
 
         // Sanitize guest name to ASCII characters only
-        $guestName = isset($this->bookingDetails['guest_name']) 
-            ? preg_replace('/[^\x20-\x7E]/', '', $this->bookingDetails['guest_name']) 
+        $guestName = isset($this->bookingDetails['guest_name'])
+            ? preg_replace('/[^\x20-\x7E]/', '', $this->bookingDetails['guest_name'])
             : 'Guest';
-        
+
         $qrString = "LAIYA GRANDE BOOKING\n" .
                    "Booking ID: " . $this->booking->id . "\n" .
+                   "Reservation Code: " . ($this->booking->reservation_number ?? 'N/A') . "\n" .
                    "Guest: " . $guestName . "\n" .
                    "Check-in: " . $this->booking->check_in . "\n" .
                    "Check-out: " . $this->booking->check_out . "\n" .
@@ -61,7 +63,7 @@ class BookingConfirmationMail extends Mailable
         // Generate QR code and save to storage
         $qrCodeFilename = 'qr_codes/booking_' . $this->booking->id . '.png';
         $qrCodePath = storage_path('app/' . $qrCodeFilename);
-        
+
         // Create directory if it doesn't exist
         if (!file_exists(dirname($qrCodePath))) {
             mkdir(dirname($qrCodePath), 0755, true);
@@ -74,7 +76,7 @@ class BookingConfirmationMail extends Mailable
                   ->margin(2)
                   ->errorCorrection('M')
                   ->generate($qrString);
-            
+
             // Save the QR code data to file
             file_put_contents($qrCodePath, $qrCodeData);
         } catch (\Exception $e) {

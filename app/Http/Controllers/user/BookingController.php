@@ -200,6 +200,7 @@ class BookingController extends Controller
                 'payment' => $paymentPath, // now always defined
                 'total_price' => $item['room_price'] * $item['quantity'],
                 'status' => 'pending',
+                'reservation_number' => $this->generateReservationNumber(),
             ]);
 
             // Reduce room availability
@@ -246,5 +247,19 @@ class BookingController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+
+
+    private function generateReservationNumber(): string
+    {
+        do {
+            $date = Carbon::now()->format('YmdHis');
+            $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
+            $reservationNumber = 'BK-' . $date . '-' . $random;
+        } while (Booking::where('reservation_number', $reservationNumber)->exists() ||
+                 \App\Models\Reservation::where('reservation_number', $reservationNumber)->exists());
+
+        return $reservationNumber;
     }
 }

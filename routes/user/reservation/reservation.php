@@ -15,8 +15,7 @@ Route::get('/user/reserve', function () {
     return view('user.reserve.index', compact('reservations'));
 })->name('user.reserve.index');
 
-// Route to lookup reservations by email and phone
-Route::post('/user/reservation/lookup', [ReservationController::class, 'lookup'])->name('user.reservation.lookup');
+
 
 // Routes for reservation CRUD (singular)
 Route::prefix('user/reservation')->name('user.reservation.')->group(function () {

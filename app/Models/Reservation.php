@@ -14,7 +14,8 @@ class Reservation extends Model
     protected $fillable = [
         'room_id', 'firstname', 'lastname', 'email', 'phone_number',
         'check_in', 'check_out', 'number_of_guests', 'special_request',
-        'payment_method', 'payment', 'total_price', 'status', 'expires_at'
+        'payment_method', 'payment', 'total_price', 'status', 'expires_at',
+        'reservation_number'
     ];
 
     protected $dates = ['expires_at', 'check_in', 'check_out'];

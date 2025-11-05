@@ -23,6 +23,7 @@ class Booking extends Model
         'payment',
         'total_price',
         'status',
+        'reservation_number',
     ];
 
     public function room()

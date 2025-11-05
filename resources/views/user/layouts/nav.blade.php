@@ -20,7 +20,7 @@
                     class="text-slate-700 dark:text-slate-200 font-medium hover:text-teal-700 dark:hover:text-teal-400 hover:underline underline-offset-4 decoration-teal-400/60 transition">Gallery</a>
                 <a href="{{ url('/location') }}"
                     class="text-slate-700 dark:text-slate-200 font-medium hover:text-teal-700 dark:hover:text-teal-400 hover:underline underline-offset-4 decoration-teal-400/60 transition">Location</a>
-                <a href="{{ route('user.reservation.index') }}"
+                <a href="{{ route('search.index') }}"
                     class="text-slate-700 dark:text-slate-200 font-medium hover:text-teal-700 dark:hover:text-teal-400 hover:underline underline-offset-4 decoration-teal-400/60 transition">My
                     Reservations</a>
                 <a id="nav-cta" href="{{ route('booking.index') }}"
@@ -46,7 +46,7 @@
             class="block text-slate-700 dark:text-slate-200 font-medium hover:text-slate-900 dark:hover:text-white transition">Gallery</a>
         <a href="{{ url('/contact') }}"
             class="block text-slate-700 dark:text-slate-200 font-medium hover:text-slate-900 dark:hover:text-white transition">Location</a>
-        <a href="{{ route('user.reserve.index') }}"
+        <a href="{{ route('search.index') }}"
             class="block text-slate-700 dark:text-slate-200 font-medium hover:text-slate-900 dark:hover:text-white transition">My
             Reservations</a>
     </div>

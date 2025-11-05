@@ -1,12 +1,5 @@
-# TODO: Add Admin Login and Middleware
+# TODO: Differentiate Booking and Reservation Codes
 
-- [ ] Edit users migration to include role field
-- [ ] Run users table migration
-- [ ] Update User model to include role in fillable
-- [ ] Create AdminAuthController for login/logout
-- [ ] Create AdminMiddleware for authentication and role check
-- [ ] Add admin auth routes (login/logout)
-- [ ] Apply AdminMiddleware to admin routes
-- [ ] Create basic admin login view
-- [ ] Seed an admin user
-- [ ] Test login functionality
+- [x] Modify `generateReservationNumber()` in `app/Http/Controllers/user/BookingController.php` to use 'BK-' prefix instead of 'RSV-'.
+- [x] Confirm `generateReservationNumber()` in `app/Http/Controllers/user/ReservationController.php` uses 'RSV-' prefix (already correct).
+- [x] Update `PopulateReservationNumbersSeeder.php` to generate 'BK-' for bookings and 'RSV-' for reservations.
