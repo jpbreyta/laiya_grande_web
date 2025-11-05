@@ -1,6 +1,5 @@
-<footer class="bg-gradient-to-r from-sky-500 via-cyan-500 to-teal-600 text-white mt-10 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
+<footer class="relative bg-gradient-to-r from-sky-500 via-cyan-500 to-teal-600 text-white mt-10 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900"> 
     <div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
-        
         <div>
             <div class="flex items-center gap-3 mb-3">
                 <img src="{{ asset('images/laiyagrande-logo.png') }}" alt="Laiya Grande Beach Resort" class="h-8 w-auto">
@@ -36,10 +35,81 @@
                 <span class="text-sm font-medium text-white/90">LAIYA GRANDE BEACH RESORT</span>
             </div>
         </div>
-
     </div>
 
     <div class="bg-teal-700 text-center py-3 text-sm dark:bg-slate-950">
         © {{ date('Y') }} Laiya Grande. All rights reserved.
     </div>
-</footer>
+
+<button id="backToTopBtn" 
+    class="hidden fixed bottom-6 right-6 rounded-full shadow-lg flex items-center justify-center transition duration-300"
+    aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+    </svg>
+</button>
+
+<style>
+#backToTopBtn {
+  width: 55px;
+  height: 55px;
+  background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
+  border: none;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#backToTopBtn:hover {
+  background: linear-gradient(145deg, #1a1a1a, #000000);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes bounceIn {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+.animate-bounce-in {
+  animation: bounceIn 1s ease;
+}
+
+@keyframes bounceClick {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-10px); }
+  50% { transform: translateY(0); }
+  70% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
+}
+.animate-bounce-click {
+  animation: bounceClick 0.6s ease;
+}
+</style>
+
+<script>
+const backToTopBtn = document.getElementById('backToTopBtn');
+
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 200) {
+    backToTopBtn.classList.remove('hidden');
+    backToTopBtn.classList.add('animate-bounce-in');
+  } else {
+    backToTopBtn.classList.add('hidden');
+    backToTopBtn.classList.remove('animate-bounce-in');
+  }
+});
+
+backToTopBtn.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  backToTopBtn.classList.add('animate-bounce-click');
+  setTimeout(() => backToTopBtn.classList.remove('animate-bounce-click'), 600);
+});
+</script>
+
