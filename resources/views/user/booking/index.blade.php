@@ -532,7 +532,7 @@
             }
 
             function reserveRoom() {
-                window.location.href = '{{ route('user.booking.reserve') }}';
+                window.location.href = '{{ route('user.reserve.index') }}';
             }
 
             function increaseAdults() {
