@@ -19,9 +19,5 @@ class DatabaseSeeder extends Seeder
             RoomSeeder::class,
         ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
     }
 }
