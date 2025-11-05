@@ -14,6 +14,10 @@ Route::get('/location', function () {
     return view('user.location.index');
 })->name('location');
 
+Route::get('/search', function () {
+    return view('user.search.index');
+})->name('user.search');
+
 Route::prefix('user')->group(function () {
     Route::get('/home', function () {
         return view('user.home.index');

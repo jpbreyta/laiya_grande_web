@@ -26,5 +26,5 @@ Route::prefix('booking')->group(function () {
 
     // Confirm booking routes (replaced booking-step2)
     Route::post('/confirmbooking', [BookingController::class, 'showConfirmBooking'])->name('booking.confirmbooking');
-    Route::post('/booking/confirm', [BookingController::class, 'confirmBooking'])->name('booking.confirm');
+    Route::post('/booking/confirm-final', [BookingController::class, 'confirmBooking'])->name('booking.confirm.final');
 });
