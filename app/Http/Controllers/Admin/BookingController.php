@@ -39,6 +39,33 @@ class BookingController extends Controller
     }
 
     /**
+     * Update a booking
+     */
+    public function update(Request $request, $id)
+    {
+        $booking = Booking::findOrFail($id);
+
+        $validated = $request->validate([
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone_number' => 'required|string|max:20',
+            'check_in' => 'required|date',
+            'check_out' => 'required|date|after:check_in',
+            'room_id' => 'required|exists:rooms,id',
+            'number_of_guests' => 'required|integer|min:1',
+            'status' => 'required|in:pending,confirmed,cancelled',
+            'total_price' => 'required|numeric|min:0',
+            'special_request' => 'nullable|string',
+        ]);
+
+        $booking->update($validated);
+
+        return redirect()->route('admin.booking.show', $booking->id)
+            ->with('success', 'Booking updated successfully.');
+    }
+
+    /**
      * Approve booking: update status, send email, send SMS
      */
     public function approve($id)
