@@ -35,7 +35,7 @@
             <span class="nav-text text-sm font-medium">Room & Cottage</span>
         </a>
 
-        <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+        <a href="{{ route('admin.packages.index')}}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-box text-xl w-6"></i>
             <span class="nav-text text-sm font-medium">Packages</span>
         </a>
