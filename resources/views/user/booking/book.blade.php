@@ -1,7 +1,26 @@
 @extends('user.layouts.app')
 
 @section('content')
-    <section class="py-12 bg-gray-50">
+    <style>
+        /* Force black font color across booking page, without affecting explicit white text */
+        .booking-page,
+        .booking-page h1,
+        .booking-page h2,
+        .booking-page h3,
+        .booking-page h4,
+        .booking-page h5,
+        .booking-page h6,
+        .booking-page p,
+        .booking-page label,
+        .booking-page span,
+        .booking-page li,
+        .booking-page div {
+            color: #000 !important;
+        }
+
+        .booking-page .text-white { color: #fff !important; }
+    </style>
+    <section class="py-12 bg-gray-50 booking-page">
         <div class="container mx-auto px-4">
             <div class="mb-6 text-center">
                 <h1 class="text-3xl font-serif text-gray-900">Guest Details</h1>
@@ -41,8 +60,8 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('booking.confirmbooking') }}" id="bookingForm"
-                            enctype="multipart/form-data" class="space-y-6">
+                        <form method="POST" action="{{ route('booking.confirmbooking') }}" id="bookingForm" enctype="multipart/form-data"
+                            class="space-y-6">
                             @csrf
                             <!-- Personal Information -->
                             <div>
@@ -124,19 +143,14 @@
                                         <div class="col-span-2 space-y-4">
                                             <div class="flex items-center justify-between">
                                                 <span class="text-gray-600 font-medium">Amount Due (100%)</span>
-                                                <span id="amountDueBook" class="text-lg font-bold text-indigo-700">PHP
-                                                    {{ number_format(($book_cart_total ?? 0) * 1, 2) }}</span>
+                                                <span id="amountDueBook" class="text-lg font-bold text-indigo-700">PHP {{ number_format(($book_cart_total ?? 0) * 1, 2) }}</span>
                                             </div>
                                             <input type="hidden" name="payment_multiplier" value="1">
 
                                             <div>
-                                                <label class="font-semibold text-gray-700 block mb-1"><i
-                                                        class="fas fa-wallet"></i> Mode of Payment *</label>
-                                                <select name="payment_method" id="paymentMethodSelect"
-                                                    class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                    required>
-                                                    <option value="" disabled selected>Select a payment method
-                                                    </option>
+                                                <label class="font-semibold text-gray-700 block mb-1"><i class="fas fa-wallet"></i> Mode of Payment *</label>
+                                                <select name="payment_method" id="paymentMethodSelect" class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                                                    <option value="" disabled selected>Select a payment method</option>
                                                     <option value="gcash">GCash</option>
                                                     <option value="paymaya">PayMaya</option>
                                                     <option value="bank_transfer">Bank Transfer</option>
@@ -146,32 +160,20 @@
                                             <div id="bankFieldsBook" class="hidden">
                                                 <div class="grid md:grid-cols-2 gap-4 mt-2">
                                                     <div>
-                                                        <label class="font-semibold text-gray-700 block mb-1"><i
-                                                                class="fas fa-university"></i> Bank Name *</label>
-                                                        <input type="text" name="bank_name"
-                                                            class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                            placeholder="e.g., BDO / BPI / Metrobank">
+                                                        <label class="font-semibold text-gray-700 block mb-1"><i class="fas fa-university"></i> Bank Name *</label>
+                                                        <input type="text" name="bank_name" class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="e.g., BDO / BPI / Metrobank">
                                                     </div>
                                                     <div>
-                                                        <label class="font-semibold text-gray-700 block mb-1"><i
-                                                                class="fas fa-id-card"></i> Account Name *</label>
-                                                        <input type="text" name="bank_account_name"
-                                                            class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                            placeholder="Laiya Grande Beach Resort">
+                                                        <label class="font-semibold text-gray-700 block mb-1"><i class="fas fa-id-card"></i> Account Name *</label>
+                                                        <input type="text" name="bank_account_name" class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Laiya Grande Beach Resort">
                                                     </div>
                                                     <div>
-                                                        <label class="font-semibold text-gray-700 block mb-1"><i
-                                                                class="fas fa-hashtag"></i> Account Number *</label>
-                                                        <input type="text" name="bank_account_number"
-                                                            class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                            placeholder="0000-0000-0000">
+                                                        <label class="font-semibold text-gray-700 block mb-1"><i class="fas fa-hashtag"></i> Account Number *</label>
+                                                        <input type="text" name="bank_account_number" class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="0000-0000-0000">
                                                     </div>
                                                     <div>
-                                                        <label class="font-semibold text-gray-700 block mb-1"><i
-                                                                class="fas fa-receipt"></i> Reference # *</label>
-                                                        <input type="text" name="bank_reference"
-                                                            class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                            placeholder="Transaction reference number">
+                                                        <label class="font-semibold text-gray-700 block mb-1"><i class="fas fa-receipt"></i> Reference # *</label>
+                                                        <input type="text" name="bank_reference" class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Transaction reference number">
                                                     </div>
                                                 </div>
                                             </div>
@@ -179,17 +181,14 @@
                                             <ul class="list-disc pl-5 text-sm text-red-600">
                                                 <li>Use your email as Reference/Note in your transfer.</li>
                                                 <li>After payment, upload the proof below so we can verify.</li>
-                                                <li>Reservations are held for <strong>24 hours</strong> pending payment.
-                                                </li>
+                                                <li>Reservations are held for <strong>24 hours</strong> pending payment.</li>
                                             </ul>
 
-                                            <!-- File Upload -->
-                                            <div class="mb-4">
-                                                <label for="payment_proof" class="block text-gray-700 font-semibold mb-2">
-                                                    Upload Payment Proof (optional)
-                                                </label>
-                                                <input type="file" name="payment_proof" id="payment_proof"
-                                                    accept="image/*" class="border p-2 rounded w-full">
+                                            <div>
+                                                <label class="font-semibold text-gray-700 block mb-1"><i class="fas fa-file-upload"></i> Upload Proof of Payment (optional)</label>
+                                                <input type="file" name="payment_proof" accept="image/*,application/pdf"
+                                                    class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                                <p class="text-xs text-gray-500 mt-1">Accepted: JPG, PNG, PDF. Max ~5MB.</p>
                                             </div>
                                         </div>
                                     </div>
@@ -301,7 +300,6 @@
                 // Toggle bank transfer fields only when bank transfer is selected
                 const paySelect = document.getElementById('paymentMethodSelect');
                 const bankWrap = document.getElementById('bankFieldsBook');
-
                 function syncBank() {
                     const isBank = paySelect && paySelect.value === 'bank_transfer';
                     if (bankWrap) {
