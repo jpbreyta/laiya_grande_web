@@ -5,7 +5,7 @@
     <div class="max-w-6xl mx-auto">
         <!-- Hero Header with Room Picture Carousel and Guest Name -->
         @php
-            $room = $booking->room;
+            $room = $reservation->room;
             $roomImages = $room ? (is_array($room->images) ? $room->images : (is_string($room->images) ? json_decode($room->images, true) : [])) : [];
             $mainImage = $room ? ($room->image ?? null) : null;
             
@@ -69,11 +69,11 @@
             <!-- Overlay Gradient -->
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none"></div>
             
-            <!-- Booking Details Title - Top Left -->
+            <!-- Reservation Details Title - Top Left -->
             <div class="absolute top-0 left-0 p-6 md:p-8 z-10">
                 <div class="inline-block bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-xl border border-white/20 shadow-lg">
                     <h1 class="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-white tracking-tight drop-shadow-lg">
-                        Edit Booking
+                        Edit Reservation
                     </h1>
                 </div>
             </div>
@@ -83,20 +83,21 @@
                 <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                     <div class="flex items-center gap-3">
                         <div class="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                            {{ strtoupper(substr($booking->firstname, 0, 1) . substr($booking->lastname, 0, 1)) }}
+                            {{ strtoupper(substr($reservation->firstname, 0, 1) . substr($reservation->lastname, 0, 1)) }}
                         </div>
                         <div>
-                            <p class="text-xl md:text-2xl font-bold text-white">{{ $booking->firstname }} {{ $booking->lastname }}</p>
-                            <p class="text-sm text-gray-200">{{ $booking->room->name ?? 'Room N/A' }}</p>
+                            <p class="text-xl md:text-2xl font-bold text-white">{{ $reservation->firstname }} {{ $reservation->lastname }}</p>
+                            <p class="text-sm text-gray-200">{{ $reservation->room->name ?? 'Room N/A' }}</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="inline-flex items-center px-4 py-2 rounded-full text-xs font-bold shadow-lg
-                            @if($booking->status === 'pending') bg-gradient-to-r from-amber-400 to-yellow-400 text-white border border-amber-300
-                            @elseif($booking->status === 'confirmed') bg-gradient-to-r from-green-400 to-emerald-400 text-white border border-green-300
+                            @if($reservation->status === 'pending') bg-gradient-to-r from-amber-400 to-yellow-400 text-white border border-amber-300
+                            @elseif($reservation->status === 'confirmed') bg-gradient-to-r from-green-400 to-emerald-400 text-white border border-green-300
+                            @elseif($reservation->status === 'paid') bg-gradient-to-r from-blue-400 to-indigo-400 text-white border border-blue-300
                             @else bg-gradient-to-r from-red-400 to-rose-400 text-white border border-red-300 @endif">
                             <span class="w-2 h-2 rounded-full mr-2 bg-white"></span>
-                            {{ ucfirst($booking->status) }}
+                            {{ ucfirst($reservation->status) }}
                         </span>
                     </div>
                 </div>
@@ -105,24 +106,24 @@
 
         <!-- Main Card -->
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-            <form action="{{ route('admin.booking.update', $booking->id) }}" method="POST">
+            <form action="{{ route('admin.reservation.update', $reservation->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 
                 <div class="p-6">
-                    <!-- Booking Info Grid -->
+                    <!-- Reservation Info Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div class="space-y-4">
                             <div class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
                                 <label class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1 block">Guest Name</label>
                                 <div class="grid grid-cols-2 gap-2">
-                                    <input type="text" name="firstname" value="{{ old('firstname', $booking->firstname) }}"
+                                    <input type="text" name="firstname" value="{{ old('firstname', $reservation->firstname) }}"
                                         class="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                         placeholder="First Name">
                                     @error('firstname')
                                         <p class="text-red-500 text-xs mt-1 col-span-2">{{ $message }}</p>
                                     @enderror
-                                    <input type="text" name="lastname" value="{{ old('lastname', $booking->lastname) }}"
+                                    <input type="text" name="lastname" value="{{ old('lastname', $reservation->lastname) }}"
                                         class="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                         placeholder="Last Name">
                                     @error('lastname')
@@ -133,7 +134,7 @@
 
                             <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                                 <label class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Email</label>
-                                <input type="email" name="email" value="{{ old('email', $booking->email) }}"
+                                <input type="email" name="email" value="{{ old('email', $reservation->email) }}"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 @error('email')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -142,7 +143,7 @@
 
                             <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                                 <label class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Phone Number</label>
-                                <input type="text" name="phone_number" value="{{ old('phone_number', $booking->phone_number) }}"
+                                <input type="text" name="phone_number" value="{{ old('phone_number', $reservation->phone_number) }}"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 @error('phone_number')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -151,7 +152,7 @@
 
                             <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                                 <label class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Number of Guests</label>
-                                <input type="number" name="number_of_guests" value="{{ old('number_of_guests', $booking->number_of_guests) }}" min="1"
+                                <input type="number" name="number_of_guests" value="{{ old('number_of_guests', $reservation->number_of_guests) }}" min="1"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 @error('number_of_guests')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -165,7 +166,7 @@
                                 <select name="room_id" class="w-full px-3 py-2 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">
                                     <option value="">Select Room</option>
                                     @foreach ($rooms as $room)
-                                        <option value="{{ $room->id }}" {{ old('room_id', $booking->room_id) == $room->id ? 'selected' : '' }}>
+                                        <option value="{{ $room->id }}" {{ old('room_id', $reservation->room_id) == $room->id ? 'selected' : '' }}>
                                             {{ $room->name }}
                                         </option>
                                     @endforeach
@@ -177,7 +178,7 @@
 
                             <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                                 <label class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Check-in Date</label>
-                                <input type="date" name="check_in" value="{{ old('check_in', $booking->check_in) }}"
+                                <input type="date" name="check_in" value="{{ old('check_in', $reservation->check_in) }}"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 @error('check_in')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -186,7 +187,7 @@
 
                             <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                                 <label class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">Check-out Date</label>
-                                <input type="date" name="check_out" value="{{ old('check_out', $booking->check_out) }}"
+                                <input type="date" name="check_out" value="{{ old('check_out', $reservation->check_out) }}"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 @error('check_out')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -195,7 +196,7 @@
 
                             <div class="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
                                 <label class="text-xs font-bold text-green-600 uppercase tracking-wider mb-1 block">Total Price</label>
-                                <input type="number" name="total_price" value="{{ old('total_price', $booking->total_price) }}" step="0.01" min="0"
+                                <input type="number" name="total_price" value="{{ old('total_price', $reservation->total_price) }}" step="0.01" min="0"
                                     class="w-full px-3 py-2 border border-green-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-semibold">
                                 @error('total_price')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -208,15 +209,16 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                             <label class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 block">Payment Method</label>
-                            <div class="text-sm font-medium text-gray-900">{{ ucfirst($booking->payment_method ?? 'N/A') }}</div>
+                            <div class="text-sm font-medium text-gray-900">{{ ucfirst($reservation->payment_method ?? 'N/A') }}</div>
                         </div>
 
                         <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                             <label class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 block">Status</label>
                             <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                                <option value="pending" {{ old('status', $booking->status) == 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="confirmed" {{ old('status', $booking->status) == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                                <option value="cancelled" {{ old('status', $booking->status) == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                <option value="pending" {{ old('status', $reservation->status) == 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="confirmed" {{ old('status', $reservation->status) == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                                <option value="paid" {{ old('status', $reservation->status) == 'paid' ? 'selected' : '' }}>Paid</option>
+                                <option value="cancelled" {{ old('status', $reservation->status) == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                             </select>
                             @error('status')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -229,7 +231,7 @@
                         <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                             <label class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 block">Special Request</label>
                             <textarea name="special_request" rows="3"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">{{ old('special_request', $booking->special_request) }}</textarea>
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">{{ old('special_request', $reservation->special_request) }}</textarea>
                             @error('special_request')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -237,24 +239,24 @@
                     </div>
 
                     <!-- Payment Proof Display -->
-                    @if($booking->payment && file_exists(storage_path('app/public/' . $booking->payment)))
+                    @if($reservation->payment && file_exists(storage_path('app/public/' . $reservation->payment)))
                         <div class="mb-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                             <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">Payment Proof</h3>
                             <div class="relative inline-block">
-                                <img src="{{ asset('storage/' . $booking->payment) }}" alt="Payment Proof" class="rounded-lg shadow-md border-2 border-gray-200 max-w-md">
+                                <img src="{{ asset('storage/' . $reservation->payment) }}" alt="Payment Proof" class="rounded-lg shadow-md border-2 border-gray-200 max-w-md">
                             </div>
                         </div>
                     @endif
 
                     <!-- Action Buttons -->
                     <div class="flex flex-wrap justify-end gap-3 pt-6 border-t border-gray-200">
-                        <a href="{{ route('admin.booking.show', $booking->id) }}"
+                        <a href="{{ route('admin.reservation.show', $reservation->id) }}"
                             class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
                             Cancel
                         </a>
                         <button type="submit"
                             class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
-                            Update Booking
+                            Update Reservation
                         </button>
                     </div>
                 </div>
