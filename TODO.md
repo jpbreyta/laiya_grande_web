@@ -1,12 +1,18 @@
-# TODO: Add Admin Login and Middleware
+# TODO: Make Dashboard Functional
 
-- [ ] Edit users migration to include role field
-- [ ] Run users table migration
-- [ ] Update User model to include role in fillable
-- [ ] Create AdminAuthController for login/logout
-- [ ] Create AdminMiddleware for authentication and role check
-- [ ] Add admin auth routes (login/logout)
-- [ ] Apply AdminMiddleware to admin routes
-- [ ] Create basic admin login view
-- [ ] Seed an admin user
-- [ ] Test login functionality
+- [x] Update DashboardController to fetch real data from database
+- [x] Modify dashboard view to display dynamic data
+- [x] Test dashboard functionality
+- [x] Create factories for seeding data
+- [x] Seed database with sample data
+
+# TODO: Implement QR Check-in System with Timer
+
+- [ ] Add migration for check_in_time and check_out_time fields to bookings table
+- [ ] Update Booking model to include new fillable fields
+- [ ] Create check-in methods in QRController (checkin, processCheckin)
+- [ ] Add check-in routes to routes/admin/qr.php
+- [ ] Create check-in view (resources/views/admin/qr/checkin.blade.php) with timer functionality
+- [ ] Update QR scanner to include check-in option
+- [ ] Add check-in navigation link to admin nav
+- [ ] Test check-in functionality and timer

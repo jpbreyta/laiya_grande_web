@@ -23,6 +23,9 @@ class Booking extends Model
         'payment',
         'total_price',
         'status',
+        'reservation_number',
+        'actual_check_in_time',
+        'actual_check_out_time',
     ];
 
     public function room()

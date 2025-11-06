@@ -18,27 +18,7 @@ class ReservationController extends Controller
         return view('user.reserve.reservations');
     }
 
-    /**
-     * Lookup reservations by email and phone.
-     */
-    public function lookup(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'phone' => 'required|string'
-        ]);
 
-        $reservations = Reservation::with('room')
-            ->where('email', $request->email)
-            ->where('phone_number', $request->phone)
-            ->latest()
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'reservations' => $reservations
-        ]);
-    }
 
     /**
      * Show form to create new reservation.
@@ -102,6 +82,7 @@ class ReservationController extends Controller
                 'total_price' => $totalPrice,
                 'status' => 'pending',
                 'expires_at' => Carbon::now()->addHours(24),
+                'reservation_number' => $this->generateReservationNumber(),
             ]);
         }
 
@@ -223,6 +204,18 @@ class ReservationController extends Controller
 
         return redirect()->route('user.reservation.index')
             ->with('success', 'Payment updated successfully. Your reservation is now pending confirmation.');
+    }
+
+    private function generateReservationNumber(): string
+    {
+        do {
+            $date = Carbon::now()->format('YmdHis');
+            $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
+            $reservationNumber = 'RSV-' . $date . '-' . $random;
+        } while (\App\Models\Booking::where('reservation_number', $reservationNumber)->exists() ||
+                 Reservation::where('reservation_number', $reservationNumber)->exists());
+
+        return $reservationNumber;
     }
 
     protected $casts = [
