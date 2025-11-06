@@ -38,7 +38,7 @@
             </p>
             
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style="animation-delay: 0.9s;">
-                <a aria-label="Book a room at Laiya Grande" href="{{ route('booking.index') }}" 
+                <a aria-label="Book a room at Laiya Grande" href="{{ route('user.rooms.index') }}" 
                    class="group inline-flex items-center gap-3 rounded-full bg-yellow-400 px-8 py-4 font-semibold text-black shadow-xl shadow-black/30 ring-1 ring-white/20 hover:bg-yellow-300 hover:shadow-2xl hover:shadow-black/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black motion-safe:transition-all duration-300 transform hover:scale-105">
                     <span>Book Now</span>
                     <span class="group-hover:translate-x-1 transition-transform">→</span>
