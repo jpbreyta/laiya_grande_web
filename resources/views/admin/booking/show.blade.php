@@ -3,7 +3,6 @@
 @section('content')
     <section class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
         <div class="max-w-6xl mx-auto">
-            <!-- Hero Header with Room Picture Carousel and Guest Name -->
             @php
                 $room = $booking->room;
                 $roomImages = $room
@@ -31,7 +30,6 @@
 
             <div class="relative h-80 md:h-96 rounded-t-2xl overflow-hidden shadow-xl mb-6">
                 @if ($hasImages)
-                    <!-- Image Carousel -->
                     <div id="imageCarousel" class="relative h-full">
                         @foreach ($allImages as $index => $image)
                             <div
@@ -41,7 +39,6 @@
                             </div>
                         @endforeach
 
-                        <!-- Navigation Buttons -->
                         @if (count($allImages) > 1)
                             <button id="prevBtn"
                                 class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110 z-10">
@@ -58,7 +55,6 @@
                                 </svg>
                             </button>
 
-                            <!-- Image Indicators -->
                             <div class="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                                 @foreach ($allImages as $index => $image)
                                     <button
@@ -67,7 +63,6 @@
                                 @endforeach
                             </div>
 
-                            <!-- Image Counter -->
                             <div
                                 class="absolute top-20 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
                                 <span id="currentImage">1</span> / <span id="totalImages">{{ count($allImages) }}</span>
@@ -78,12 +73,10 @@
                     <div class="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600"></div>
                 @endif
 
-                <!-- Overlay Gradient -->
                 <div
                     class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
                 </div>
 
-                <!-- Booking Details Title - Top Left -->
                 <div class="absolute top-0 left-0 p-6 md:p-8 z-10">
                     <div
                         class="inline-block bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-xl border border-white/20 shadow-lg">
@@ -94,7 +87,6 @@
                     </div>
                 </div>
 
-                <!-- Guest Name and Status Badge - Bottom -->
                 <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 z-10">
                     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                         <div class="flex items-center gap-3">
@@ -122,7 +114,6 @@
                 </div>
             </div>
 
-            <!-- Main Card -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                 <div class="p-6">
                     <!-- Booking Info Grid -->
@@ -174,22 +165,12 @@
 
                             <div
                                 class="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
-                                <div class="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">Total Price
-                                </div>
-                                <div
-                                    class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
-                                    ₱{{ number_format($booking->total_price, 2) }}</div>
+                                
                             </div>
                         </div>
                     </div>
 
-                    <!-- Status and Payment Method -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
-                            <div class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Payment Method</div>
-                            <div class="text-sm font-medium text-gray-900">{{ ucfirst($booking->payment_method ?? 'N/A') }}
-                            </div>
-                        </div>
 
                         <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                             <div class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Status</div>
@@ -204,18 +185,7 @@
                             </span>
                         </div>
                     </div>
-                    <div class="p-4 rounded-lg border flex items-center justify-between gap-4">
-                        <div>
-                            <div class="text-xs font-bold uppercase tracking-wider mb-1">Reservation Code</div>
-                            <div class="text-xl font-bold text-black bg-clip-text">
-                                {{ $booking->reservation_number ?? $booking->id }}</div>
-                        </div>
-                        <button id="openPassModal"
-                            class="shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
-                            View QR & Code
-                        </button>
-                    </div>
-                    <!-- Payment Proof -->
+ 
                     @if ($booking->payment && file_exists(storage_path('app/public/' . $booking->payment)))
                         <div class="mb-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200"
                             id="paymentProofSection">
@@ -239,7 +209,6 @@
                         </div>
                     @endif
 
-                    <!-- Action Buttons -->
                     <div class="flex flex-wrap justify-end gap-3 pt-6 border-t border-gray-200" id="actionButtons">
                         @if ($booking->status === 'pending')
                             <form id="approveForm" action="{{ route('admin.booking.approve', $booking->id) }}"
@@ -271,88 +240,10 @@
         </div>
     </section>
 
-    <!-- Reservation Pass Modal -->
-    <div id="reservationPassOverlay" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"></div>
-    <div id="reservationPassModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between">
-                <h3 class="text-lg font-bold">Reservation Pass</h3>
-                <button class="text-white/80 hover:text-white" data-close-reservation-pass>&times;</button>
-            </div>
-            <div id="reservationPassPrintArea" class="p-6 space-y-4">
-                <div>
-                    <div class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Reservation Code</div>
-                    <div id="reservationCodeValue" class="text-2xl font-extrabold text-gray-900 tracking-wide">
-                        {{ $booking->reservation_number ?? $booking->id }}
-                    </div>
-                </div>
-                <div class="flex items-center justify-center">
-                    <div class="bg-white p-4 rounded-xl shadow border">
-                        {!! QrCode::size(200)->margin(1)->generate(($booking->reservation_number ?? $booking->id)) !!}
-                    </div>
-                </div>
-                <p class="text-xs text-gray-500 text-center">Present this at the front desk for quick verification.</p>
-            </div>
-            <div class="px-6 py-4 border-t bg-gray-50 flex items-center justify-end gap-2">
-                <button id="copyReservationCodeBtn" class="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100">Copy Code</button>
-                <button id="printReservationPassBtn" class="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700">Print</button>
-                <button class="px-4 py-2 rounded-lg bg-white border hover:bg-gray-50" data-close-reservation-pass>Close</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Reservation Pass Modal
-        (function() {
-            const openBtn = document.getElementById('openPassModal');
-            const modal = document.getElementById('reservationPassModal');
-            const overlay = document.getElementById('reservationPassOverlay');
-            const closeBtns = document.querySelectorAll('[data-close-reservation-pass]');
-            const copyBtn = document.getElementById('copyReservationCodeBtn');
-            const printBtn = document.getElementById('printReservationPassBtn');
 
-            const toggle = (show) => {
-                if (!modal || !overlay) return;
-                if (show) {
-                    overlay.classList.remove('hidden');
-                    modal.classList.remove('hidden');
-                } else {
-                    overlay.classList.add('hidden');
-                    modal.classList.add('hidden');
-                }
-            };
-
-            openBtn?.addEventListener('click', () => toggle(true));
-            overlay?.addEventListener('click', () => toggle(false));
-            closeBtns.forEach(btn => btn.addEventListener('click', () => toggle(false)));
-
-            copyBtn?.addEventListener('click', () => {
-                const codeEl = document.getElementById('reservationCodeValue');
-                if (!codeEl) return;
-                navigator.clipboard.writeText(codeEl.textContent.trim()).then(() => {
-                    Swal.fire({ icon: 'success', title: 'Copied', text: 'Reservation code copied.', timer: 1200, showConfirmButton: false });
-                });
-            });
-
-            printBtn?.addEventListener('click', () => {
-                const printArea = document.getElementById('reservationPassPrintArea');
-                if (!printArea) return;
-                const win = window.open('', 'PRINT', 'height=600,width=800');
-                win.document.write('<html><head><title>Reservation Pass</title>');
-                win.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">');
-                win.document.write('</head><body>');
-                win.document.write(printArea.innerHTML);
-                win.document.write('</body></html>');
-                win.document.close();
-                win.focus();
-                win.print();
-                win.close();
-            });
-        })();
-
-        // Image Carousel Functionality
         (function() {
             const slides = document.querySelectorAll('.carousel-slide');
             const indicators = document.querySelectorAll('.carousel-indicator');
@@ -362,16 +253,14 @@
             let currentIndex = 0;
             const totalImages = slides.length;
 
-            if (totalImages <= 1) return; // No carousel needed if only one image
+            if (totalImages <= 1) return; 
 
             function showSlide(index) {
-                // Hide all slides
                 slides.forEach((slide, i) => {
                     slide.classList.remove('active');
                     slide.style.opacity = i === index ? '1' : '0';
                 });
 
-                // Update indicators
                 indicators.forEach((indicator, i) => {
                     if (i === index) {
                         indicator.classList.add('bg-white', 'w-8');
@@ -382,7 +271,6 @@
                     }
                 });
 
-                // Update counter
                 if (currentImageSpan) {
                     currentImageSpan.textContent = index + 1;
                 }
@@ -400,17 +288,13 @@
                 showSlide(prevIndex);
             }
 
-            // Event listeners
             if (nextBtn) nextBtn.addEventListener('click', nextSlide);
             if (prevBtn) prevBtn.addEventListener('click', prevSlide);
 
-            // Indicator clicks
             indicators.forEach((indicator, index) => {
                 indicator.addEventListener('click', () => showSlide(index));
             });
 
-            // Auto-play (optional - uncomment if you want auto-rotation)
-            // setInterval(nextSlide, 5000);
         })();
 
         const updateBookingUI = (status, message) => {
@@ -432,7 +316,6 @@
                     `inline-flex items-center px-4 py-2 rounded-full text-xs font-bold shadow-lg ${badgeClasses}`;
             }
 
-            // Remove action buttons
             const actionButtons = document.getElementById('actionButtons');
             if (status !== 'pending' && actionButtons) {
                 actionButtons.querySelector('#approveBtn')?.remove();
