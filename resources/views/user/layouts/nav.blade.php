@@ -3,15 +3,15 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div id="nav-inner" class="flex justify-between h-14 items-center transition-all duration-300">
 
-            <div class="flex items-center">
-                <a href="{{ url('/') }}" class="flex items-center gap-2">
-                    <img id="brand-logo" src="{{ asset('images/laiyagrande-logo.png') }}" alt="Laiya Grande Beach Resort"
-                        class="h-10 w-auto shadow-sm transition-all duration-300">
-                    <span id="brand-text"
-                        class="text-slate-900 font-semibold text-lg tracking-tight font-heading transition-all duration-300 dark:text-slate-100">Laiya
-                        Grande</span>
-                </a>
-            </div>
+         <div class="flex items-center">
+    <a href="{{ url('/') }}" class="flex items-center gap-2">
+        <span id="brand-text"
+            class="text-teal-700 font-semibold text-lg tracking-tight transition-all duration-300"
+            style="font-family: 'Poppins', sans-serif;">
+            Laiya Grande
+        </span>
+    </a>
+</div>
 
             <div class="hidden md:flex items-center space-x-6">
                 <a href="{{ url('/') }}"
