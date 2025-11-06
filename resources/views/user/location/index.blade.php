@@ -96,7 +96,7 @@
           </svg>
           <div>
             <p class="text-xs font-semibold text-gray-500 font-serif mb-1">Email</p>
-            <p class="text-xs text-gray-700 leading-relaxed">laiyagrande97@gmail.com</p>
+            <p class="text-xs text-gray-700 leading-relaxed">laiyagrandebr22@gmail.com</p>
           </div>
         </div>
 
