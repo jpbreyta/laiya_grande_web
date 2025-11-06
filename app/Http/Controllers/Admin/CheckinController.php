@@ -9,13 +9,26 @@ use App\Models\Booking;
 class CheckinController extends Controller
 {
     /**
-     * Display check-in page with timer
+     * Display list of checked-in bookings
      */
-    public function index($id)
+    public function index()
+    {
+        $checkedInBookings = Booking::with('room')
+            ->whereNotNull('actual_check_in_time')
+            ->orderBy('actual_check_in_time', 'desc')
+            ->paginate(10);
+
+        return view('admin.checkin.index', compact('checkedInBookings'));
+    }
+
+    /**
+     * Display check-in page with timer for specific booking
+     */
+    public function show($id)
     {
         $booking = Booking::with('room')->findOrFail($id);
 
-        return view('admin.checkin.index', compact('booking'));
+        return view('admin.checkin.show', compact('booking'));
     }
 
     /**

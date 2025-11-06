@@ -108,7 +108,12 @@
                 </div>
 
                 <div class="flex items-center space-x-4">
-
+                    <div class="relative">
+                        <button
+                            class="relative text-gray-600 hover:text-[var(--teal-primary)] transition-colors notification-btn">
+                            <i class="fas fa-inbox text-xl"></i>
+                        </button>
+                    </div>
                     <div class="relative">
                         <button
                             class="relative text-gray-600 hover:text-[var(--teal-primary)] transition-colors notification-btn">

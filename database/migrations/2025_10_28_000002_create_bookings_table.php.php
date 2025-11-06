@@ -31,7 +31,7 @@ return new class extends Migration {
             $table->string('payment')->nullable();
             $table->decimal('total_price', 10, 2)->default(0);
 
-            $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed'])->default('pending');
+           $table->enum('status', ['pending', 'confirmed', 'cancelled', 'active', 'completed'])->default('pending');
 
             $table->timestamps();
         });

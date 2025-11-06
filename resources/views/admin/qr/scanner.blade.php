@@ -46,7 +46,7 @@
                                 </div>
                             </div>
 
-                            <!-- Manual Input -->
+                            <!-- Manual Input & Upload -->
                             <div class="md:w-80">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Manual Entry</label>
                                 <div class="space-y-3">
@@ -55,6 +55,16 @@
                                     <button id="manual-submit"
                                         class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                                         Process Code
+                                    </button>
+                                </div>
+
+                                <div class="mt-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Upload QR Code Image</label>
+                                    <input type="file" id="qr-upload" accept="image/*"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <button id="upload-submit"
+                                        class="w-full mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                                        Process Image
                                     </button>
                                 </div>
                             </div>
@@ -224,6 +234,63 @@
             manualQrInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     manualSubmitBtn.click();
+                }
+            });
+
+            // QR code image upload processing
+            const uploadSubmitBtn = document.getElementById('upload-submit');
+            const qrUploadInput = document.getElementById('qr-upload');
+
+            uploadSubmitBtn.addEventListener('click', async function() {
+                const file = qrUploadInput.files[0];
+                if (!file) {
+                    showError('Please select a QR code image to upload.');
+                    return;
+                }
+
+                try {
+                    // Initialize codeReader if not already done
+                    initQRReader();
+
+                    scannerStatus.textContent = 'Processing uploaded image...';
+                    scannerStatus.className =
+                        'absolute bottom-4 left-4 right-4 bg-blue-500/75 text-white px-3 py-2 rounded text-sm';
+
+                    // Create an image element to load the file
+                    const img = new Image();
+                    const url = URL.createObjectURL(file);
+
+                    img.onload = async function() {
+                        try {
+                            const result = await codeReader.decodeFromImage(img);
+                            URL.revokeObjectURL(url); // Clean up the blob URL
+                            processQRCode(result.text);
+                        } catch (decodeError) {
+                            URL.revokeObjectURL(url);
+                            console.error('Error decoding QR code from image:', decodeError);
+                            showError('No QR code found in the uploaded image.');
+                            scannerStatus.textContent = 'No QR code detected';
+                            scannerStatus.className =
+                                'absolute bottom-4 left-4 right-4 bg-red-500/75 text-white px-3 py-2 rounded text-sm';
+                        }
+                    };
+
+                    img.onerror = function() {
+                        URL.revokeObjectURL(url);
+                        showError('Failed to load the uploaded image. Please try again.');
+                        scannerStatus.textContent = 'Error loading image';
+                        scannerStatus.className =
+                            'absolute bottom-4 left-4 right-4 bg-red-500/75 text-white px-3 py-2 rounded text-sm';
+                    };
+
+                    img.src = url;
+
+                } catch (error) {
+                    console.error('Error processing uploaded image:', error);
+                    showError('Failed to process the uploaded image. Please try again.');
+                    scannerStatus.textContent = 'Error processing image';
+                    scannerStatus.className =
+                        'absolute bottom-4 left-4 right-4 bg-red-500/75 text-white px-3 py-2 rounded text-sm';
                 }
             });
 
