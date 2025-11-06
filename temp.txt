@@ -1,0 +1,4 @@
+        Schema::table('bookings', function (Blueprint \) {
+            \->timestamp('actual_check_in_time')->nullable()->after('status');
+            \->timestamp('actual_check_out_time')->nullable()->after('actual_check_in_time');
+        });
