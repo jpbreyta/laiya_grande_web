@@ -24,3 +24,6 @@ require __DIR__ . '/admin/booking/booking.php';
 require __DIR__.'/admin/reservation/reservation.php';
 require __DIR__.'/admin/packages/packages.php';
 require __DIR__.'/admin/new/new.php';
+require __DIR__.'/admin/notifications.php';
+require __DIR__.'/admin/qr.php';
+require __DIR__.'/admin/checkin.php';
