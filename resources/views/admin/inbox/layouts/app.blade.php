@@ -91,27 +91,30 @@
 
     <div class="flex h-screen overflow-hidden">
 
-        {{-- Sidebar (fixed width) --}}
-        @include('admin.layouts.nav')
+        @include('admin.inbox.layouts.sidebar')
 
-        {{-- Main Section --}}
         <div class="flex flex-col flex-1 h-full">
 
-            {{-- Header (now beside nav, top of content) --}}
-            <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                <div class="flex-1 max-w-md">
-                    <div class="relative">
-                        <input type="text" placeholder="Search"
-                            class="search-input w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--teal-primary)] focus:border-transparent">
-                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex items-end justify-between">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <input type="text" placeholder="Search mail"
+                            class="border border-gray-300 rounded-md py-2 px-3 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-[var(--teal-primary)] focus:border-transparent" />
                     </div>
                 </div>
 
                 <div class="flex items-center space-x-4">
                     <div class="relative">
-                        <a href="{{ route('admin.inbox.index') }}"
+                        <a href="#"
                             class="relative text-gray-600 hover:text-[var(--teal-primary)] transition-colors">
-                            <i class="fas fa-inbox text-xl"></i>
+                            <i class="fas fa-cog text-xl"></i>
+                        </a>
+                    </div>
+
+                    <div class="relative">
+                        <a href="{{ route('admin.dashboard') }}"
+                            class="relative text-gray-600 hover:text-[var(--teal-primary)] transition-colors">
+                            <i class="fas fa-home text-xl"></i>
                         </a>
                     </div>
 
@@ -171,7 +174,7 @@
             </header>
 
             {{-- Page Body --}}
-            <main class="main-content flex-1 bg-gray-50 p-6 overflow-auto">
+            <main class="main-content flex-1 bg-gray-50 overflow-auto">
                 @yield('content')
             </main>
         </div>

@@ -76,6 +76,11 @@
             <i class="fas fa-cog text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">System Settings</span>
         </a>
+
+        <a href="{{ route('admin.pos.index')}}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+            <i class="fa-solid fa-cash-register text-xl w-6 shrink-0"></i>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">Point of Sale</span>
+        </a>
     </div>
 
     <!-- Divider -->

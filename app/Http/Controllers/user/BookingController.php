@@ -18,6 +18,12 @@ class BookingController extends Controller
     /**
      * Show all available rooms and handle filters/search.
      */
+    public function view($id)
+    {
+        $room = Room::findOrFail($id);
+        return view('user.booking.view', compact('room'));
+    }
+
     public function index(Request $request)
     {
         $query = Room::query();
@@ -257,8 +263,10 @@ class BookingController extends Controller
             $date = Carbon::now()->format('YmdHis');
             $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
             $reservationNumber = 'BK-' . $date . '-' . $random;
-        } while (Booking::where('reservation_number', $reservationNumber)->exists() ||
-                 \App\Models\Reservation::where('reservation_number', $reservationNumber)->exists());
+        } while (
+            Booking::where('reservation_number', $reservationNumber)->exists() ||
+            \App\Models\Reservation::where('reservation_number', $reservationNumber)->exists()
+        );
 
         return $reservationNumber;
     }
