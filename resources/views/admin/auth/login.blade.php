@@ -8,9 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body
-    class="relative bg-gradient-to-br from-yellow-100 via-white to-blue-100 text-white min-h-screen flex items-center justify-center px-4">
-    style
+<body class="relative bg-gradient-to-br from-yellow-100 via-white to-blue-100 text-white min-h-screen flex items-center justify-center px-4">
     <div
         class="w-full max-w-6xl bg-white shadow-2xl rounded-2xl overflow-hidden flex flex-col md:flex-row text-gray-800">
         <!-- Left Panel -->
@@ -65,6 +63,7 @@
                     class="w-full py-2 px-4 bg-teal-600 text-white font-semibold rounded-full hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
                     LOGIN
                 </button>
+            </form>
         </div>
     </div>
 </body>

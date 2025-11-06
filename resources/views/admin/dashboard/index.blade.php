@@ -98,9 +98,9 @@
             <div class="flex items-center space-x-4">
                 <div class="text-right">
                     <p class="text-sm text-gray-500">Last updated</p>
-                    <p class="text-sm font-medium text-gray-700">Oct 29, 2025 15:34</p>
+                    <p class="text-sm font-medium text-gray-700">{{ now()->format('M d, Y H:i') }}</p>
                 </div>
-                <button class="btn-primary text-white px-4 py-2 rounded-lg flex items-center">
+                <button class="btn-primary text-white px-4 py-2 rounded-lg flex items-center" onclick="location.reload()">
                     <i class="fas fa-sync-alt mr-2"></i>Refresh
                 </button>
             </div>
@@ -112,8 +112,8 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium opacity-90">Total Bookings</h3>
-                        <p class="text-3xl font-bold">156</p>
-                        <p class="text-sm opacity-80">+12% from last month</p>
+                        <p class="text-3xl font-bold">{{ $totalBookings ?? 0 }}</p>
+                        <p class="text-sm opacity-80">All time</p>
                     </div>
                     <i class="fas fa-calendar-check text-3xl opacity-80"></i>
                 </div>
@@ -123,8 +123,8 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium opacity-90">Revenue</h3>
-                        <p class="text-3xl font-bold">₱2.4M</p>
-                        <p class="text-sm opacity-80">+8% from last month</p>
+                        <p class="text-3xl font-bold">₱{{ number_format($totalRevenue ?? 0, 0, ',', ',') }}</p>
+                        <p class="text-sm opacity-80">From confirmed bookings</p>
                     </div>
                     <i class="fas fa-dollar-sign text-3xl opacity-80"></i>
                 </div>
@@ -134,8 +134,8 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium">Occupancy Rate</h3>
-                        <p class="text-3xl font-bold">87%</p>
-                        <p class="text-sm">+5% from last month</p>
+                        <p class="text-3xl font-bold">{{ $occupancyRate ?? 0 }}%</p>
+                        <p class="text-sm">Current occupancy</p>
                     </div>
                     <i class="fas fa-chart-pie text-3xl"></i>
                 </div>
@@ -145,7 +145,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium opacity-90">Pending</h3>
-                        <p class="text-3xl font-bold">12</p>
+                        <p class="text-3xl font-bold">{{ $pendingBookings ?? 0 }}</p>
                         <p class="text-sm opacity-80">Requires attention</p>
                     </div>
                     <i class="fas fa-clock text-3xl opacity-80"></i>
@@ -168,57 +168,38 @@
             <div class="bg-white rounded-lg shadow-sm p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-bold text-gray-800">Recent Bookings</h2>
-                    <a href="#" class="text-[#2C5F5F] hover:text-[#1A4A4A] text-sm font-medium">View All</a>
+                    <a href="{{ route('admin.booking.index') }}"
+                        class="text-[#2C5F5F] hover:text-[#1A4A4A] text-sm font-medium">View All</a>
                 </div>
 
                 <div class="space-y-4">
-                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-[#2C5F5F] rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-white"></i>
+                    @forelse($recentBookings ?? [] as $booking)
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-[#2C5F5F] rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800">{{ $booking->firstname }} {{ $booking->lastname }}
+                                    </p>
+                                    <p class="text-sm text-gray-600">{{ $booking->room->name ?? 'N/A' }} -
+                                        {{ $booking->number_of_guests }} guests</p>
+                                </div>
                             </div>
-                            <div>
-                                <p class="font-medium text-gray-800">John Smith</p>
-                                <p class="text-sm text-gray-600">Room 205 - 2 nights</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-medium text-gray-800">₱15,000</p>
-                            <p class="text-sm text-gray-500">Jan 15-17</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-[#1E3A5F] rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-white"></i>
-                            </div>
-                            <div>
-                                <p class="font-medium text-gray-800">Maria Garcia</p>
-                                <p class="text-sm text-gray-600">Room 301 - 3 nights</p>
+                            <div class="text-right">
+                                <p class="font-medium text-gray-800">
+                                    ₱{{ number_format($booking->total_price, 0, ',', ',') }}</p>
+                                <p class="text-sm text-gray-500">
+                                    {{ \Carbon\Carbon::parse($booking->check_in)->format('M d') }}-{{ \Carbon\Carbon::parse($booking->check_out)->format('M d') }}
+                                </p>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <p class="font-medium text-gray-800">₱22,500</p>
-                            <p class="text-sm text-gray-500">Jan 18-21</p>
+                    @empty
+                        <div class="text-center py-8">
+                            <i class="fas fa-calendar-times text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-500">No recent bookings</p>
                         </div>
-                    </div>
-
-                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-[#F4D03F] rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-gray-800"></i>
-                            </div>
-                            <div>
-                                <p class="font-medium text-gray-800">David Lee</p>
-                                <p class="text-sm text-gray-600">Room 101 - 1 night</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-medium text-gray-800">₱7,500</p>
-                            <p class="text-sm text-gray-500">Jan 20</p>
-                        </div>
-                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -227,49 +208,24 @@
         <div class="bg-white rounded-lg shadow-sm p-6">
             <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Activity</h2>
             <div class="space-y-4">
-                <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                    <div class="w-10 h-10 bg-[#2C5F5F] rounded-full flex items-center justify-center">
-                        <i class="fas fa-user-plus text-white"></i>
+                @forelse($recentActivities ?? [] as $activity)
+                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center"
+                            style="background-color: {{ $activity['color'] }}">
+                            <i class="fas {{ $activity['icon'] }} text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-800">{{ $activity['title'] }}</p>
+                            <p class="text-sm text-gray-600">{{ $activity['description'] }}</p>
+                        </div>
+                        <span class="text-sm text-gray-500">{{ $activity['time'] }}</span>
                     </div>
-                    <div class="flex-1">
-                        <p class="font-medium text-gray-800">New booking received</p>
-                        <p class="text-sm text-gray-600">Room 205 - 2 nights - John Smith</p>
+                @empty
+                    <div class="text-center py-8">
+                        <i class="fas fa-history text-4xl text-gray-400 mb-2"></i>
+                        <p class="text-gray-500">No recent activities</p>
                     </div>
-                    <span class="text-sm text-gray-500">2 hours ago</span>
-                </div>
-
-                <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                    <div class="w-10 h-10 bg-[#1E3A5F] rounded-full flex items-center justify-center">
-                        <i class="fas fa-credit-card text-white"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="font-medium text-gray-800">Payment processed</p>
-                        <p class="text-sm text-gray-600">₱15,000 - Booking #1234</p>
-                    </div>
-                    <span class="text-sm text-gray-500">4 hours ago</span>
-                </div>
-
-                <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                    <div class="w-10 h-10 bg-[#F4D03F] rounded-full flex items-center justify-center">
-                        <i class="fas fa-star text-gray-800"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="font-medium text-gray-800">New review received</p>
-                        <p class="text-sm text-gray-600">5 stars - "Excellent service and beautiful location!"</p>
-                    </div>
-                    <span class="text-sm text-gray-500">6 hours ago</span>
-                </div>
-
-                <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                    <div class="w-10 h-10 bg-[#E74C3C] rounded-full flex items-center justify-center">
-                        <i class="fas fa-exclamation-triangle text-white"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="font-medium text-gray-800">Maintenance request</p>
-                        <p class="text-sm text-gray-600">Room 301 - Air conditioning issue</p>
-                    </div>
-                    <span class="text-sm text-gray-500">8 hours ago</span>
-                </div>
+                @endforelse
             </div>
         </div>
     </div>

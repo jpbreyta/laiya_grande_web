@@ -20,5 +20,11 @@ class AdminUserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'admin',
         ]);
+        User::create([
+            'name' => 'Super Admin',
+            'email' => 'super_admin@laiyagrande.com',
+            'password' => Hash::make('superpassword'),
+            'role' => 'super admin',
+        ]);
     }
 }
