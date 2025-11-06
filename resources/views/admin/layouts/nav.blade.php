@@ -31,12 +31,12 @@
             <i class="fas fa-calendar-check text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Manage Reservation</span>
         </a>
-        <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+        <a href="{{ route('admin.checkin.index')}}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-user-check text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Guest & Booking</span>
         </a>
 
-        <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+        <a href="{{ route('admin.foods.index')}}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-seedling text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Foods</span>
         </a>

@@ -26,4 +26,6 @@ require __DIR__.'/admin/packages/packages.php';
 require __DIR__.'/admin/new/new.php';
 require __DIR__.'/admin/notifications.php';
 require __DIR__.'/admin/qr.php';
-require __DIR__.'/admin/checkin.php';
+require __DIR__.'/admin/checkin/checkin.php';
+require __DIR__.'/admin/foods/foods.php';
+require __DIR__.'/admin/inbox/inbox.php';
