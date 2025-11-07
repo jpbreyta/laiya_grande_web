@@ -3,7 +3,6 @@
 @section('content')
     <section class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
         <div class="max-w-6xl mx-auto">
-            <!-- Hero Header with Room Picture Carousel and Guest Name -->
             @php
                 $room = $booking->room;
                 $roomImages = $room
@@ -31,7 +30,6 @@
 
             <div class="relative h-80 md:h-96 rounded-t-2xl overflow-hidden shadow-xl mb-6">
                 @if ($hasImages)
-                    <!-- Image Carousel -->
                     <div id="imageCarousel" class="relative h-full">
                         @foreach ($allImages as $index => $image)
                             <div
@@ -41,7 +39,6 @@
                             </div>
                         @endforeach
 
-                        <!-- Navigation Buttons -->
                         @if (count($allImages) > 1)
                             <button id="prevBtn"
                                 class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110 z-10">
@@ -58,7 +55,6 @@
                                 </svg>
                             </button>
 
-                            <!-- Image Indicators -->
                             <div class="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                                 @foreach ($allImages as $index => $image)
                                     <button
@@ -67,7 +63,6 @@
                                 @endforeach
                             </div>
 
-                            <!-- Image Counter -->
                             <div
                                 class="absolute top-20 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
                                 <span id="currentImage">1</span> / <span id="totalImages">{{ count($allImages) }}</span>
@@ -78,12 +73,10 @@
                     <div class="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600"></div>
                 @endif
 
-                <!-- Overlay Gradient -->
                 <div
                     class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
                 </div>
 
-                <!-- Booking Details Title - Top Left -->
                 <div class="absolute top-0 left-0 p-6 md:p-8 z-10">
                     <div
                         class="inline-block bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-xl border border-white/20 shadow-lg">
@@ -94,7 +87,6 @@
                     </div>
                 </div>
 
-                <!-- Guest Name and Status Badge - Bottom -->
                 <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 z-10">
                     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                         <div class="flex items-center gap-3">
@@ -122,14 +114,12 @@
                 </div>
             </div>
 
-            <!-- Main Card -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                 <form action="{{ route('admin.booking.update', $booking->id) }}" method="POST">
                     @csrf
                     @method('PUT')
 
                     <div class="p-6">
-                        <!-- Booking Info Grid -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <div class="space-y-4">
                                 <div
@@ -253,7 +243,6 @@
                             </div>
                         </div>
 
-                        <!-- Status and Payment Method -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                                 <label class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 block">Payment
@@ -283,7 +272,6 @@
                             </div>
                         </div>
 
-                        <!-- Special Request -->
                         <div class="mb-6">
                             <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                                 <label class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 block">Special
@@ -296,7 +284,6 @@
                             </div>
                         </div>
 
-                        <!-- Payment Proof Display -->
                         @if ($booking->payment && file_exists(storage_path('app/public/' . $booking->payment)))
                             <div
                                 class="mb-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
@@ -309,7 +296,6 @@
                             </div>
                         @endif
 
-                        <!-- Action Buttons -->
                         <div class="flex flex-wrap justify-end gap-3 pt-6 border-t border-gray-200">
                             <a href="{{ route('admin.booking.show', $booking->id) }}"
                                 class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
@@ -326,7 +312,6 @@
         </div>
     </section>
 
-    <!-- Image Carousel Script -->
     <script>
         (function() {
             const slides = document.querySelectorAll('.carousel-slide');
