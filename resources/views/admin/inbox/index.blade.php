@@ -15,90 +15,46 @@
                 </div>
             </div>
 
-            <ul class="divide-y divide-gray-200">
-                <!-- static mail items -->
-                <li class="mail-item p-4 flex items-start gap-3 hover:bg-gray-50 cursor-pointer">
-                    <img src="https://ui-avatars.com/api/?name=J+S&background=2C5F5F&color=fff"
-                        class="w-10 h-10 rounded-full" alt="avatar">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2">
-                            <div class="font-medium text-gray-900">Jules Santiago</div>
-                            <div class="text-xs text-gray-500 ml-2">
-                                <jules@example.com>
+            @if ($messages->count() > 0)
+                <ul class="divide-y divide-gray-200">
+                    @foreach ($messages as $message)
+                        <li class="mail-item p-4 flex items-start gap-3 {{ $message->status === 'unread' ? 'bg-blue-50' : 'hover:bg-gray-50' }} cursor-pointer"
+                            onclick="window.location.href='{{ route('admin.inbox.show', $message->id) }}'">
+                            <img src="https://ui-avatars.com/api/?name={{ urlencode($message->name) }}&background=2C5F5F&color=fff"
+                                class="w-10 h-10 rounded-full" alt="avatar">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <div class="font-medium text-gray-900">{{ $message->name }}</div>
+                                    <div class="text-xs text-gray-500 ml-2">
+                                        <{{ $message->email }}>
+                                    </div>
+                                    <div class="ml-auto text-xs text-gray-400">{{ $message->created_at->format('M j') }}
+                                    </div>
+                                </div>
+                                <div class="text-sm text-gray-700 mt-1">{{ Str::limit($message->subject, 50) }}</div>
+                                <div class="text-xs text-gray-400 mt-2">{{ Str::limit($message->message, 80) }}</div>
+                                @if ($message->status === 'unread')
+                                    <span class="inline-block w-2 h-2 bg-blue-500 rounded-full ml-2"></span>
+                                @endif
                             </div>
-                            <div class="ml-auto text-xs text-gray-400">Nov 6</div>
-                        </div>
-                        <div class="text-sm text-gray-700 mt-1">Reservation request — 2 adults, check-in Dec 20
-                        </div>
-                        <div class="text-xs text-gray-400 mt-2">RSV-20251106224512-1A2B3C</div>
-                    </div>
-                </li>
+                        </li>
+                    @endforeach
+                </ul>
 
-                <li class="mail-item p-4 flex items-start gap-3 bg-gray-50 cursor-pointer">
-                    <img src="https://ui-avatars.com/api/?name=A+M&background=1E3A5F&color=fff"
-                        class="w-10 h-10 rounded-full" alt="avatar">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2">
-                            <div class="font-medium text-gray-900">Aimee Mercado</div>
-                            <div class="text-xs text-gray-500 ml-2">
-                                <aimee@client.com>
-                            </div>
-                            <div class="ml-auto text-xs text-gray-400">Nov 5</div>
-                        </div>
-                        <div class="text-sm text-gray-700 mt-1">Payment confirmation for booking
-                            BK-20251031120000-ABC123</div>
-                        <div class="text-xs text-gray-400 mt-2">Booking: BK-20251031120000-ABC123</div>
-                    </div>
-                </li>
-
-                <li class="mail-item p-4 flex items-start gap-3 hover:bg-gray-50 cursor-pointer">
-                    <img src="https://ui-avatars.com/api/?name=T+R&background=E74C3C&color=fff"
-                        class="w-10 h-10 rounded-full" alt="avatar">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2">
-                            <div class="font-medium text-gray-900">Troy Rivera</div>
-                            <div class="text-xs text-gray-500 ml-2">
-                                <troy@travel.com>
-                            </div>
-                            <div class="ml-auto text-xs text-gray-400">Oct 29</div>
-                        </div>
-                        <div class="text-sm text-gray-700 mt-1">Question about extra bed and breakfast options</div>
-                        <div class="text-xs text-gray-400 mt-2">Ref: room 204</div>
-                    </div>
-                </li>
-
-                <!-- more static items (duplicate for visuals) -->
-                <li class="mail-item p-4 flex items-start gap-3 hover:bg-gray-50 cursor-pointer">
-                    <img src="https://ui-avatars.com/api/?name=G+P&background=059669&color=fff"
-                        class="w-10 h-10 rounded-full" alt="avatar">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2">
-                            <div class="font-medium text-gray-900">Guest Payments</div>
-                            <div class="text-xs text-gray-500 ml-2">
-                                <noreply@payments.com>
-                            </div>
-                            <div class="ml-auto text-xs text-gray-400">Oct 12</div>
-                        </div>
-                        <div class="text-sm text-gray-700 mt-1">Refund processed for BK-20250915090000-Z9Y8X7</div>
-                        <div class="text-xs text-gray-400 mt-2">Amount: ₱3,200</div>
-                    </div>
-                </li>
-
-                <li class="mail-item p-4 flex items-start gap-3 hover:bg-gray-50 cursor-pointer">
-                    <img src="https://ui-avatars.com/api/?name=Sys+N&background=374151&color=fff"
-                        class="w-10 h-10 rounded-full" alt="avatar">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2">
-                            <div class="font-medium text-gray-900">System Notification</div>
-                            <div class="text-xs text-gray-500 ml-2"><no-reply@site.com></div>
-                            <div class="ml-auto text-xs text-gray-400">Sep 30</div>
-                        </div>
-                        <div class="text-sm text-gray-700 mt-1">New user registered: hearthy.delacion@example.com
-                        </div>
-                        <div class="text-xs text-gray-400 mt-2">User ID: 1024</div>
-                    </div>
-                </li>
-            </ul>
+                <!-- Pagination -->
+                <div class="mt-6">
+                    {{ $messages->links() }}
+                </div>
+            @else
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m8-5v2m0 0v2m0-2h2m-2 0h-2" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No messages</h3>
+                    <p class="mt-1 text-sm text-gray-500">No contact messages have been received yet.</p>
+                </div>
+            @endif
         </section>
     </div>
     </div>

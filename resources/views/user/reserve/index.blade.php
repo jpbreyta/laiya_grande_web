@@ -19,7 +19,8 @@
             min-height: 100vh;
             padding: 2rem 0;
             display: flex;
-            align-items: center; /* vertically center the card */ 
+            align-items: center;
+            /* vertically center the card */
         }
 
         /* Center the layout regardless of Bootstrap grid presence */
@@ -48,8 +49,10 @@
 
         @media (min-width: 1536px) {
             .reserve-container .container {
-                max-width: 1440px; /* better use of ultrawide screens */
+                max-width: 1440px;
+                /* better use of ultrawide screens */
             }
+
             .reserve-container .col-lg-8 {
                 max-width: 1200px;
             }
@@ -213,6 +216,7 @@
             padding: 1.5rem;
             margin-bottom: 2rem;
         }
+
         .payment-header {
             display: flex;
             align-items: center;
@@ -221,15 +225,20 @@
             font-weight: 700;
             color: var(--text-dark);
         }
+
         .qr-wrap {
             display: grid;
             grid-template-columns: 1fr;
             gap: 1rem;
             align-items: center;
         }
+
         @media (min-width: 768px) {
-            .qr-wrap { grid-template-columns: 260px 1fr; }
+            .qr-wrap {
+                grid-template-columns: 260px 1fr;
+            }
         }
+
         .qr-card {
             background: #fff;
             border: 1px solid var(--border-color);
@@ -237,17 +246,20 @@
             padding: 1rem;
             text-align: center;
         }
+
         .qr-card img {
             width: 220px;
             height: 220px;
             object-fit: contain;
             display: inline-block;
         }
+
         .payment-list {
             margin: 0;
             padding-left: 1.25rem;
             list-style: disc;
-            color: #dc2626; /* red for emphasis */
+            color: #dc2626;
+            /* red for emphasis */
         }
 
         /* Payment option buttons */
@@ -257,6 +269,7 @@
             gap: .75rem;
             margin-top: .75rem;
         }
+
         .pay-btn {
             border: 2px solid var(--border-color);
             background: #fff;
@@ -267,7 +280,11 @@
             transition: all .2s ease;
             width: 100%;
         }
-        .pay-btn:hover { border-color: var(--primary-color); }
+
+        .pay-btn:hover {
+            border-color: var(--primary-color);
+        }
+
         .pay-btn.active {
             background: linear-gradient(135deg, #1a4d6d 0%, #2563eb 100%);
             color: #fff;
@@ -275,7 +292,9 @@
         }
 
         /* Utility hidden class for conditional sections */
-        .hidden { display: none !important; }
+        .hidden {
+            display: none !important;
+        }
     </style>
 
     <div class="reserve-container">
@@ -328,7 +347,8 @@
                                 You can confirm your booking within this period to secure your stay.
                             </div>
 
-                            <form method="POST" action="{{ route('user.reservation.store') }}" id="reserveForm" enctype="multipart/form-data">
+                            <form method="POST" action="{{ route('user.reservation.store') }}" id="reserveForm"
+                                enctype="multipart/form-data">
                                 @csrf
 
                                 <div class="row">
@@ -337,7 +357,8 @@
                                             <label class="form-label">
                                                 <i class="fas fa-user"></i> First Name *
                                             </label>
-                                            <input type="text" class="form-control" name="first_name" placeholder="Juan" autocomplete="given-name" required>
+                                            <input type="text" class="form-control" name="first_name" placeholder="Juan"
+                                                autocomplete="given-name" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -345,7 +366,8 @@
                                             <label class="form-label">
                                                 <i class="fas fa-user"></i> Last Name *
                                             </label>
-                                            <input type="text" class="form-control" name="last_name" placeholder="Dela Cruz" autocomplete="family-name" required>
+                                            <input type="text" class="form-control" name="last_name"
+                                                placeholder="Dela Cruz" autocomplete="family-name" required>
                                         </div>
                                     </div>
                                 </div>
@@ -354,14 +376,16 @@
                                     <label class="form-label">
                                         <i class="fas fa-envelope"></i> Email Address *
                                     </label>
-                                    <input type="email" class="form-control" name="email" placeholder="you@example.com" autocomplete="email" required>
+                                    <input type="email" class="form-control" name="email" placeholder="you@example.com"
+                                        autocomplete="email" required>
                                 </div>
 
                                 <div class="form-group">
                                     <label class="form-label">
                                         <i class="fas fa-phone"></i> Phone Number *
                                     </label>
-                                    <input type="tel" class="form-control" name="phone" placeholder="09xx xxx xxxx" autocomplete="tel" required>
+                                    <input type="tel" class="form-control" name="phone" placeholder="09xx xxx xxxx"
+                                        autocomplete="tel" required>
                                 </div>
 
                                 <div class="row">
@@ -370,7 +394,8 @@
                                             <label class="form-label">
                                                 <i class="fas fa-calendar"></i> Check-in Date *
                                             </label>
-                                            <input type="date" class="form-control" name="check_in" autocomplete="off" required>
+                                            <input type="date" class="form-control" name="check_in" autocomplete="off"
+                                                required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -378,7 +403,8 @@
                                             <label class="form-label">
                                                 <i class="fas fa-calendar"></i> Check-out Date *
                                             </label>
-                                            <input type="date" class="form-control" name="check_out" autocomplete="off" required>
+                                            <input type="date" class="form-control" name="check_out" autocomplete="off"
+                                                required>
                                         </div>
                                     </div>
                                 </div>
@@ -387,7 +413,23 @@
                                     <label class="form-label">
                                         <i class="fas fa-users"></i> Number of Guests
                                     </label>
-                                    <input type="number" class="form-control" name="guests" min="1" value="2" placeholder="2">
+                                    <input type="number" class="form-control" name="guests" min="1" value="2"
+                                        placeholder="2" id="reserveGuestsInput">
+                                    <small class="text-gray-500 text-sm mt-1 block" id="reserveCapacityHint">
+                                        @php
+                                            $cart = session('cart', []);
+                                            $totalCapacity = 0;
+                                            foreach ($cart as $item) {
+                                                $room = \App\Models\Room::find($item['room_id']);
+                                                if ($room) {
+                                                    $totalCapacity += $room->capacity * $item['quantity'];
+                                                }
+                                            }
+                                        @endphp
+                                        @if ($totalCapacity > 0)
+                                            Maximum capacity for selected rooms: {{ $totalCapacity }} guests
+                                        @endif
+                                    </small>
                                 </div>
 
                                 <div class="form-group">
@@ -406,21 +448,27 @@
                                     </div>
                                     <div class="qr-wrap">
                                         <div class="qr-card">
-                                            <img src="{{ asset('storage/qr_codes/resort_qr.png') }}" alt="Scan to Pay QR Code">
-                                            <div class="text-sm mt-2" style="color: var(--text-light);">Scan QR to pay</div>
+                                            <img src="{{ asset('storage/qr_codes/resort_qr.png') }}"
+                                                alt="Scan to Pay QR Code">
+                                            <div class="text-sm mt-2" style="color: var(--text-light);">Scan QR to pay
+                                            </div>
                                         </div>
                                         <div>
-                                            <div class="info-item" style="border-bottom:none; padding:0; margin-bottom: .5rem;">
+                                            <div class="info-item"
+                                                style="border-bottom:none; padding:0; margin-bottom: .5rem;">
                                                 <span class="info-label">Amount Due</span>
-                                                <span class="info-value"><strong id="amountDue">PHP {{ number_format(($cartTotal ?? 0) * 0.5, 2) }}</strong></span>
+                                                <span class="info-value"><strong id="amountDue">PHP
+                                                        {{ number_format(($cartTotal ?? 0) * 0.5, 2) }}</strong></span>
                                             </div>
-                                            <input type="hidden" name="payment_multiplier" id="paymentMultiplier" value="0.5">
+                                            <input type="hidden" name="payment_multiplier" id="paymentMultiplier"
+                                                value="0.5">
                                             <div class="form-group" style="margin-top:.75rem;">
                                                 <label class="form-label">
                                                     <i class="fas fa-wallet"></i> Mode of Payment *
                                                 </label>
                                                 <select name="payment_method" class="form-control" required>
-                                                    <option value="" disabled selected>Select a payment method</option>
+                                                    <option value="" disabled selected>Select a payment method
+                                                    </option>
                                                     <option value="gcash">GCash</option>
                                                     <option value="paymaya">PayMaya</option>
                                                     <option value="bank_transfer">Bank Transfer</option>
@@ -430,28 +478,40 @@
                                                     <div class="row">
                                                         <div class="col-md-6">
                                                             <div class="form-group">
-                                                                <label class="form-label"><i class="fas fa-university"></i> Bank Name *</label>
-                                                                <input type="text" class="form-control" name="bank_name" placeholder="e.g., BDO / BPI / Metrobank">
+                                                                <label class="form-label"><i
+                                                                        class="fas fa-university"></i> Bank Name *</label>
+                                                                <input type="text" class="form-control"
+                                                                    name="bank_name"
+                                                                    placeholder="e.g., BDO / BPI / Metrobank">
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6">
                                                             <div class="form-group">
-                                                                <label class="form-label"><i class="fas fa-id-card"></i> Account Name *</label>
-                                                                <input type="text" class="form-control" name="bank_account_name" placeholder="Laiya Grande Beach Resort">
+                                                                <label class="form-label"><i class="fas fa-id-card"></i>
+                                                                    Account Name *</label>
+                                                                <input type="text" class="form-control"
+                                                                    name="bank_account_name"
+                                                                    placeholder="Laiya Grande Beach Resort">
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="row">
                                                         <div class="col-md-6">
                                                             <div class="form-group">
-                                                                <label class="form-label"><i class="fas fa-hashtag"></i> Account Number *</label>
-                                                                <input type="text" class="form-control" name="bank_account_number" placeholder="0000-0000-0000">
+                                                                <label class="form-label"><i class="fas fa-hashtag"></i>
+                                                                    Account Number *</label>
+                                                                <input type="text" class="form-control"
+                                                                    name="bank_account_number"
+                                                                    placeholder="0000-0000-0000">
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6">
                                                             <div class="form-group">
-                                                                <label class="form-label"><i class="fas fa-receipt"></i> Reference # *</label>
-                                                                <input type="text" class="form-control" name="bank_reference" placeholder="Transaction reference number">
+                                                                <label class="form-label"><i class="fas fa-receipt"></i>
+                                                                    Reference # *</label>
+                                                                <input type="text" class="form-control"
+                                                                    name="bank_reference"
+                                                                    placeholder="Transaction reference number">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -460,7 +520,8 @@
                                             <ul class="payment-list">
                                                 <li>Use your email as Reference/Note in your transfer.</li>
                                                 <li>After payment, upload the proof below so we can verify.</li>
-                                                <li>Reservations are held for <strong>24 hours</strong> pending payment.</li>
+                                                <li>Reservations are held for <strong>24 hours</strong> pending payment.
+                                                </li>
                                             </ul>
                                         </div>
                                     </div>
@@ -470,7 +531,8 @@
                                     <label class="form-label">
                                         <i class="fas fa-file-upload"></i> Upload Proof of Payment (optional)
                                     </label>
-                                    <input type="file" class="form-control" name="payment" accept="image/*,application/pdf">
+                                    <input type="file" class="form-control" name="payment"
+                                        accept="image/*,application/pdf">
                                     <small style="color: var(--text-light);">Accepted: JPG, PNG, PDF. Max ~5MB.</small>
                                 </div>
 
@@ -520,6 +582,7 @@
                 const paymentSelect = document.querySelector('select[name="payment_method"]');
                 const bankWrap = document.getElementById('bankTransferFields');
                 const bankInputs = bankWrap ? bankWrap.querySelectorAll('input') : [];
+
                 function syncBankFields() {
                     const isBank = paymentSelect && paymentSelect.value === 'bank_transfer';
                     if (bankWrap) bankWrap.classList.toggle('hidden', !isBank);
@@ -545,6 +608,20 @@
                 // Form submission with confirmation
                 document.getElementById('reserveForm').addEventListener('submit', function(e) {
                     e.preventDefault();
+
+                    // Validate guest count against capacity
+                    const guestsInput = document.getElementById('reserveGuestsInput');
+                    const maxCapacity = {{ $totalCapacity ?? 0 }};
+                    if (guestsInput && maxCapacity > 0 && parseInt(guestsInput.value) > maxCapacity) {
+                        Swal.fire({
+                            title: 'Capacity Exceeded',
+                            text: `Number of guests (${guestsInput.value}) exceeds room capacity (${maxCapacity}). Please reduce the number of guests or select rooms with higher capacity.`,
+                            icon: 'warning',
+                            confirmButtonColor: '#d4a853'
+                        });
+                        guestsInput.focus();
+                        return;
+                    }
 
                     Swal.fire({
                         title: 'Confirm Reservation',
@@ -587,7 +664,7 @@
                                             confirmButtonColor: '#d4a853'
                                         }).then(() => {
                                             window.location.href =
-                                                '{{ route("user.reservation.index") }}';
+                                                '{{ route('user.reservation.index') }}';
                                         });
                                     } else {
                                         Swal.fire({
