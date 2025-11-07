@@ -12,6 +12,7 @@ Route::controller(BookingController::class)->group(function () {
     Route::post('/cart/remove', 'removeFromCart')->name('cart.remove');
     Route::post('/cart/clear', 'clearCart')->name('cart.clear');
     Route::post('/booking/confirm', 'confirmBooking')->name('booking.confirm');
+    Route::get('/booking/{id}', [BookingController::class, 'view'])->name('user.booking.view');
 });
 
 // Booking step routes
@@ -27,4 +28,5 @@ Route::prefix('booking')->group(function () {
     // Confirm booking routes (replaced booking-step2)
     Route::post('/confirmbooking', [BookingController::class, 'showConfirmBooking'])->name('booking.confirmbooking');
     Route::post('/booking/confirm-final', [BookingController::class, 'confirmBooking'])->name('booking.confirm.final');
+
 });
