@@ -21,9 +21,9 @@
                 </div>
 
                 <!-- Details Section -->
-                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
-                    <div class="flex justify-between items-start mb-6">
-                        <div>
+                    <div class="bg-gradient-to-tr from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-8 border border-indigo-100 shadow-sm">
+                <div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
+                    <div>
                             <h3 class="text-2xl font-bold text-gray-800 mb-2">
                                 {{ ucfirst($type) }} #{{ $data->reservation_number ?: $data->id }}
                             </h3>
@@ -31,15 +31,12 @@
                             <p class="text-sm text-gray-500 mt-1">Type: {{ ucfirst($type) }}</p>
                         </div>
                         <span
-                            class="px-4 py-2 rounded-full text-sm font-bold
-                            {{ (($data->status === 'pending'
-                                        ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
-                                        : $data->status === 'paid')
-                                    ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                                    : $data->status === 'confirmed')
-                                ? 'bg-green-100 text-green-800 border border-green-300'
-                                : 'bg-red-100 text-red-800 border border-red-300' }}">
-                            {{ ucfirst($data->status) }}
+                            class="px-4 py-2 rounded-full text-sm font-semibold border
+                        @if($data->status === 'pending') bg-yellow-50 text-yellow-800 border-yellow-300
+                        @elseif($data->status === 'paid') bg-blue-50 text-blue-800 border-blue-300
+                        @elseif($data->status === 'confirmed') bg-green-50 text-green-800 border-green-300
+                        @else bg-red-50 text-red-800 border-red-300 @endif">
+                        {{ ucfirst($data->status) }}
                         </span>
                     </div>
 
@@ -91,7 +88,7 @@
                                     Payment Submitted - Awaiting Confirmation
                                 </span>
                             @elseif($data->status === 'confirmed')
-                                <span class="bg-green-100 text-green-800 px-6 py-3 rounded-lg font-semibold">
+                                <span class="bg-green-100 text-green-800 px-6 py-3 rounded-xl font-semibold">
                                     Confirmed - Ready to Check-in
                                 </span>
                             @endif
