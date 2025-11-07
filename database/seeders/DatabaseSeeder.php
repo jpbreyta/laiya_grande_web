@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             ExampleBookingsReservationsSeeder::class,
             CheckinSeeder::class,
+            FoodCategorySeeder::class   
         ]);
 
     }
