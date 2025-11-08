@@ -59,6 +59,34 @@ class ReservationController extends Controller
             ]);
         }
 
+        // Validate guest capacity against room capacities
+        $totalGuests = $validated['guests'];
+        $totalCapacity = 0;
+        foreach ($cart as $item) {
+            $room = Room::find($item['room_id']);
+            if (!$room) continue;
+            $totalCapacity += $room->capacity * $item['quantity'];
+        }
+
+        if ($totalGuests > $totalCapacity) {
+            return response()->json([
+                'success' => false,
+                'message' => "Number of guests ({$totalGuests}) exceeds total room capacity ({$totalCapacity}). Please adjust your guest count or select rooms with higher capacity."
+            ]);
+        }
+
+        // Check capacity limits before proceeding
+        foreach ($cart as $item) {
+            $room = Room::find($item['room_id']);
+            if (!$room) continue;
+            if ($room->availability < $item['quantity']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Insufficient availability for {$room->name}. Only {$room->availability} room(s) left."
+                ]);
+            }
+        }
+
         $reservations = [];
         foreach ($cart as $item) {
             $room = Room::find($item['room_id']);
@@ -84,6 +112,10 @@ class ReservationController extends Controller
                 'expires_at' => Carbon::now()->addHours(24),
                 'reservation_number' => $this->generateReservationNumber(),
             ]);
+
+            // Reduce room availability
+            $room->availability -= $item['quantity'];
+            $room->save();
         }
 
         // Clear cart

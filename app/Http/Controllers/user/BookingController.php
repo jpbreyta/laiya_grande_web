@@ -112,7 +112,24 @@ class BookingController extends Controller
      */
     public function showConfirmBooking(Request $request)
     {
+        // Validate guest capacity against room capacities
         $cart = session()->get('cart', []);
+        $totalGuests = $request->guests ?? 0;
+        $totalCapacity = 0;
+
+        foreach ($cart as $item) {
+            $room = Room::find($item['room_id']);
+            if ($room) {
+                $totalCapacity += $room->capacity * $item['quantity'];
+            }
+        }
+
+        if ($totalGuests > $totalCapacity) {
+            return back()->withErrors([
+                'guests' => "Number of guests ({$totalGuests}) exceeds total room capacity ({$totalCapacity}). Please adjust your guest count or select rooms with higher capacity."
+            ])->withInput();
+        }
+
         $cart_total = collect($cart)->sum(fn($item) => $item['room_price'] * $item['quantity']);
         $tax = $cart_total * 0.12;
         $total = $cart_total + $tax;
@@ -170,6 +187,16 @@ class BookingController extends Controller
             return response()->json(['success' => false, 'message' => 'Cart is empty.']);
         }
 
+        // Check capacity limits before proceeding
+        foreach ($cart as $item) {
+            $room = Room::findOrFail($item['room_id']);
+            if ($room->availability < $item['quantity']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Insufficient availability for {$room->name}. Only {$room->availability} room(s) left."
+                ]);
+            }
+        }
 
         $createdBookings = [];
 

@@ -41,9 +41,9 @@
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Foods</span>
         </a>
 
-        <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+        <a href="{{ route('admin.room.index')}}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-bed text-xl w-6 shrink-0"></i>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">Room & Cottage</span>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">Room</span>
         </a>
 
         <a href="{{ route('admin.packages.index') }}"
