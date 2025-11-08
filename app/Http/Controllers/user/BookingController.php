@@ -18,6 +18,12 @@ class BookingController extends Controller
     /**
      * Show all available rooms and handle filters/search.
      */
+    public function view($id)
+    {
+        $room = Room::findOrFail($id);
+        return view('user.booking.view', compact('room'));
+    }
+
     public function index(Request $request)
     {
         $query = Room::query();
@@ -106,7 +112,24 @@ class BookingController extends Controller
      */
     public function showConfirmBooking(Request $request)
     {
+        // Validate guest capacity against room capacities
         $cart = session()->get('cart', []);
+        $totalGuests = $request->guests ?? 0;
+        $totalCapacity = 0;
+
+        foreach ($cart as $item) {
+            $room = Room::find($item['room_id']);
+            if ($room) {
+                $totalCapacity += $room->capacity * $item['quantity'];
+            }
+        }
+
+        if ($totalGuests > $totalCapacity) {
+            return back()->withErrors([
+                'guests' => "Number of guests ({$totalGuests}) exceeds total room capacity ({$totalCapacity}). Please adjust your guest count or select rooms with higher capacity."
+            ])->withInput();
+        }
+
         $cart_total = collect($cart)->sum(fn($item) => $item['room_price'] * $item['quantity']);
         $tax = $cart_total * 0.12;
         $total = $cart_total + $tax;
@@ -164,6 +187,16 @@ class BookingController extends Controller
             return response()->json(['success' => false, 'message' => 'Cart is empty.']);
         }
 
+        // Check capacity limits before proceeding
+        foreach ($cart as $item) {
+            $room = Room::findOrFail($item['room_id']);
+            if ($room->availability < $item['quantity']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Insufficient availability for {$room->name}. Only {$room->availability} room(s) left."
+                ]);
+            }
+        }
 
         $createdBookings = [];
 
@@ -257,8 +290,10 @@ class BookingController extends Controller
             $date = Carbon::now()->format('YmdHis');
             $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
             $reservationNumber = 'BK-' . $date . '-' . $random;
-        } while (Booking::where('reservation_number', $reservationNumber)->exists() ||
-                 \App\Models\Reservation::where('reservation_number', $reservationNumber)->exists());
+        } while (
+            Booking::where('reservation_number', $reservationNumber)->exists() ||
+            \App\Models\Reservation::where('reservation_number', $reservationNumber)->exists()
+        );
 
         return $reservationNumber;
     }

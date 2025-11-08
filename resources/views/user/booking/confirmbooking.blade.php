@@ -136,7 +136,7 @@
                                     class="flex-1 bg-gray-300 text-gray-800 font-semibold py-3 rounded-lg hover:bg-gray-400 transition">
                                     Back
                                 </button>
-                                <button type="button" onclick="completeBooking()"
+                                <button type="button" id="completeBookingBtn" onclick="completeBooking()"
                                     class="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition">
                                     Complete Booking
                                 </button>
@@ -205,6 +205,8 @@
     <script>
         function completeBooking() {
             const termsCheckbox = document.getElementById('termsCheckbox');
+            const submitBtn = document.getElementById('completeBookingBtn');
+
             if (!termsCheckbox.checked) {
                 Swal.fire({
                     icon: 'warning',
@@ -214,6 +216,22 @@
                 });
                 return;
             }
+
+            // Disable button and show processing
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+
+            // Show processing SweetAlert
+            Swal.fire({
+                title: 'Processing Booking...',
+                text: 'Please wait while we process your booking.',
+                icon: 'info',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
             const formData = new FormData(document.getElementById('processBookingForm'));
 
@@ -226,6 +244,9 @@
                 })
                 .then(response => response.json())
                 .then(data => {
+                    // Close processing alert
+                    Swal.close();
+
                     if (data.success) {
                         Swal.fire({
                             icon: 'success',
@@ -245,6 +266,10 @@
                             window.location.href = '{{ route('home') }}';
                         });
                     } else {
+                        // Re-enable button on error
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Complete Booking';
+
                         Swal.fire({
                             icon: 'error',
                             title: 'Booking Failed!',
@@ -254,6 +279,11 @@
                     }
                 })
                 .catch(error => {
+                    // Close processing alert and re-enable button
+                    Swal.close();
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Complete Booking';
+
                     console.error('Error:', error);
                     Swal.fire({
                         icon: 'error',

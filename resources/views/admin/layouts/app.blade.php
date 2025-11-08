@@ -108,6 +108,12 @@
                 </div>
 
                 <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <a href="{{ route('admin.inbox.index') }}"
+                            class="relative text-gray-600 hover:text-[var(--teal-primary)] transition-colors">
+                            <i class="fas fa-inbox text-xl"></i>
+                        </a>
+                    </div>
 
                     <div class="relative">
                         <button
