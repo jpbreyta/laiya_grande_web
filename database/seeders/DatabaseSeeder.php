@@ -20,7 +20,12 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             ExampleBookingsReservationsSeeder::class,
             CheckinSeeder::class,
-            FoodCategorySeeder::class   
+            FoodCategorySeeder::class,
+            FoodSeeder::class,
+            TermsAndConditionsSeeder::class,
+            HouseRulesSeeder::class,
+            TourPackagesSeeder::class,
+            WaterSportsSeeder::class, 
         ]);
 
     }
