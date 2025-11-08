@@ -7,6 +7,12 @@
             <i class="fas fa-bars text-xl"></i>
         </button>
     </div>
+<div class="px-6 mb-6">
+        <a href="{{ route('admin.new.index')}}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+            <i class="fas fa-plus text-xl w-6 shrink-0"></i>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">New</span>
+        </a>
+</div>
 
     <!-- Navigation Links -->
     <div class="flex flex-col space-y-6 px-6 flex-1">
@@ -25,19 +31,19 @@
             <i class="fas fa-calendar-check text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Manage Reservation</span>
         </a>
-        <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+        <a href="{{ route('admin.checkin.index')}}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-user-check text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Guest & Booking</span>
         </a>
 
-        <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
-            <i class="fas fa-user- text-xl w-6 shrink-0"></i>
+        <a href="{{ route('admin.foods.index')}}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+            <i class="fas fa-seedling text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Foods</span>
         </a>
 
-        <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+        <a href="{{ route('admin.room.index')}}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-bed text-xl w-6 shrink-0"></i>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">Room & Cottage</span>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">Room</span>
         </a>
 
         <a href="{{ route('admin.packages.index') }}"
@@ -56,7 +62,7 @@
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Analytics & Reports</span>
         </a>
 
-        <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+        <a href="{{ route('admin.qr.scanner')}}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-qrcode text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Documents & QR</span>
         </a>
@@ -69,6 +75,11 @@
         <a href="#" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
             <i class="fas fa-cog text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">System Settings</span>
+        </a>
+
+        <a href="{{ route('admin.pos.index')}}" class="flex items-center space-x-3 text-white hover:text-yellow-400 transition">
+            <i class="fa-solid fa-cash-register text-xl w-6 shrink-0"></i>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">Point of Sale</span>
         </a>
     </div>
 

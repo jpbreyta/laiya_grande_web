@@ -151,7 +151,7 @@
             <h2>📋 Booking Details</h2>
             <div class="detail-row">
                 <span class="detail-label">Booking Reference:</span>
-                <span class="detail-value">#{{ $booking->id }}</span>
+                <span class="detail-value">#{{ $booking->reservation_number ?? $booking->id }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Guest Name:</span>

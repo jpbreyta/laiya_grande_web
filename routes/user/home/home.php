@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\user\ContactController;
 
 Route::get('/', function () {
     return view('user.home.index');
@@ -13,6 +14,16 @@ Route::get('/gallery', function () {
 Route::get('/location', function () {
     return view('user.location.index');
 })->name('location');
+
+Route::get('/contact', function () {
+    return view('user.contact.index');
+})->name('contact');
+
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+Route::get('/search', function () {
+    return view('user.search.index');
+})->name('user.search');
 
 Route::prefix('user')->group(function () {
     Route::get('/home', function () {

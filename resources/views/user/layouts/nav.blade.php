@@ -5,11 +5,11 @@
 
             <div class="flex items-center">
                 <a href="{{ url('/') }}" class="flex items-center gap-2">
-                    <img id="brand-logo" src="{{ asset('images/laiyagrande-logo.png') }}" alt="Laiya Grande Beach Resort"
-                        class="h-10 w-auto shadow-sm transition-all duration-300">
                     <span id="brand-text"
-                        class="text-slate-900 font-semibold text-lg tracking-tight font-heading transition-all duration-300 dark:text-slate-100">Laiya
-                        Grande</span>
+                        class="text-teal-700 font-semibold text-lg tracking-tight transition-all duration-300"
+                        style="font-family: 'Poppins', sans-serif;">
+                        Laiya Grande
+                    </span>
                 </a>
             </div>
 
@@ -20,7 +20,9 @@
                     class="text-slate-700 dark:text-slate-200 font-medium hover:text-teal-700 dark:hover:text-teal-400 hover:underline underline-offset-4 decoration-teal-400/60 transition">Gallery</a>
                 <a href="{{ url('/location') }}"
                     class="text-slate-700 dark:text-slate-200 font-medium hover:text-teal-700 dark:hover:text-teal-400 hover:underline underline-offset-4 decoration-teal-400/60 transition">Location</a>
-                <a href="{{ route('user.reservation.index') }}"
+                <a href="{{ route('contact') }}"
+                    class="text-slate-700 dark:text-slate-200 font-medium hover:text-teal-700 dark:hover:text-teal-400 hover:underline underline-offset-4 decoration-teal-400/60 transition">Contact</a>
+                <a href="{{ route('search.index') }}"
                     class="text-slate-700 dark:text-slate-200 font-medium hover:text-teal-700 dark:hover:text-teal-400 hover:underline underline-offset-4 decoration-teal-400/60 transition">My
                     Reservations</a>
                 <a id="nav-cta" href="{{ route('booking.index') }}"
@@ -44,9 +46,11 @@
             class="block text-slate-700 dark:text-slate-200 font-medium hover:text-slate-900 dark:hover:text-white transition">Home</a>
         <a href="{{ url('/gallery') }}"
             class="block text-slate-700 dark:text-slate-200 font-medium hover:text-slate-900 dark:hover:text-white transition">Gallery</a>
-        <a href="{{ url('/contact') }}"
+        <a href="{{ url('/location') }}"
             class="block text-slate-700 dark:text-slate-200 font-medium hover:text-slate-900 dark:hover:text-white transition">Location</a>
-        <a href="{{ route('user.reserve.index') }}"
+        <a href="{{ route('contact') }}"
+            class="block text-slate-700 dark:text-slate-200 font-medium hover:text-slate-900 dark:hover:text-white transition">Contact</a>
+        <a href="{{ route('search.index') }}"
             class="block text-slate-700 dark:text-slate-200 font-medium hover:text-slate-900 dark:hover:text-white transition">My
             Reservations</a>
     </div>

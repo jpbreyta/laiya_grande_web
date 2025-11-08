@@ -92,7 +92,23 @@
                                     <div>
                                         <label class="font-semibold text-gray-700 block mb-1">Number of Guests *</label>
                                         <input type="number" name="guests" min="1" value="2" required
-                                            class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                            class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                            id="guestsInput">
+                                        <small class="text-gray-500 text-sm mt-1 block" id="capacityHint">
+                                            @php
+                                                $cart = session('cart', []);
+                                                $totalCapacity = 0;
+                                                foreach ($cart as $item) {
+                                                    $room = \App\Models\Room::find($item['room_id']);
+                                                    if ($room) {
+                                                        $totalCapacity += $room->capacity * $item['quantity'];
+                                                    }
+                                                }
+                                            @endphp
+                                            @if ($totalCapacity > 0)
+                                                Maximum capacity for selected rooms: {{ $totalCapacity }} guests
+                                            @endif
+                                        </small>
                                     </div>
                                     <div>
                                         <label class="font-semibold text-gray-700 block mb-1">Special Requests</label>
@@ -282,6 +298,17 @@
                     window.location.href = '{{ route('booking.index') }}';
                     return false;
                 @endif
+
+                // Validate guest count against capacity
+                const guestsInput = document.getElementById('guestsInput');
+                const maxCapacity = {{ $totalCapacity ?? 0 }};
+                if (guestsInput && maxCapacity > 0 && parseInt(guestsInput.value) > maxCapacity) {
+                    e.preventDefault();
+                    alert(
+                        `Number of guests (${guestsInput.value}) exceeds room capacity (${maxCapacity}). Please reduce the number of guests or select rooms with higher capacity.`);
+                    guestsInput.focus();
+                    return false;
+                }
             });
 
             document.addEventListener('DOMContentLoaded', function() {
@@ -312,6 +339,26 @@
                 if (paySelect) {
                     paySelect.addEventListener('change', syncBank);
                     syncBank();
+                }
+
+                // Add client-side validation for guest capacity
+                const guestsInput = document.getElementById('guestsInput');
+                const capacityHint = document.getElementById('capacityHint');
+                const maxCapacity = {{ $totalCapacity ?? 0 }};
+
+                if (guestsInput && capacityHint && maxCapacity > 0) {
+                    guestsInput.addEventListener('input', function() {
+                        const guestCount = parseInt(this.value) || 0;
+                        if (guestCount > maxCapacity) {
+                            capacityHint.style.color = '#dc2626'; // red
+                            capacityHint.innerHTML =
+                                `Warning: Guest count (${guestCount}) exceeds room capacity (${maxCapacity})`;
+                        } else {
+                            capacityHint.style.color = '#6b7280'; // gray
+                            capacityHint.innerHTML =
+                                `Maximum capacity for selected rooms: ${maxCapacity} guests`;
+                        }
+                    });
                 }
             });
         </script>

@@ -18,6 +18,14 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoomSeeder::class,
             AdminUserSeeder::class,
+            ExampleBookingsReservationsSeeder::class,
+            CheckinSeeder::class,
+            FoodCategorySeeder::class,
+            FoodSeeder::class,
+            TermsAndConditionsSeeder::class,
+            HouseRulesSeeder::class,
+            TourPackagesSeeder::class,
+            WaterSportsSeeder::class, 
         ]);
 
     }
