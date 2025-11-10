@@ -112,6 +112,11 @@ class BookingController extends Controller
      */
     public function showConfirmBooking(Request $request)
     {
+        // Validate that payment proof is uploaded (required for admin verification and OCR)
+        $request->validate([
+            'payment_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
         // Validate guest capacity against room capacities
         $cart = session()->get('cart', []);
         $totalGuests = $request->guests ?? 0;
@@ -138,12 +143,12 @@ class BookingController extends Controller
         $checkOut = Carbon::parse($request->check_out);
         $nights = $checkIn->diffInDays($checkOut);
 
-        // --- Payment Proof Logic ---
+        // --- Payment Proof Logic (now required) ---
         $paymentProofPath = null;
         $paymentProofUrl = null;
 
         if ($request->hasFile('payment_proof')) {
-            // Store temporarily in storage/app/public/temp/payments
+            // Store temporarily in storage/app/public/temp/payments for preview
             $path = $request->file('payment_proof')->store('temp/payments', 'public');
             $paymentProofPath = $path;
             $paymentProofUrl = asset('storage/' . $path);
@@ -179,8 +184,22 @@ class BookingController extends Controller
             'total_price' => 'required|numeric|min:0',
             'agree_terms' => 'required|accepted',
             'payment_method' => 'required|string|in:gcash,paymaya,bank_transfer',
-            'payment_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
+
+        // Custom validation for payment proof (either new upload or existing temp file)
+        if (!$request->hasFile('payment_proof') && !$request->filled('payment_proof_temp')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The payment proof field is required.'
+            ]);
+        }
+
+        // Validate file if uploaded
+        if ($request->hasFile('payment_proof')) {
+            $request->validate([
+                'payment_proof' => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
+            ]);
+        }
 
         $cart = session()->get('cart', []);
         if (empty($cart)) {
@@ -200,24 +219,24 @@ class BookingController extends Controller
 
         $createdBookings = collect();
 
-        foreach ($cart as $item) {
-            $paymentPath = null;
-
-            //  Handle payment proof — uploaded or from temp storage
-            if ($request->hasFile('payment_proof')) {
-                $path = $request->file('payment_proof')->store('temp/payments', 'public');
-                $url = asset('storage/' . $path);
-                return response()->json(['url' => $url, 'path' => $path]);
-            } elseif ($request->filled('payment_proof_temp')) {
-                // Move from temp to permanent storage
-                $tempPath = $request->payment_proof_temp;
-                if (Storage::disk('public')->exists($tempPath)) {
-                    $filename = basename($tempPath);
-                    $newPath = 'payments/' . $filename;
-                    Storage::disk('public')->move($tempPath, $newPath);
-                    $paymentPath = $newPath;
-                }
+        // Handle payment proof — since it's now required, it should always be present
+        $paymentPath = null;
+        if ($request->hasFile('payment_proof')) {
+            // Store the uploaded file directly to permanent storage
+            $path = $request->file('payment_proof')->store('payments', 'public');
+            $paymentPath = $path;
+        } elseif ($request->filled('payment_proof_temp')) {
+            // Move from temp to permanent storage
+            $tempPath = $request->payment_proof_temp;
+            if (Storage::disk('public')->exists($tempPath)) {
+                $filename = basename($tempPath);
+                $newPath = 'payments/' . $filename;
+                Storage::disk('public')->move($tempPath, $newPath);
+                $paymentPath = $newPath;
             }
+        }
+
+        foreach ($cart as $item) {
 
             $booking = Booking::create([
                 'room_id' => $item['room_id'],
@@ -234,6 +253,19 @@ class BookingController extends Controller
                 'total_price' => $item['room_price'] * $item['quantity'],
                 'status' => 'pending',
                 'reservation_number' => $this->generateReservationNumber(),
+            ]);
+
+            // Create payment record - now required since payment proof is mandatory
+            \App\Models\Payment::create([
+                'booking_id' => $booking->id,
+                'reference_id' => null, // Will be filled by OCR later
+                'customer_name' => $request->first_name . ' ' . $request->last_name,
+                'contact_number' => $request->phone,
+                'payment_date' => now(),
+                'amount' => $item['room_price'] * $item['quantity'],
+                'status' => 'pending',
+                'payment_method' => $request->payment_method,
+                'notes' => 'Payment proof uploaded'
             ]);
 
             $createdBookings->push($booking);

@@ -38,3 +38,4 @@ require __DIR__. '/admin/foods/foods.php';
 require __DIR__. '/admin/inbox/inbox.php';
 require __DIR__. '/admin/pos/pos.php';
 require __DIR__. '/admin/room/room.php';
+require __DIR__. '/admin/payments.php';

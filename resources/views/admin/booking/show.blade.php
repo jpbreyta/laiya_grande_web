@@ -118,6 +118,8 @@
                 <div class="p-6">
                     <!-- Booking Info Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+                        <!-- Left Column -->
                         <div class="space-y-4">
                             <div class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
                                 <div class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Guest Name</div>
@@ -143,6 +145,7 @@
                             </div>
                         </div>
 
+                        <!-- Right Column -->
                         <div class="space-y-4">
                             <div class="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
                                 <div class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1">Room</div>
@@ -162,88 +165,157 @@
                                 <div class="text-sm font-medium text-gray-900">
                                     {{ \Carbon\Carbon::parse($booking->check_out)->format('M d, Y') }}</div>
                             </div>
-
-                            <div
-                                class="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
-                                
+                            <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                                <div class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Date Booked
+                                </div>
+                                <div class="text-sm font-medium text-gray-900" data-field="amount_paid">
+                                    <!-- Display booking created_at date -->
+                                    {{ $booking->created_at->format('M d, Y H:i') }}
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-
-                        <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
-                            <div class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Status</div>
-                            <span
-                                class="inline-flex items-center px-4 py-2 rounded-full text-xs font-bold shadow-sm
-                            @if ($booking->status === 'pending') bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200
-                            @elseif($booking->status === 'confirmed') bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200
-                            @else bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200 @endif">
-                                <span
-                                    class="w-2 h-2 rounded-full mr-2 {{ $booking->status === 'confirmed' ? 'bg-green-500' : ($booking->status === 'pending' ? 'bg-amber-500' : 'bg-red-500') }}"></span>
-                                {{ ucfirst($booking->status) }}
-                            </span>
+                    <div class="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 mb-6">
+                        <div class="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">Total Amount
+                        </div>
+                        <div class="text-sm font-medium text-gray-900">
+                            ₱{{ number_format($booking->total_price, 2) }}
                         </div>
                     </div>
- 
-                    @if ($booking->payment && file_exists(storage_path('app/public/' . $booking->payment)))
-                        <div class="mb-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200"
-                            id="paymentProofSection">
-                            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">Payment Proof</h3>
-                            <div class="relative inline-block">
-                                <img src="{{ asset('storage/' . $booking->payment) }}" alt="Payment Proof"
-                                    class="rounded-lg shadow-md border-2 border-gray-200 max-w-md">
+                    <!-- Payment Proof & Details Section -->
+                    <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">Payment Information</h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Left Side: Payment Proof -->
+                            <div>
+                                @if ($booking->paymentRecord)
+                                    @if (file_exists(storage_path('app/public/' . $booking->payment)))
+                                        <div id="paymentProofSection">
+                                            <img src="{{ asset('storage/' . $booking->payment) }}" alt="Payment Proof"
+                                                class="rounded-lg shadow-md border-2 border-gray-200 h-100">
+
+                                            <div class="flex gap-3 mt-4">
+                                                <button type="button" id="processOCRBtn"
+                                                    class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 
+                                       text-white px-4 py-2 rounded-lg font-medium shadow-md hover:shadow-lg 
+                                       transform hover:scale-105 transition-all duration-200 flex items-center gap-2">
+                                                    Get the Information
+                                                </button>
+
+                                                @if ($booking->paymentRecord->reference_id)
+                                                    <span
+                                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
+                                           bg-green-100 text-green-800 ocr-processed-badge">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd"
+                                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0
+                                                                                             011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                                clip-rule="evenodd"></path>
+                                                        </svg>
+                                                        OCR Processed
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div
+                                            class="p-4 bg-gradient-to-r from-red-50 to-rose-50 rounded-lg border border-red-200 text-red-700">
+                                            <h3 class="text-sm font-bold text-red-700 uppercase tracking-wider mb-3">
+                                                Payment Proof</h3>
+                                            <div class="flex items-center">
+                                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0
+                                                                                   00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0
+                                                                                   101.414 1.414L10 11.414l1.293 1.293a1 1 0
+                                                                                   001.414-1.414L11.414 10l1.293-1.293a1 1 0
+                                                                                   00-1.414-1.414L10 8.586 8.707 7.293z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                                Payment proof uploaded but file not found! Path: {{ $booking->payment }}
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endif
+                            </div>
+
+                            <!-- Right Side: Payment Details -->
+                            <div class="flex flex-col gap-4">
+                                <div
+                                    class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                                    <div class="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">Mode of
+                                        Payment</div>
+                                    <div class="text-sm font-medium text-gray-900" data-field="payment_method">
+                                        {{ $booking->paymentRecord ? ucfirst($booking->paymentRecord->payment_method) : 'N/A' }}
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                                    <div class="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">Reference
+                                        ID</div>
+                                    <div class="text-sm font-medium text-gray-900" data-field="reference_id">
+                                        {{ $booking->paymentRecord ? $booking->paymentRecord->reference_id : 'N/A' }}
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                                    <div class="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">Payment
+                                        Date</div>
+                                    <div class="text-sm font-medium text-gray-900" data-field="payment_date">
+                                        {{ $booking->paymentRecord && $booking->paymentRecord->reference_id ? \Carbon\Carbon::parse($booking->paymentRecord->payment_date)->format('M d, Y H:i') : 'N/A' }}
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                                    <div class="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">Amount
+                                        Paid</div>
+                                    <div class="text-sm font-medium text-gray-900" data-field="amount_paid">
+                                        {{ $booking->paymentRecord && $booking->paymentRecord->reference_id ? '₱' . number_format($booking->paymentRecord->amount_paid, 2) : 'N/A' }}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    @elseif($booking->payment)
-                        <div class="mb-6 p-4 bg-gradient-to-r from-red-50 to-rose-50 rounded-lg border border-red-200 text-red-700"
-                            id="paymentProofSection">
-                            <div class="flex items-center">
-                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                Payment proof uploaded but file not found!
-                            </div>
+
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-wrap justify-end gap-3 pt-6 border-t border-gray-200" id="actionButtons">
+                            @if ($booking->status === 'pending')
+                                <form id="approveForm" action="{{ route('admin.booking.approve', $booking->id) }}"
+                                    method="POST" class="inline">
+                                    @csrf
+                                    <button type="button" id="approveBtn"
+                                        class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                                        Confirm Booking
+                                    </button>
+                                </form>
+
+                                <form id="rejectForm" action="{{ route('admin.booking.reject', $booking->id) }}"
+                                    method="POST" class="inline">
+                                    @csrf
+                                    <button type="button" id="rejectBtn"
+                                        class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                                        Cancel Booking
+                                    </button>
+                                </form>
+                            @endif
+
+                            <a href="{{ route('admin.booking.index') }}"
+                                class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                                Back to List
+                            </a>
                         </div>
-                    @endif
-
-                    <div class="flex flex-wrap justify-end gap-3 pt-6 border-t border-gray-200" id="actionButtons">
-                        @if ($booking->status === 'pending')
-                            <form id="approveForm" action="{{ route('admin.booking.approve', $booking->id) }}"
-                                method="POST" class="inline">
-                                @csrf
-                                <button type="button" id="approveBtn"
-                                    class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
-                                    Confirm Booking
-                                </button>
-                            </form>
-
-                            <form id="rejectForm" action="{{ route('admin.booking.reject', $booking->id) }}"
-                                method="POST" class="inline">
-                                @csrf
-                                <button type="button" id="rejectBtn"
-                                    class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
-                                    Cancel Booking
-                                </button>
-                            </form>
-                        @endif
-
-                        <a href="{{ route('admin.booking.index') }}"
-                            class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
-                            Back to List
-                        </a>
                     </div>
+
                 </div>
             </div>
-        </div>
     </section>
 
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-
         (function() {
             const slides = document.querySelectorAll('.carousel-slide');
             const indicators = document.querySelectorAll('.carousel-indicator');
@@ -253,7 +325,7 @@
             let currentIndex = 0;
             const totalImages = slides.length;
 
-            if (totalImages <= 1) return; 
+            if (totalImages <= 1) return;
 
             function showSlide(index) {
                 slides.forEach((slide, i) => {
@@ -434,5 +506,110 @@
                     });
             });
         });
+
+        // OCR Processing
+        document.getElementById('processOCRBtn')?.addEventListener('click', function() {
+            Swal.fire({
+                title: 'Process OCR?',
+                text: 'This will extract payment information from the uploaded proof.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Process OCR'
+            }).then(result => {
+                if (!result.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Processing OCR...',
+                    text: 'Please wait while we extract the payment information.',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                fetch('{{ route('admin.booking.process-ocr', $booking->id) }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        Swal.close();
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'OCR Processed!',
+                                text: data.message,
+                                confirmButtonColor: '#16a34a'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'OCR Failed',
+                                text: data.message,
+                                confirmButtonColor: '#d33'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to process OCR request.',
+                            confirmButtonColor: '#d33'
+                        });
+                    });
+            });
+        });
+
+        function updatePaymentInfo(data) {
+            // Update Mode of Payment
+            const paymentMethodElement = document.querySelector('[data-field="payment_method"]');
+            if (paymentMethodElement) {
+                paymentMethodElement.textContent = data.payment_method ? data.payment_method.charAt(0).toUpperCase() + data
+                    .payment_method.slice(1) : 'N/A';
+            }
+
+            // Update Reference ID
+            const referenceIdElement = document.querySelector('[data-field="reference_id"]');
+            if (referenceIdElement) {
+                referenceIdElement.textContent = data.reference_id || 'N/A';
+            }
+
+            // Update Payment Date
+            const paymentDateElement = document.querySelector('[data-field="payment_date"]');
+            if (paymentDateElement) {
+                const date = data.payment_date ? new Date(data.payment_date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'N/A';
+                paymentDateElement.textContent = date;
+            }
+
+            // Update Amount Paid
+            const amountPaidElement = document.querySelector('[data-field="amount_paid"]');
+            if (amountPaidElement) {
+                const amount = data.amount_paid ? '₱' + parseFloat(data.amount_paid).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }) : 'N/A';
+                amountPaidElement.textContent = amount;
+            }
+
+            // Update OCR processed badge
+            const ocrBadge = document.querySelector('.ocr-processed-badge');
+            if (ocrBadge) {
+                ocrBadge.style.display = 'inline-flex';
+            }
+        }
     </script>
 @endsection

@@ -10,4 +10,5 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::put('/booking/{id}', [BookingController::class, 'update'])->name('booking.update');
     Route::post('/booking/{id}/approve', [BookingController::class, 'approve'])->name('booking.approve');
     Route::post('/booking/{id}/reject', [BookingController::class, 'reject'])->name('booking.reject');
+    Route::post('/booking/{id}/process-ocr', [BookingController::class, 'processOCRForBooking'])->name('booking.process-ocr');
 });

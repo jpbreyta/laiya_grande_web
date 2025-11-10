@@ -34,14 +34,19 @@ class Booking extends Model
         'check_out' => 'datetime',
         'actual_check_in_time' => 'datetime',
         'actual_check_out_time' => 'datetime',
-        'payment' => 'decimal:2',
-        'total_price' => 'decimal:2',
+        'payment' => 'string',
+        'total_price' => 'float',
     ];
 
     // Relationships
     public function room()
     {
         return $this->belongsTo(Room::class);
+    }
+
+    public function paymentRecord()
+    {
+        return $this->hasOne(Payment::class);
     }
 
     // Accessors
