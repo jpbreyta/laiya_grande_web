@@ -202,7 +202,7 @@
                                             <!-- File Upload -->
                                             <div class="mb-4">
                                                 <label for="payment_proof" class="block text-gray-700 font-semibold mb-2">
-                                                    Upload Payment Proof (optional)
+                                                    Upload Payment Proof *
                                                 </label>
                                                 <input type="file" name="payment_proof" id="payment_proof"
                                                     accept="image/*" class="border p-2 rounded w-full">
@@ -305,7 +305,8 @@
                 if (guestsInput && maxCapacity > 0 && parseInt(guestsInput.value) > maxCapacity) {
                     e.preventDefault();
                     alert(
-                        `Number of guests (${guestsInput.value}) exceeds room capacity (${maxCapacity}). Please reduce the number of guests or select rooms with higher capacity.`);
+                        `Number of guests (${guestsInput.value}) exceeds room capacity (${maxCapacity}). Please reduce the number of guests or select rooms with higher capacity.`
+                        );
                     guestsInput.focus();
                     return false;
                 }

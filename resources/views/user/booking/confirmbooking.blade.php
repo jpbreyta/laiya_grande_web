@@ -104,21 +104,18 @@
                             <input type="hidden" name="special_requests" value="{{ $request->special_requests }}">
                             <input type="hidden" name="total_price" value="{{ $total }}">
                             <input type="hidden" name="payment_method" value="{{ $request->payment_method }}">
-                            @if ($request->hasFile('payment_proof'))
-                                <input type="hidden" name="payment_proof_temp"
-                                    value="{{ $request->file('payment_proof')->store('temp') }}">
-                            @endif
 
-                            @if (!empty($paymentProofUrl))
-                                <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-                                    <h6 class="font-semibold text-gray-800 mb-4">Uploaded Payment Proof</h6>
-                                    <div class="flex justify-center">
-                                        <img src="{{ $paymentProofUrl }}" alt="Payment Proof"
-                                            class="rounded-lg shadow-md max-h-96 object-contain">
-                                    </div>
-                                    <input type="hidden" name="payment_proof_temp" value="{{ $paymentProofPath }}">
+                            <!-- Payment Proof Display (Required - uploaded in previous step) -->
+                            <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+                                <h6 class="font-semibold text-gray-800 mb-4">Payment Proof *</h6>
+                                <div class="flex justify-center">
+                                    <img src="{{ $paymentProofUrl }}" alt="Payment Proof"
+                                        class="rounded-lg shadow-md max-h-96 object-contain">
                                 </div>
-                            @endif
+                                <input type="hidden" name="payment_proof_temp" value="{{ $paymentProofPath }}">
+                                <p class="text-xs text-gray-500 mt-2 text-center">This payment proof will be verified by our
+                                    admin team using OCR technology</p>
+                            </div>
 
                             <!-- Terms & Conditions -->
                             <div class="bg-yellow-50 border border-yellow-400 rounded-lg p-4 mb-6 flex gap-3">
