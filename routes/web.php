@@ -15,11 +15,14 @@ Route::prefix('admin')->group(function () {
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 });
 
+
+
 require __DIR__ . '/user/home/home.php';
 require __DIR__ . '/user/booking/booking.php';
 require __DIR__ . '/user/reservation/reservation.php';
 require __DIR__ . '/user/search/search.php';
 require __DIR__ . '/user/room/room.php';
+require __DIR__ . '/user/contact/contact.php';
 
 
 

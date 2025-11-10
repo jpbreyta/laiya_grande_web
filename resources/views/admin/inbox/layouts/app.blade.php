@@ -46,7 +46,6 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
-        /* Notification dropdown */
         .notification-dropdown {
             display: none;
             position: absolute;
@@ -88,13 +87,14 @@
 </head>
 
 <body class="bg-gray-100 font-sans">
-
     <div class="flex h-screen overflow-hidden">
 
         @include('admin.inbox.layouts.sidebar')
 
+        <!-- Main Section -->
         <div class="flex flex-col flex-1 h-full">
 
+            <!-- Header -->
             <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex items-end justify-between">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
@@ -110,39 +110,48 @@
                             <i class="fas fa-cog text-xl"></i>
                         </a>
                     </div>
-
                     <div class="relative">
                         <a href="{{ route('admin.dashboard') }}"
                             class="relative text-gray-600 hover:text-[var(--teal-primary)] transition-colors">
                             <i class="fas fa-home text-xl"></i>
                         </a>
                     </div>
-
                     <div class="relative">
                         <button
                             class="relative text-gray-600 hover:text-[var(--teal-primary)] transition-colors notification-btn">
                             <i class="fas fa-bell text-xl"></i>
-                            @if (isset($unreadNotifications) && $unreadNotifications > 0)
+                            @if (isset($notificationCount) && $notificationCount > 0)
                                 <span
-                                    class="notification-badge absolute -top-1 -right-1 bg-[var(--accent-red)] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">{{ $unreadNotifications }}</span>
+                                    class="notification-badge absolute -top-1 -right-1 bg-[var(--accent-red)] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                    {{ $notificationCount }}
+                                </span>
                             @endif
                         </button>
 
+                        <!-- Notification Dropdown -->
                         <div class="notification-dropdown" id="notificationDropdown">
-                            <div class="p-4 border-b border-gray-200">
+                            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
                                 <h3 class="text-lg font-semibold text-gray-800">Notifications</h3>
+                                <button id="markAllReadBtn"
+                                    class="text-sm text-[var(--teal-primary)] hover:text-[var(--teal-dark)] font-medium">
+                                    Mark all as read
+                                </button>
                             </div>
                             <div id="notificationList">
-                                @if (isset($recentNotifications) && $recentNotifications->count() > 0)
+                                @php
+                                    $recentNotifications = \App\Models\Notification::latest()->take(10)->get();
+                                @endphp
+                                @if ($recentNotifications->count() > 0)
                                     @foreach ($recentNotifications as $notification)
                                         <div class="notification-item {{ $notification->read ? '' : 'unread' }}"
-                                            data-id="{{ $notification->id }}">
+                                            data-id="{{ $notification->id }}" data-type="{{ $notification->type }}"
+                                            data-data="{{ $notification->data ? json_encode($notification->data) : '{}' }}">
                                             <div class="flex items-start space-x-3">
                                                 <div class="flex-shrink-0">
                                                     <div class="w-8 h-8 rounded-full flex items-center justify-center"
-                                                        style="background-color: {{ $notification->type === 'booking' ? '#2C5F5F' : ($notification->type === 'reservation' ? '#1E3A5F' : '#F4D03F') }}">
+                                                        style="background-color: {{ $notification->type === 'booking' ? '#2C5F5F' : ($notification->type === 'reservation' ? '#1E3A5F' : ($notification->type === 'contact' ? '#E74C3C' : '#F4D03F')) }}">
                                                         <i
-                                                            class="fas {{ $notification->type === 'booking' ? 'fa-user-plus' : ($notification->type === 'reservation' ? 'fa-calendar-plus' : 'fa-info') }} text-white text-sm"></i>
+                                                            class="fas {{ $notification->type === 'booking' ? 'fa-user-plus' : ($notification->type === 'reservation' ? 'fa-calendar-plus' : ($notification->type === 'contact' ? 'fa-envelope' : 'fa-info')) }} text-white text-sm"></i>
                                                     </div>
                                                 </div>
                                                 <div class="flex-1 min-w-0">
@@ -151,7 +160,8 @@
                                                     <p class="text-sm text-gray-600 truncate">
                                                         {{ $notification->message }}</p>
                                                     <p class="text-xs text-gray-500 mt-1">
-                                                        {{ $notification->created_at->diffForHumans() }}</p>
+                                                        {{ $notification->created_at->diffForHumans() }}
+                                                    </p>
                                                 </div>
                                                 @if (!$notification->read)
                                                     <div class="flex-shrink-0">
@@ -173,7 +183,7 @@
                 </div>
             </header>
 
-            {{-- Page Body --}}
+            <!-- Main Page Body -->
             <main class="main-content flex-1 bg-gray-50 overflow-auto">
                 @yield('content')
             </main>
@@ -189,7 +199,6 @@
                 });
             }
 
-            // Notification dropdown functionality
             const notificationBtn = document.querySelector('.notification-btn');
             const notificationDropdown = document.getElementById('notificationDropdown');
 
@@ -199,17 +208,19 @@
                     notificationDropdown.classList.toggle('show');
                 });
 
-                // Close dropdown when clicking outside
                 document.addEventListener('click', (e) => {
                     if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
                         notificationDropdown.classList.remove('show');
                     }
                 });
 
-                // Mark notification as read when clicked
+                // Mark notification as read when clicked and redirect
                 document.querySelectorAll('.notification-item').forEach(item => {
                     item.addEventListener('click', function() {
                         const notificationId = this.dataset.id;
+                        const notificationType = this.dataset.type;
+                        const data = JSON.parse(this.dataset.data || '{}');
+
                         if (notificationId) {
                             fetch(`/admin/notifications/${notificationId}/mark-read`, {
                                 method: 'POST',
@@ -222,7 +233,7 @@
                             }).then(() => {
                                 this.classList.remove('unread');
                                 this.querySelector('.bg-red-500')?.remove();
-                                // Update badge count
+
                                 const badge = document.querySelector('.notification-badge');
                                 if (badge) {
                                     const currentCount = parseInt(badge.textContent) - 1;
@@ -232,10 +243,50 @@
                                         badge.remove();
                                     }
                                 }
+
+                                // Redirect based on notification type
+                                let redirectUrl = '';
+                                if (notificationType === 'booking' && data.booking_id) {
+                                    redirectUrl = `/admin/booking/${data.booking_id}`;
+                                } else if (notificationType === 'reservation' && data
+                                    .reservation_id) {
+                                    redirectUrl =
+                                        `/admin/reservation/${data.reservation_id}`;
+                                } else if (notificationType === 'contact') {
+                                    redirectUrl = '/admin/inbox/' + data.contact_id;
+                                }
+
+                                if (redirectUrl) {
+                                    window.location.href = redirectUrl;
+                                }
                             }).catch(console.error);
                         }
                     });
                 });
+
+                // Mark all as read functionality
+                const markAllReadBtn = document.getElementById('markAllReadBtn');
+                if (markAllReadBtn) {
+                    markAllReadBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        fetch('/admin/notifications/mark-all-read', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    ?.getAttribute('content') || ''
+                            }
+                        }).then(() => {
+                            // Remove unread class from all items
+                            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                                item.classList.remove('unread');
+                                item.querySelector('.bg-red-500')?.remove();
+                            });
+                            // Remove badge
+                            document.querySelector('.notification-badge')?.remove();
+                        }).catch(console.error);
+                    });
+                }
             }
         });
     </script>
