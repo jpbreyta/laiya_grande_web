@@ -1,8 +1,7 @@
 @extends('user.layouts.app')
 
 @section('content')
-<div class="bg-gray-100 bg-opacity-60 backdrop-blur-md min-h-screen text-gray-800 font-[Poppins]">
-
+<div class="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-sky-50 py-12">
   <div class="max-w-6xl mx-auto px-4 py-10 space-y-8">
 
     <!-- Title -->
