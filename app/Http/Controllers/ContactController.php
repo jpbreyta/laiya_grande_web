@@ -17,7 +17,21 @@ class ContactController extends Controller
             'message' => 'required|string|max:2000',
         ]);
 
-        ContactMessage::create($validated);
+        $contactMessage = ContactMessage::create(array_merge($validated, ['status' => 'unread']));
+
+        // Create notification for admin
+        \App\Models\Notification::create([
+            'type' => 'contact',
+            'title' => 'New Contact Message',
+            'message' => "New message from {$request->name}: {$request->subject}",
+            'data' => [
+                'contact_id' => $contactMessage->id,
+                'name' => $request->name,
+                'email' => $request->email,
+                'subject' => $request->subject,
+            ],
+            'read' => false,
+        ]);
 
         return back()->with('success', 'Thank you for your message! We will get back to you soon.');
     }

@@ -87,7 +87,7 @@ class ReservationController extends Controller
             }
         }
 
-        $reservations = [];
+        $reservations = collect();
         foreach ($cart as $item) {
             $room = Room::find($item['room_id']);
             if (!$room) continue;
@@ -95,7 +95,7 @@ class ReservationController extends Controller
             $days = max(1, (strtotime($request->check_out) - strtotime($request->check_in)) / 86400);
             $totalPrice = $room->price * $item['quantity'] * $days;
 
-            $reservations[] = Reservation::create([
+            $reservation = Reservation::create([
                 'room_id' => $room->id,
                 'firstname' => $validated['first_name'],
                 'lastname' => $validated['last_name'],
@@ -113,10 +113,29 @@ class ReservationController extends Controller
                 'reservation_number' => $this->generateReservationNumber(),
             ]);
 
+            $reservations->push($reservation);
+
             // Reduce room availability
             $room->availability -= $item['quantity'];
             $room->save();
         }
+
+        // Create notification for admin
+        \App\Models\Notification::create([
+            'type' => 'reservation',
+            'title' => 'New Reservation Request',
+            'message' => "New reservation from {$validated['first_name']} {$validated['last_name']} for {$reservations->count()} room(s)",
+            'data' => [
+                'reservation_id' => $reservations->first()->id,
+                'name' => $validated['first_name'] . ' ' . $validated['last_name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'check_in' => $validated['check_in'],
+                'check_out' => $validated['check_out'],
+                'guests' => $validated['guests'],
+            ],
+            'read' => false,
+        ]);
 
         // Clear cart
         session()->forget('cart');

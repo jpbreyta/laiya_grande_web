@@ -198,7 +198,7 @@ class BookingController extends Controller
             }
         }
 
-        $createdBookings = [];
+        $createdBookings = collect();
 
         foreach ($cart as $item) {
             $paymentPath = null;
@@ -236,12 +236,31 @@ class BookingController extends Controller
                 'reservation_number' => $this->generateReservationNumber(),
             ]);
 
+            $createdBookings->push($booking);
+
             // Reduce room availability
             $room = Room::findOrFail($item['room_id']);
             $room->availability -= $item['quantity'];
             $room->save();
         }
 
+
+        // Create notification for admin
+        \App\Models\Notification::create([
+            'type' => 'booking',
+            'title' => 'New Booking Request',
+            'message' => "New booking from {$request->first_name} {$request->last_name} for {$createdBookings->count()} room(s)",
+            'data' => [
+                'booking_id' => $createdBookings->first()->id,
+                'name' => $request->first_name . ' ' . $request->last_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'check_in' => $request->check_in,
+                'check_out' => $request->check_out,
+                'guests' => $request->guests,
+            ],
+            'read' => false,
+        ]);
 
         // Clear the cart
         session()->forget('cart');

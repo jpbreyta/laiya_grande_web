@@ -27,7 +27,7 @@ class CheckinSeeder extends Seeder
         foreach ($firstTwo as $booking) {
             $booking->update([
                 'actual_check_in_time' => Carbon::parse($booking->check_in)->addHour(),
-                'status' => 'active'
+                'status' => 'confirmed'
             ]);
         }
 
@@ -37,7 +37,7 @@ class CheckinSeeder extends Seeder
             $booking->update([
                 'actual_check_in_time' => Carbon::parse($booking->check_in)->addHour(),
                 'actual_check_out_time' => Carbon::parse($booking->check_out)->subHour(),
-                'status' => 'completed'
+                'status' => 'confirmed'
             ]);
         }
     }
