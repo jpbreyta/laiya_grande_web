@@ -232,12 +232,12 @@
                             </div>
                         </div>
 
-                        <!-- Payment Proof Section -->
-                        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-6">
+                        <!-- First Payment Section -->
+                        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-6 mb-6">
                             <div class="flex items-center justify-between mb-4">
                                 <h4 class="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
                                     <i class="fas fa-receipt text-teal-600"></i>
-                                    Payment Proof
+                                    First Payment
                                 </h4>
                                 @if($reservation->payment && file_exists(storage_path('app/public/' . $reservation->payment)))
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200">
@@ -249,7 +249,45 @@
 
                             @if($reservation->payment && file_exists(storage_path('app/public/' . $reservation->payment)))
                                 <div class="relative rounded-xl overflow-hidden border-2 border-slate-300 shadow-lg bg-white p-4">
-                                    <img src="{{ asset('storage/' . $reservation->payment) }}" alt="Payment Proof" class="w-full h-auto max-h-96 object-contain mx-auto">
+                                    <img src="{{ asset('storage/' . $reservation->payment) }}" alt="First Payment Proof" class="w-full h-auto max-h-96 object-contain mx-auto">
+                                </div>
+                            @elseif($reservation->payment)
+                                <div class="p-6 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border-2 border-red-200">
+                                    <div class="flex items-center gap-3 text-red-700">
+                                        <i class="fas fa-exclamation-triangle text-xl"></i>
+                                        <div>
+                                            <p class="font-semibold">Payment proof file not found</p>
+                                            <p class="text-xs text-red-600 mt-1">Path: {{ $reservation->payment }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="p-12 bg-white rounded-xl border-2 border-dashed border-slate-300 text-center">
+                                    <i class="fas fa-receipt text-5xl text-slate-300 mb-3"></i>
+                                    <p class="text-sm font-medium text-slate-500">No payment proof uploaded</p>
+                                    <p class="text-xs text-slate-400 mt-1">Payment proof will appear here once uploaded</p>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Second Payment Section -->
+                        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fas fa-receipt text-teal-600"></i>
+                                    Second Payment
+                                </h4>
+                                @if($reservation->payment && file_exists(storage_path('app/public/' . $reservation->payment)))
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                        <i class="fas fa-check-circle mr-1.5"></i>
+                                        Uploaded
+                                    </span>
+                                @endif
+                            </div>
+
+                            @if($reservation->payment && file_exists(storage_path('app/public/' . $reservation->payment)))
+                                <div class="relative rounded-xl overflow-hidden border-2 border-slate-300 shadow-lg bg-white p-4">
+                                    <img src="{{ asset('storage/' . $reservation->payment) }}" alt="Second Payment Proof" class="w-full h-auto max-h-96 object-contain mx-auto">
                                 </div>
                             @elseif($reservation->payment)
                                 <div class="p-6 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border-2 border-red-200">
