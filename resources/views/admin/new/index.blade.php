@@ -6,7 +6,7 @@
     <div class="max-w-6xl mx-auto">
         <div class="relative rounded-xl overflow-hidden shadow-lg mb-4 h-32">
             <div class="absolute inset-0 bg-[#2C5F5F]"></div>
-            <div class="absolute inset-0 bg-gradient-to-br from-[#2C5F5F] to-emerald-700/70"></div>
+            <div class="absolute inset-0 bg-gradient-to-br from-[#5f9ea0] to-[#99e6b3]"></div>
             <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
             <div class="absolute bottom-0 left-0 right-0 p-4">
                 <div class="inline-block bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20 shadow">

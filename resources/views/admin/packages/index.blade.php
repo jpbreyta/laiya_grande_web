@@ -29,7 +29,7 @@
             <!-- Statistics Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <!-- Total Packages Card -->
-                <div class="bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-2xl p-6 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200">
+                <div class="bg-gradient-to-br from-[#5f9ea0] to-[#99e6b3] rounded-2xl p-6 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-teal-100 text-sm font-medium mb-1">Total Packages</p>
@@ -42,7 +42,7 @@
                 </div>
 
                 <!-- Active Packages Card -->
-                <div class="bg-gradient-to-br from-teal-400 to-blue-600 rounded-2xl p-6 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200">
+                <div class="bg-gradient-to-br from-[#5f9ea0] to-[#6495ed] rounded-2xl p-6 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-teal-100 text-sm font-medium mb-1">Active Packages</p>
@@ -55,7 +55,7 @@
                 </div>
 
                 <!-- Total Value Card -->
-                <div class="bg-gradient-to-br from-cyan-500 to-teal-600 rounded-2xl p-6 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200">
+                <div class="bg-gradient-to-br from-[#5f9ea0] to-[#b0e0e6] rounded-2xl p-6 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-cyan-100 text-sm font-medium mb-1">Total Value</p>
