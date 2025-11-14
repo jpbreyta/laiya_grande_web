@@ -4,10 +4,7 @@
     <section class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
         <div class="max-w-6xl mx-auto">
             <div class="relative h-40 md:h-48 rounded-t-2xl overflow-hidden shadow-xl mb-6">
-                <div class="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600"></div>
-
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent pointer-events-none"></div>
-
+                <div class="w-full h-full bg-gradient-to-br from-[#5f9ea0] to-[#99e6b3]"></div>
                 <div class="absolute top-0 left-0 p-6 md:p-8 z-10">
                     <div class="inline-block bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-xl border border-white/20 shadow-lg">
                         <h1 class="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-white tracking-tight drop-shadow-lg">
