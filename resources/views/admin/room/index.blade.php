@@ -2,31 +2,18 @@
 
 @section('content')
     <section class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 py-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-600 via-emerald-500 to-teal-500 text-white shadow-2xl">
-                <div class="relative p-8 md:p-12">
-                    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-                        <div class="space-y-4">
-                            <span class="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest rounded-full bg-white/15 text-emerald-100 ring-1 ring-white/30">
-                                <span class="h-1.5 w-1.5 rounded-full bg-white"></span>
-                                Inventory
-                            </span>
-                            <div class="space-y-2">
-                                <h1 class="text-3xl md:text-4xl font-black tracking-tight">Room Inventory</h1>
-                                <p class="max-w-2xl text-emerald-50 text-sm md:text-base leading-relaxed">
-                                View room availability, prices, and capacity at a glance.
-                                </p>
-                            </div>
-                        </div>
-                        <a href="{{ route('admin.room.create') }}"
-                            class="group inline-flex items-center justify-center gap-2 rounded-xl bg-white/15 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-white hover:text-teal-600">
-                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 group-hover:bg-teal-600/10">
-                                <i class="fas fa-plus"></i>
-                            </span>
-                            Add New Room
-                        </a>
-                    </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <!-- Top Action Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Room Management</h1>
+                    <p class="text-sm text-slate-500 mt-1">Manage your room inventory and availability</p>
                 </div>
+                <a href="{{ route('admin.room.create') }}"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white px-6 py-3 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 whitespace-nowrap">
+                    <i class="fas fa-plus"></i>
+                    Add New Room
+                </a>
             </div>
 
             <div class="rounded-2xl bg-white shadow-xl ring-1 ring-slate-200 overflow-hidden">

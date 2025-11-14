@@ -108,7 +108,7 @@
 
         {{-- Statistic Cards --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="dashboard-card bg-gradient-to-r from-[#2C5F5F] to-[#1A4A4A] text-white p-6 rounded-lg">
+            <div class="dashboard-card bg-gradient-to-r from-[#add8e6] to-[#99e6b3] text-gray-800 p-6 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium opacity-90">Total Bookings</h3>
@@ -119,7 +119,7 @@
                 </div>
             </div>
 
-            <div class="dashboard-card bg-gradient-to-r from-[#1E3A5F] to-[#2C5F5F] text-white p-6 rounded-lg">
+            <div class="dashboard-card bg-gradient-to-r from-[#add8e6] to-[#00ced1] text-gray-800 p-6 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium opacity-90">Revenue</h3>
@@ -130,7 +130,7 @@
                 </div>
             </div>
 
-            <div class="dashboard-card bg-gradient-to-r from-[#F4D03F] to-[#FB923C] text-gray-800 p-6 rounded-lg">
+            <div class="dashboard-card bg-gradient-to-r from-[#add8e6] to-[#3eb489] text-gray-800 p-6 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium">Occupancy Rate</h3>
@@ -141,7 +141,7 @@
                 </div>
             </div>
 
-            <div class="dashboard-card bg-gradient-to-r from-[#E74C3C] to-[#EC4899] text-white p-6 rounded-lg">
+            <div class="dashboard-card bg-gradient-to-r from-[#add8e6] to-[#00fa9a] text-gray-800 p-6 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium opacity-90">Pending</h3>

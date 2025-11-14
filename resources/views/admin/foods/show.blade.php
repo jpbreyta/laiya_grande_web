@@ -3,7 +3,7 @@
 @section('content')
     <section class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 py-10">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-600 via-emerald-500 to-teal-500 text-white shadow-2xl">
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#5f9ea0] via-[#99e6b3] to-teal-500 text-white shadow-2xl">
                 <div class="relative p-8 md:p-10">
                     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                         <div class="space-y-3">
