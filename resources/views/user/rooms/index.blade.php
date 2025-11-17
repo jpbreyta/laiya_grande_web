@@ -297,8 +297,15 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            location.reload(); // Reload to show updated cart
-                        }
+    Swal.fire({
+        title: "Room added to cart successfully!",
+        icon: "success",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "Go Back"
+    }).then(() => {
+        location.reload(); // Reload after user clicks "Go Back"
+    });
+}
                     })
                     .catch(error => console.error('Error:', error));
             }
@@ -341,7 +348,14 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            location.reload();
+                            Swal.fire({
+                                title: "Room removed from cart!",
+                                icon: "success",
+                                confirmButtonColor: "#3085d6",
+                                confirmButtonText: "OK"
+                            }).then(() => {
+                                location.reload();
+                            });
                         }
                     })
                     .catch(error => console.error('Error:', error));
@@ -410,6 +424,145 @@
                     input.value = parseInt(input.value) - 1;
                 }
             }
+
+                    function addToCart(roomId, roomName, roomPrice) {
+                fetch('{{ route('cart.add') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        room_id: roomId,
+                        room_name: roomName,
+                        room_price: roomPrice,
+                        quantity: 1
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title: "Room Added",
+                            html: `
+                                <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+                                <div style="
+                                    font-family:'Poppins',sans-serif;
+                                    font-size:15px;
+                                    color:#444;
+                                    margin-top:8px;">
+                                    <strong>${roomName}</strong> has been added to your cart.
+                                </div>
+                            `,
+                            icon: "success",
+                            background: "#ffffff",
+                            color: "#333",
+                            confirmButtonColor: "#3085d6",
+                            confirmButtonText: "Continue",
+                            customClass: {
+                                popup: 'swal-clean',
+                                confirmButton: 'swal-btn'
+                            }
+                        }).then(() => {
+                            location.reload();
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: "Error",
+                        html: `
+                            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+                            <div style="
+                                font-family:'Poppins',sans-serif;
+                                font-size:15px;
+                                color:#444;
+                                margin-top:8px;">
+                                Something went wrong. Please try again.
+                            </div>
+                        `,
+                        icon: "error",
+                        background: "#ffffff",
+                        color: "#333",
+                        confirmButtonColor: "#d33",
+                        confirmButtonText: "Close",
+                        customClass: {
+                            popup: 'swal-clean',
+                            confirmButton: 'swal-btn'
+                        }
+                    });
+                });
+            }
+
+            function removeFromCart(roomId) {
+    fetch('{{ route('cart.remove') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            room_id: roomId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: "Room Removed",
+                html: `
+                    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+                    <div style="
+                        font-family:'Poppins',sans-serif;
+                        font-size:15px;
+                        color:#444;
+                        margin-top:8px;">
+                        The room has been removed from your cart.
+                    </div>
+                `,
+                icon: "success",
+                background: "#ffffff",
+                color: "#333",
+                confirmButtonColor: "#3085d6",
+                confirmButtonText: "Continue",
+                customClass: {
+                    popup: 'swal-clean',
+                    confirmButton: 'swal-btn'
+                }
+            }).then(() => {
+                location.reload();
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: "Error",
+            html: `
+                <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+                <div style="
+                    font-family:'Poppins',sans-serif;
+                    font-size:15px;
+                    color:#444;
+                    margin-top:8px;">
+                    Something went wrong. Please try again.
+                </div>
+            `,
+            icon: "error",
+            background: "#ffffff",
+            color: "#333",
+            confirmButtonColor: "#d33",
+            confirmButtonText: "Close",
+            customClass: {
+                popup: 'swal-clean',
+                confirmButton: 'swal-btn'
+            }
+        });
+    });
+}
+
+
 
             function addRoom() {
                 alert('Additional room functionality would be added here');
