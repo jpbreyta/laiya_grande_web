@@ -50,7 +50,7 @@ class BookingController extends Controller
         }
 
         try {
-            $paymentPath = storage_path('app/public/' . $booking->payment);
+            $paymentPath = storage_path('app/public/' . $booking->payment); 
             if (!file_exists($paymentPath)) {
                 return response()->json([
                     'success' => false,
@@ -313,5 +313,25 @@ class BookingController extends Controller
             'success' => true,
             'message' => 'Booking has been cancelled successfully.'
         ]);
+    }
+
+    public function comparePayments()
+    {
+        $bookings = Booking::with('paymentRecord')->get();
+        $discrepancies = [];
+
+        foreach ($bookings as $booking) {
+            if ($booking->paymentRecord) {
+                if (floatval($booking->total_price) !== floatval($booking->paymentRecord->amount_paid)) {
+                    $discrepancies[] = [
+                        'booking_id' => $booking->id,
+                        'expected_amount' => $booking->total_price,
+                        'paid_amount' => $booking->paymentRecord->amount_paid,
+                    ];
+                }
+            }
+        }
+
+        return view('admin.booking.discrepancies', compact('discrepancies'));
     }
 }
