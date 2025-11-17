@@ -8,18 +8,18 @@
         </button>
     </div>
     <!-- Accordion Navigation -->
-    <div class="flex-1 px-4 space-y-3 overflow-y-auto" id="admin-accordion">
+    <div class="flex-1 px-3 space-y-2 overflow-y-auto" id="admin-accordion">
         <!-- Dashboard & Overview -->
         <div class="accordion-section">
             <button type="button" data-accordion-button data-target="accordion-overview"
-                class="accordion-toggle flex items-center justify-between w-full text-white/90 hover:text-white rounded-lg px-3 py-2 transition">
-                <span class="nav-text text-sm font-semibold tracking-wide flex items-center gap-2">
+                class="accordion-toggle active flex items-center justify-between w-full rounded-lg px-2.5 py-1.5 transition">
+                <span class="nav-text text-[13px] font-semibold tracking-wide flex items-center gap-2">
                     <i class="fas fa-layer-group"></i>
                     Dashboard & Overview
                 </span>
                 <i class="fas fa-chevron-down text-xs accordion-arrow rotate-180 transition-transform duration-200"></i>
             </button>
-            <div id="accordion-overview" class="accordion-panel mt-2 space-y-1">
+            <div id="accordion-overview" class="accordion-panel open mt-1 space-y-0.5">
                 <a href="{{ route('admin.new.index') }}"
                     class="accordion-link">
                     <i class="fas fa-plus"></i>
@@ -39,14 +39,14 @@
         <!-- Bookings -->
         <div class="accordion-section">
             <button type="button" data-accordion-button data-target="accordion-bookings"
-                class="accordion-toggle flex items-center justify-between w-full text-white/90 hover:text-white rounded-lg px-3 py-2 transition">
-                <span class="nav-text text-sm font-semibold tracking-wide flex items-center gap-2">
+                class="accordion-toggle flex items-center justify-between w-full rounded-lg px-2.5 py-1.5 transition">
+                <span class="nav-text text-[13px] font-semibold tracking-wide flex items-center gap-2">
                     <i class="fas fa-calendar-alt"></i>
                     Bookings
                 </span>
                 <i class="fas fa-chevron-down text-xs accordion-arrow rotate-0 transition-transform duration-200"></i>
             </button>
-            <div id="accordion-bookings" class="accordion-panel mt-2 space-y-1 hidden">
+            <div id="accordion-bookings" class="accordion-panel mt-1 space-y-0.5">
                 <a href="{{ route('admin.booking.index') }}" class="accordion-link">
                     <i class="fas fa-calendar-check"></i>
                     <span>Manage Bookings</span>
@@ -65,14 +65,14 @@
         <!-- Inventory & Services -->
         <div class="accordion-section">
             <button type="button" data-accordion-button data-target="accordion-inventory"
-                class="accordion-toggle flex items-center justify-between w-full text-white/90 hover:text-white rounded-lg px-3 py-2 transition">
-                <span class="nav-text text-sm font-semibold tracking-wide flex items-center gap-2">
+                class="accordion-toggle flex items-center justify-between w-full rounded-lg px-2.5 py-1.5 transition">
+                <span class="nav-text text-[13px] font-semibold tracking-wide flex items-center gap-2">
                     <i class="fas fa-boxes-stacked"></i>
                     Inventory & Services
                 </span>
                 <i class="fas fa-chevron-down text-xs accordion-arrow rotate-0 transition-transform duration-200"></i>
             </button>
-            <div id="accordion-inventory" class="accordion-panel mt-2 space-y-1 hidden">
+            <div id="accordion-inventory" class="accordion-panel mt-1 space-y-0.5">
                 <a href="{{ route('admin.room.index') }}" class="accordion-link">
                     <i class="fas fa-bed"></i>
                     <span>Room</span>
@@ -91,14 +91,14 @@
         <!-- Financials -->
         <div class="accordion-section">
             <button type="button" data-accordion-button data-target="accordion-financials"
-                class="accordion-toggle flex items-center justify-between w-full text-white/90 hover:text-white rounded-lg px-3 py-2 transition">
-                <span class="nav-text text-sm font-semibold tracking-wide flex items-center gap-2">
+                class="accordion-toggle flex items-center justify-between w-full rounded-lg px-2.5 py-1.5 transition">
+                <span class="nav-text text-[13px] font-semibold tracking-wide flex items-center gap-2">
                     <i class="fas fa-peso-sign"></i>
                     Financials
                 </span>
                 <i class="fas fa-chevron-down text-xs accordion-arrow rotate-0 transition-transform duration-200"></i>
             </button>
-            <div id="accordion-financials" class="accordion-panel mt-2 space-y-1 hidden">
+            <div id="accordion-financials" class="accordion-panel mt-1 space-y-0.5">
                 <a href="{{ route('admin.test-payment-ocr') }}" class="accordion-link">
                     <i class="fas fa-credit-card"></i>
                     <span>Payments</span>
@@ -117,14 +117,14 @@
         <!-- Documents -->
         <div class="accordion-section">
             <button type="button" data-accordion-button data-target="accordion-documents"
-                class="accordion-toggle flex items-center justify-between w-full text-white/90 hover:text-white rounded-lg px-3 py-2 transition">
-                <span class="nav-text text-sm font-semibold tracking-wide flex items-center gap-2">
+                class="accordion-toggle flex items-center justify-between w-full rounded-lg px-2.5 py-1.5 transition">
+                <span class="nav-text text-[13px] font-semibold tracking-wide flex items-center gap-2">
                     <i class="fas fa-file-alt"></i>
                     Documents
                 </span>
                 <i class="fas fa-chevron-down text-xs accordion-arrow rotate-0 transition-transform duration-200"></i>
             </button>
-            <div id="accordion-documents" class="accordion-panel mt-2 space-y-1 hidden">
+            <div id="accordion-documents" class="accordion-panel mt-1 space-y-0.5">
                 <a href="{{ route('admin.qr.scanner') }}" class="accordion-link">
                     <i class="fas fa-qrcode"></i>
                     <span>Documents & QR</span>
@@ -180,23 +180,56 @@
     });
 
     // Accordion interactions
-    document.querySelectorAll('[data-accordion-button]').forEach(button => {
+    const accordionButtons = Array.from(document.querySelectorAll('[data-accordion-button]'));
+    const accordionPanels = Array.from(document.querySelectorAll('.accordion-panel'));
+
+    function openPanel(panel, button, arrow) {
+        panel.classList.add('open');
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+        if (button) button.classList.add('active');
+        if (arrow) arrow.classList.add('rotate-180');
+    }
+
+    function closePanel(panel, button, arrow) {
+        panel.classList.remove('open');
+        panel.style.maxHeight = '0px';
+        if (button) button.classList.remove('active');
+        if (arrow) arrow.classList.remove('rotate-180');
+    }
+
+    accordionPanels.forEach((panel, index) => {
+        if (panel.classList.contains('open')) {
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+            accordionButtons[index]?.classList.add('active');
+        } else {
+            panel.style.maxHeight = '0px';
+        }
+    });
+
+    accordionButtons.forEach((button, index) => {
         button.addEventListener('click', () => {
-            const targetId = button.getAttribute('data-target');
-            const targetPanel = document.getElementById(targetId);
+            const targetPanel = accordionPanels[index];
             const arrow = button.querySelector('.accordion-arrow');
+            const isOpen = targetPanel.classList.contains('open');
 
-            if (!targetPanel) return;
+            accordionPanels.forEach((panel, i) => {
+                if (i !== index) {
+                    closePanel(panel, accordionButtons[i], accordionButtons[i].querySelector('.accordion-arrow'));
+                }
+            });
 
-            const isHidden = targetPanel.classList.contains('hidden');
-            document.querySelectorAll('.accordion-panel').forEach(panel => panel.classList.add('hidden'));
-            document.querySelectorAll('.accordion-arrow').forEach(icon => icon.classList.remove('rotate-180'));
-
-            if (isHidden) {
-                targetPanel.classList.remove('hidden');
-                if (arrow) arrow.classList.add('rotate-180');
+            if (isOpen) {
+                closePanel(targetPanel, button, arrow);
             } else {
-                targetPanel.classList.add('hidden');
+                openPanel(targetPanel, button, arrow);
+            }
+        });
+    });
+
+    window.addEventListener('resize', () => {
+        accordionPanels.forEach((panel) => {
+            if (panel.classList.contains('open')) {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
             }
         });
     });
@@ -216,19 +249,63 @@
         overflow: hidden;
     }
 
+    .accordion-section + .accordion-section {
+        margin-top: 0.25rem;
+    }
+
     .accordion-link {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
-        padding: 0.35rem 0.75rem;
-        border-radius: 8px;
+        gap: 0.5rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 7px;
         color: rgba(255, 255, 255, 0.9);
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         transition: background 0.2s ease, color 0.2s ease;
     }
 
     .accordion-link:hover {
         background: rgba(255, 255, 255, 0.08);
         color: #fff;
+    }
+
+    .accordion-toggle {
+        color: rgba(255, 255, 255, 0.85);
+        background: transparent;
+        transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+        border: 1px solid transparent;
+    }
+
+    .accordion-toggle:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .accordion-toggle.active {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .accordion-toggle .nav-text i {
+        transition: color 0.25s ease;
+    }
+
+    .accordion-toggle:hover .nav-text i {
+        color: #f4d03f;
+    }
+
+    .accordion-panel {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+        transition: max-height 0.4s ease, opacity 0.3s ease;
+    }
+
+    .accordion-panel.open {
+        opacity: 1;
+        pointer-events: auto;
     }
 </style>
