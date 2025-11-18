@@ -66,13 +66,33 @@ class SearchController extends Controller
     public function show($id, $type)
     {
         if ($type === 'reservation') {
-            $data = Reservation::with('room')->findOrFail($id);
+            $data = Reservation::with('room', 'payments')->findOrFail($id);
         } elseif ($type === 'booking') {
-            $data = Booking::with('room')->findOrFail($id);
+            $data = Booking::with('room', 'payments')->findOrFail($id);
         } else {
             abort(404);
         }
 
         return view('user.search.view', compact('data', 'type'));
+    }
+
+    /**
+     * Show continue payment page for reservation.
+     */
+    public function continuePayment($id, $type)
+    {
+        if ($type !== 'reservation') {
+            abort(404, 'Only reservations can continue payment');
+        }
+
+        $reservation = Reservation::with('room')->findOrFail($id);
+
+        // Check if reservation is still pending (not paid or confirmed)
+        if ($reservation->status !== 'pending') {
+            return redirect()->route('search.show', [$id, $type])
+                ->with('error', 'This reservation has already been paid or confirmed.');
+        }
+
+        return view('user.search.continue', compact('reservation'));
     }
 }
