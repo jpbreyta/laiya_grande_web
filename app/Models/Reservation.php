@@ -14,7 +14,7 @@ class Reservation extends Model
     protected $fillable = [
         'room_id', 'firstname', 'lastname', 'email', 'phone_number',
         'check_in', 'check_out', 'number_of_guests', 'special_request',
-        'payment_method', 'payment', 'total_price', 'status', 'expires_at',
+        'payment_method', 'payment', 'first_payment', 'second_payment', 'total_price', 'status', 'expires_at',
         'reservation_number'
     ];
 
@@ -26,5 +26,21 @@ class Reservation extends Model
 
     public function isExpired() {
         return $this->expires_at && Carbon::now()->greaterThan($this->expires_at);
+    }
+
+    // Relationships
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function firstPayment()
+    {
+        return $this->hasOne(Payment::class)->where('payment_stage', 'partial');
+    }
+
+    public function secondPayment()
+    {
+        return $this->hasOne(Payment::class)->where('payment_stage', 'final');
     }
 }

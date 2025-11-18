@@ -15,7 +15,7 @@ class ReservationController extends Controller
      */
     public function index()
     {
-        return view('user.reserve.reservations');
+        return view('user.reserve.reservation');
     }
 
 
@@ -48,7 +48,7 @@ class ReservationController extends Controller
         ]);
 
         if ($request->hasFile('payment')) {
-            $validated['payment'] = $request->file('payment')->store('payments', 'public');
+            $validated['first_payment'] = $request->file('payment')->store('payments', 'public');
         }
 
         $cart = session('cart', []);
@@ -106,7 +106,7 @@ class ReservationController extends Controller
                 'number_of_guests' => $validated['guests'],
                 'special_request' => $validated['special_requests'] ?? null,
                 'payment_method' => $validated['payment_method'],
-                'payment' => $validated['payment'] ?? null,
+                'first_payment' => $validated['first_payment'] ?? null,
                 'total_price' => $totalPrice,
                 'status' => 'pending',
                 'expires_at' => Carbon::now()->addHours(24),
@@ -231,7 +231,7 @@ class ReservationController extends Controller
             return redirect()->route('user.reservation.continue', $id);
         }
 
-        return view('user.reserve.fullpayment', compact('reservation'));
+        return view('user.search.continue', compact('reservation'));
     }
 
     /**
@@ -247,14 +247,20 @@ class ReservationController extends Controller
         ]);
 
         if ($request->hasFile('payment')) {
-            $validated['payment'] = $request->file('payment')->store('payments', 'public');
+            $validated['second_payment'] = $request->file('payment')->store('payments', 'public');
         }
 
         $validated['status'] = 'paid';
         $reservation->update($validated);
 
-        return redirect()->route('user.reservation.index')
-            ->with('success', 'Payment updated successfully. Your reservation is now pending confirmation.');
+        // Clear the verification session
+        session()->forget('reservation_verified_' . $id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment submitted successfully! Your reservation is now being processed.',
+            'redirect' => route('home')
+        ]);
     }
 
     private function generateReservationNumber(): string
