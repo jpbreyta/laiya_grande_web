@@ -92,7 +92,7 @@
                 class="h-full w-full object-cover">
         </div>
         <div
-            class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-teal-900/50 dark:from-black/70 dark:via-black/50 dark:to-teal-900/60">
+            class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-teal-900/50">
         </div>
         <div class="relative mx-auto max-w-7xl px-6 py-16 flex min-h-[40svh] items-center justify-center">
             <div class="text-center text-white max-w-4xl">

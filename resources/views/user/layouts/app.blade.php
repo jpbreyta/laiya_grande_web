@@ -97,7 +97,7 @@
     </style>
 </head>
 
-<body class="bg-white text-gray-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+<body class="bg-white text-gray-900 antialiased">
     @include('user.layouts.nav')
 
     <main class="py-0">

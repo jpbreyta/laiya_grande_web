@@ -6,7 +6,7 @@
         <img src="{{ asset('images/laiyagrande.png') }}" alt="" aria-hidden="true" class="h-full w-full object-cover">
     </div>
 
-    <div class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-teal-900/50 dark:from-black/70 dark:via-black/50 dark:to-teal-900/60"></div>
+    <div class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-teal-900/50"></div>
     <div class="relative mx-auto max-w-7xl px-6 py-16 flex min-h-[40svh] items-center justify-center">
         <div class="text-center text-white max-w-4xl">
             <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-balance font-heading mb-4 animate-slide-up">
@@ -21,39 +21,39 @@
     </div>
 </section>
 
-<section class="py-8 bg-gray-50 dark:bg-slate-900">
+<section class="py-8 bg-gray-50">
     <div class="max-w-7xl mx-auto px-6">
         <div class="flex flex-wrap justify-center gap-4">
             <button class="gallery-filter active bg-teal-500 text-white px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-600" data-filter="all">
                 ALL
             </button>
-            <button class="gallery-filter bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-50 dark:hover:bg-slate-700" data-filter="beach">
+            <button class="gallery-filter bg-white text-gray-700 px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-50" data-filter="beach">
                 BEACH
             </button>
-            <button class="gallery-filter bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-50 dark:hover:bg-slate-700" data-filter="rooms">
+            <button class="gallery-filter bg-white text-gray-700 px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-50" data-filter="rooms">
                 ROOMS
             </button>
-            <button class="gallery-filter bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-50 dark:hover:bg-slate-700" data-filter="amenities">
+            <button class="gallery-filter bg-white text-gray-700 px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-50" data-filter="amenities">
                 AMENITIES
             </button>
-            <button class="gallery-filter bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-50 dark:hover:bg-slate-700" data-filter="activities">
+            <button class="gallery-filter bg-white text-gray-700 px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-50" data-filter="activities">
                 ACTIVITIES
             </button>
         </div>
     </div>
 </section>
 
-<section class="py-16 bg-white dark:bg-slate-950">
+<section class="py-16 bg-white">
     <div class="max-w-7xl mx-auto px-6">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="gallery-grid">
             
             <div class="gallery-item beach group cursor-pointer" data-category="beach">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-teal-100 to-cyan-100 dark:from-teal-900/30 dark:to-cyan-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center">
                         <img src="{{ asset('images/beach1.jpg') }}" alt="Pristine Beach" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         <div class="text-center hidden">
-                            <h3 class="text-lg font-bold text-teal-700 dark:text-teal-300">Pristine Beach</h3>
-                            <p class="text-sm text-teal-600 dark:text-teal-400">Crystal clear waters</p>
+                            <h3 class="text-lg font-bold text-teal-700">Pristine Beach</h3>
+                            <p class="text-sm text-teal-600">Crystal clear waters</p>
                         </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -66,11 +66,11 @@
 
             <div class="gallery-item beach group cursor-pointer" data-category="beach">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-yellow-100 to-orange-100 flex items-center justify-center">
                         <img src="{{ asset('images/sunset1.jpg') }}" alt="Sunset Views" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         <div class="text-center hidden">
-                            <h3 class="text-lg font-bold text-orange-700 dark:text-orange-300">Sunset Views</h3>
-                            <p class="text-sm text-orange-600 dark:text-orange-400">Breathtaking sunsets</p>
+                            <h3 class="text-lg font-bold text-orange-700">Sunset Views</h3>
+                            <p class="text-sm text-orange-600">Breathtaking sunsets</p>
                         </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -83,10 +83,10 @@
 
             <div class="gallery-item beach group cursor-pointer" data-category="beach">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center">
                             <div class="text-center">
-                                <h3 class="text-lg font-bold text-blue-700 dark:text-blue-300">Ocean Waves</h3>
-                                <p class="text-sm text-blue-600 dark:text-blue-400">Gentle waves</p>
+                            <h3 class="text-lg font-bold text-blue-700">Ocean Waves</h3>
+                            <p class="text-sm text-blue-600">Gentle waves</p>
                             </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -99,10 +99,10 @@
 
             <div class="gallery-item rooms group cursor-pointer" data-category="rooms">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
                             <div class="text-center">
-                                <h3 class="text-lg font-bold text-purple-700 dark:text-purple-300">Luxury Suite</h3>
-                                <p class="text-sm text-purple-600 dark:text-purple-400">Premium accommodation</p>
+                                <h3 class="text-lg font-bold text-purple-700">Luxury Suite</h3>
+                                <p class="text-sm text-purple-600">Premium accommodation</p>
                             </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -115,10 +115,10 @@
 
             <div class="gallery-item rooms group cursor-pointer" data-category="rooms">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center">
                             <div class="text-center">
-                                <h3 class="text-lg font-bold text-green-700 dark:text-green-300">Deluxe Room</h3>
-                                <p class="text-sm text-green-600 dark:text-green-400">Comfortable stay</p>
+                                <h3 class="text-lg font-bold text-green-700">Deluxe Room</h3>
+                                <p class="text-sm text-green-600">Comfortable stay</p>
                             </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -131,10 +131,10 @@
 
             <div class="gallery-item rooms group cursor-pointer" data-category="rooms">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-900/30 dark:to-blue-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-indigo-100 to-blue-100 flex items-center justify-center">
                             <div class="text-center">
-                                <h3 class="text-lg font-bold text-indigo-700 dark:text-indigo-300">Beachfront Villa</h3>
-                                <p class="text-sm text-indigo-600 dark:text-indigo-400">Ocean view</p>
+                                <h3 class="text-lg font-bold text-indigo-700">Beachfront Villa</h3>
+                                <p class="text-sm text-indigo-600">Ocean view</p>
                             </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -147,10 +147,10 @@
 
             <div class="gallery-item amenities group cursor-pointer" data-category="amenities">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-red-100 to-pink-100 dark:from-red-900/30 dark:to-pink-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-red-100 to-pink-100 flex items-center justify-center">
                             <div class="text-center">
-                                <h3 class="text-lg font-bold text-red-700 dark:text-red-300">Fine Dining</h3>
-                                <p class="text-sm text-red-600 dark:text-red-400">Restaurant & Bar</p>
+                                <h3 class="text-lg font-bold text-red-700">Fine Dining</h3>
+                                <p class="text-sm text-red-600">Restaurant & Bar</p>
                             </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -163,10 +163,10 @@
 
             <div class="gallery-item amenities group cursor-pointer" data-category="amenities">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-teal-100 to-cyan-100 dark:from-teal-900/30 dark:to-cyan-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center">
                             <div class="text-center">
-                                <h3 class="text-lg font-bold text-teal-700 dark:text-teal-300">Swimming Pool</h3>
-                                <p class="text-sm text-teal-600 dark:text-teal-400">Infinity pool</p>
+                                <h3 class="text-lg font-bold text-teal-700">Swimming Pool</h3>
+                                <p class="text-sm text-teal-600">Infinity pool</p>
                             </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -179,10 +179,10 @@
 
             <div class="gallery-item amenities group cursor-pointer" data-category="amenities">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/30 dark:to-amber-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-yellow-100 to-amber-100 flex items-center justify-center">
                             <div class="text-center">
-                                <h3 class="text-lg font-bold text-yellow-700 dark:text-yellow-300">Spa & Wellness</h3>
-                                <p class="text-sm text-yellow-600 dark:text-yellow-400">Relaxation center</p>
+                                <h3 class="text-lg font-bold text-yellow-700">Spa & Wellness</h3>
+                                <p class="text-sm text-yellow-600">Relaxation center</p>
                             </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -195,10 +195,10 @@
 
             <div class="gallery-item activities group cursor-pointer" data-category="activities">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center">
                             <div class="text-center">
-                                <h3 class="text-lg font-bold text-orange-700 dark:text-orange-300">Water Sports</h3>
-                                <p class="text-sm text-orange-600 dark:text-orange-400">Surfing & diving</p>
+                                <h3 class="text-lg font-bold text-orange-700">Water Sports</h3>
+                                <p class="text-sm text-orange-600">Surfing & diving</p>
                             </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -211,10 +211,10 @@
 
             <div class="gallery-item activities group cursor-pointer" data-category="activities">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-green-100 to-teal-100 dark:from-green-900/30 dark:to-teal-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-green-100 to-teal-100 flex items-center justify-center">
                             <div class="text-center">
-                                <h3 class="text-lg font-bold text-green-700 dark:text-green-300">Island Hopping</h3>
-                                <p class="text-sm text-green-600 dark:text-green-400">Boat tours</p>
+                                <h3 class="text-lg font-bold text-green-700">Island Hopping</h3>
+                                <p class="text-sm text-green-600">Boat tours</p>
                             </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -227,10 +227,10 @@
 
             <div class="gallery-item activities group cursor-pointer" data-category="activities">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center">
                             <div class="text-center">
-                                <h3 class="text-lg font-bold text-purple-700 dark:text-purple-300">Fishing</h3>
-                                <p class="text-sm text-purple-600 dark:text-purple-400">Deep sea fishing</p>
+                                <h3 class="text-lg font-bold text-purple-700">Fishing</h3>
+                                <p class="text-sm text-purple-600">Deep sea fishing</p>
                             </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -243,10 +243,10 @@
 
             <div class="gallery-item beach group cursor-pointer" data-category="beach">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-cyan-100 to-blue-100 dark:from-cyan-900/30 dark:to-blue-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-cyan-100 to-blue-100 flex items-center justify-center">
                             <div class="text-center">
-                                <h3 class="text-lg font-bold text-cyan-700 dark:text-cyan-300">Private Island</h3>
-                                <p class="text-sm text-cyan-600 dark:text-cyan-400">Exclusive access</p>
+                                <h3 class="text-lg font-bold text-cyan-700">Private Island</h3>
+                                <p class="text-sm text-cyan-600">Exclusive access</p>
                             </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -259,10 +259,10 @@
 
             <div class="gallery-item beach group cursor-pointer" data-category="beach">
                 <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 flex items-center justify-center">
+                    <div class="aspect-square bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
                             <div class="text-center">
-                                <h3 class="text-lg font-bold text-emerald-700 dark:text-emerald-300">Tropical Garden</h3>
-                                <p class="text-sm text-emerald-600 dark:text-emerald-400">Lush vegetation</p>
+                                <h3 class="text-lg font-bold text-emerald-700">Tropical Garden</h3>
+                                <p class="text-sm text-emerald-600">Lush vegetation</p>
                             </div>
                     </div>
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -277,33 +277,33 @@
     </div>
 </section>
 
-<section class="py-16 bg-gray-50 dark:bg-slate-900">
+<section class="py-16 bg-gray-50">
     <div class="max-w-7xl mx-auto px-6 text-center">
-        <h2 class="text-4xl font-bold text-teal-600 dark:text-teal-400 font-heading mb-4">Gallery Highlights</h2>
-        <p class="text-lg text-gray-600 dark:text-slate-300 mb-12">Discover what makes Laiya Grande special</p>
+        <h2 class="text-4xl font-bold text-teal-600 font-heading mb-4">Gallery Highlights</h2>
+        <p class="text-lg text-gray-600 mb-12">Discover what makes Laiya Grande special</p>
         
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div class="text-center">
-                <div class="text-4xl font-bold text-teal-600 dark:text-teal-400 mb-2">50+</div>
-                <div class="text-sm text-gray-600 dark:text-slate-300">Stunning Photos</div>
+                <div class="text-4xl font-bold text-teal-600 mb-2">50+</div>
+                <div class="text-sm text-gray-600">Stunning Photos</div>
             </div>
             <div class="text-center">
-                <div class="text-4xl font-bold text-teal-600 dark:text-teal-400 mb-2">4</div>
-                <div class="text-sm text-gray-600 dark:text-slate-300">Photo Categories</div>
+                <div class="text-4xl font-bold text-teal-600 mb-2">4</div>
+                <div class="text-sm text-gray-600">Photo Categories</div>
             </div>
             <div class="text-center">
-                <div class="text-4xl font-bold text-teal-600 dark:text-teal-400 mb-2">360°</div>
-                <div class="text-sm text-gray-600 dark:text-slate-300">Virtual Tours</div>
+                <div class="text-4xl font-bold text-teal-600 mb-2">360°</div>
+                <div class="text-sm text-gray-600">Virtual Tours</div>
             </div>
             <div class="text-center">
-                <div class="text-4xl font-bold text-teal-600 dark:text-teal-400 mb-2">24/7</div>
-                <div class="text-sm text-gray-600 dark:text-slate-300">Photo Updates</div>
+                <div class="text-4xl font-bold text-teal-600 mb-2">24/7</div>
+                <div class="text-sm text-gray-600">Photo Updates</div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="py-16 bg-gradient-to-br from-teal-600 to-teal-700 text-white dark:from-teal-700 dark:to-teal-800">
+<section class="py-16 bg-gradient-to-br from-teal-600 to-teal-700 text-white">
     <div class="max-w-7xl mx-auto px-6 text-center">
         <h2 class="text-4xl font-bold tracking-tight font-heading mb-4">Ready to Experience Paradise?</h2>
         <p class="text-lg text-white/90 mb-8">Book your stay and create your own memories at Laiya Grande</p>
@@ -324,7 +324,7 @@
         <button id="close-lightbox" class="absolute -top-12 right-0 text-white text-2xl hover:text-gray-300 transition-colors z-10">
             ✕
         </button>
-        <div class="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+        <div class="bg-white rounded-2xl overflow-hidden shadow-2xl">
             <div class="aspect-video relative">
                 <img id="lightbox-image" src="" alt="" class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-black/20 flex items-center justify-center">
@@ -351,10 +351,10 @@
                 
                 filterButtons.forEach(btn => {
                     btn.classList.remove('active', 'bg-teal-500', 'text-white');
-                    btn.classList.add('bg-white', 'dark:bg-slate-800', 'text-gray-700', 'dark:text-slate-300');
+                    btn.classList.add('bg-white', 'text-gray-700');
                 });
                 this.classList.add('active', 'bg-teal-500', 'text-white');
-                this.classList.remove('bg-white', 'dark:bg-slate-800', 'text-gray-700', 'dark:text-slate-300');
+                this.classList.remove('bg-white', 'text-gray-700');
 
                 galleryItems.forEach(item => {
                     if (filter === 'all' || item.getAttribute('data-category') === filter) {
