@@ -20,8 +20,7 @@
                 <i class="fas fa-chevron-down text-xs accordion-arrow rotate-180 transition-transform duration-200"></i>
             </button>
             <div id="accordion-overview" class="accordion-panel open mt-1 space-y-0.5">
-                <a href="{{ route('admin.new.index') }}"
-                    class="accordion-link">
+                <a href="{{ route('admin.new.index') }}" class="accordion-link">
                     <i class="fas fa-plus"></i>
                     <span>New</span>
                 </a>
@@ -214,7 +213,8 @@
 
             accordionPanels.forEach((panel, i) => {
                 if (i !== index) {
-                    closePanel(panel, accordionButtons[i], accordionButtons[i].querySelector('.accordion-arrow'));
+                    closePanel(panel, accordionButtons[i], accordionButtons[i].querySelector(
+                        '.accordion-arrow'));
                 }
             });
 
@@ -249,7 +249,7 @@
         overflow: hidden;
     }
 
-    .accordion-section + .accordion-section {
+    .accordion-section+.accordion-section {
         margin-top: 0.25rem;
     }
 
