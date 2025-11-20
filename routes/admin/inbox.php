@@ -2,7 +2,7 @@
 use App\Http\Controllers\Admin\InboxController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('admin/inbox')->group(function () {
+Route::prefix('admin/inbox')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', [InboxController::class, 'index'])->name('admin.inbox.index');
     Route::get('/compose', [InboxController::class, 'compose'])->name('admin.inbox.compose');
     Route::get('/sent', [InboxController::class, 'sent'])->name('admin.inbox.sent');
