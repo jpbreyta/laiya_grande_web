@@ -22,12 +22,16 @@
                 <span class="text-sm font-medium">Luxury Beach Resort</span>
             </div>
             
-            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-balance font-heading mb-6 animate-slide-up">
-                <span class="block">Welcome to</span>
-                <span class="block bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent">
-                    Laiya Grande Resort
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight font-heading mb-6 animate-slide-up leading-[1.15]">
+            <span class="block">Welcome to</span>
+            <span class="block relative">
+                <span class="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent pb-1">
+                Laiya Grande Resort
                 </span>
+                <span class="absolute inset-0 pointer-events-none" aria-hidden="true"></span>
+            </span>
             </h1>
+
             
             <p class="text-xl md:text-2xl leading-relaxed text-white/90 mb-8 animate-fade-in" style="animation-delay: 0.3s;">
                 Your tropical escape in San Juan, Batangas
@@ -41,14 +45,13 @@
                 <a aria-label="Book a room at Laiya Grande" href="{{ route('user.rooms.index') }}" 
                    class="group inline-flex items-center gap-3 rounded-full bg-yellow-400 px-8 py-4 font-semibold text-black shadow-xl shadow-black/30 ring-1 ring-white/20 hover:bg-yellow-300 hover:shadow-2xl hover:shadow-black/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black motion-safe:transition-all duration-300 transform hover:scale-105">
                     <span>Book Now</span>
-                    <span class="group-hover:translate-x-1 transition-transform">→</span>
                 </a>
                 
-                <a aria-label="Explore our services" href="#services" 
-                   class="group inline-flex items-center gap-3 rounded-full border-2 border-white/30 bg-white/10 backdrop-blur-sm px-8 py-4 font-semibold text-white hover:bg-white/20 hover:border-white/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black motion-safe:transition-all duration-300">
-                    <span>Explore Services</span>
-                    <span class="group-hover:translate-x-1 transition-transform">↓</span>
+                <a aria-label="Explore our services" href="#services"
+                class="inline-block rounded-full bg-white/10 border border-white/30 backdrop-blur-md px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold text-white shadow-sm hover:bg-white/20 hover:border-white/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black transition-all duration-300 ease-out font-[Poppins] tracking-wide">
+                Explore Services
                 </a>
+
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 animate-fade-in" style="animation-delay: 1.2s;">
