@@ -21,9 +21,10 @@
                 </div>
 
                 <!-- Details Section -->
-                    <div class="bg-gradient-to-tr from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-8 border border-indigo-100 shadow-sm">
-                <div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
-                    <div>
+                <div
+                    class="bg-gradient-to-tr from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-8 border border-indigo-100 shadow-sm">
+                    <div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
+                        <div>
                             <h3 class="text-2xl font-bold text-gray-800 mb-2">
                                 {{ ucfirst($type) }} #{{ $data->reservation_number ?: $data->id }}
                             </h3>
@@ -32,11 +33,11 @@
                         </div>
                         <span
                             class="px-4 py-2 rounded-full text-sm font-semibold border
-                        @if($data->status === 'pending') bg-yellow-50 text-yellow-800 border-yellow-300
+                        @if ($data->status === 'pending') bg-yellow-50 text-yellow-800 border-yellow-300
                         @elseif($data->status === 'paid') bg-blue-50 text-blue-800 border-blue-300
                         @elseif($data->status === 'confirmed') bg-green-50 text-green-800 border-green-300
                         @else bg-red-50 text-red-800 border-red-300 @endif">
-                        {{ ucfirst($data->status) }}
+                            {{ ucfirst($data->status) }}
                         </span>
                     </div>
 
@@ -76,10 +77,46 @@
                         </div>
                     </div>
 
+                    <!-- Payment History Section (for reservations) -->
+                    @if ($type === 'reservation' && $data->payments->count() > 0)
+                        <div class="mt-8">
+                            <h4 class="text-xl font-bold text-gray-800 mb-4">Payment History</h4>
+                            <div class="space-y-4">
+                                @foreach ($data->payments as $payment)
+                                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <div
+                                                    class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                                                    {{ ucfirst($payment->payment_stage) }} Payment
+                                                </div>
+                                                <div class="text-lg font-semibold text-gray-900">
+                                                    ₱{{ number_format($payment->amount_paid, 2) }}
+                                                </div>
+                                                <div class="text-sm text-gray-600 mt-1">
+                                                    Reference: {{ $payment->reference_id }}
+                                                </div>
+                                                <div class="text-sm text-gray-600">
+                                                    Date: {{ $payment->payment_date->format('M j, Y H:i') }}
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="px-3 py-1 rounded-full text-xs font-semibold
+                                                @if ($payment->status === 'verified') bg-green-100 text-green-800
+                                                @else bg-yellow-100 text-yellow-800 @endif">
+                                                {{ ucfirst($payment->status) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="flex flex-wrap gap-3">
                         @if ($type === 'reservation')
                             @if ($data->status === 'pending')
-                                <a href="/user/reservation/{{ $data->id }}/continue"
+                                <a href="{{ route('search.continue', [$data->id, $type]) }}"
                                     class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
                                     Complete Payment
                                 </a>
@@ -98,6 +135,42 @@
                                 View Reservation
                             </a>
                         @else
+                            <!-- Payment History Section (for bookings) -->
+                            @if ($data->payments->count() > 0)
+                                <div class="mt-8">
+                                    <h4 class="text-xl font-bold text-gray-800 mb-4">Payment History</h4>
+                                    <div class="space-y-4">
+                                        @foreach ($data->payments as $payment)
+                                            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                                <div class="flex justify-between items-start">
+                                                    <div>
+                                                        <div
+                                                            class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                                                            Payment
+                                                        </div>
+                                                        <div class="text-lg font-semibold text-gray-900">
+                                                            ₱{{ number_format($payment->amount_paid, 2) }}
+                                                        </div>
+                                                        <div class="text-sm text-gray-600 mt-1">
+                                                            Reference: {{ $payment->reference_id }}
+                                                        </div>
+                                                        <div class="text-sm text-gray-600">
+                                                            Date: {{ $payment->payment_date->format('M j, Y H:i') }}
+                                                        </div>
+                                                    </div>
+                                                    <span
+                                                        class="px-3 py-1 rounded-full text-xs font-semibold
+                                                        @if ($payment->status === 'verified') bg-green-100 text-green-800
+                                                        @else bg-yellow-100 text-yellow-800 @endif">
+                                                        {{ ucfirst($payment->status) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
                             <span class="bg-gray-100 text-gray-800 px-6 py-3 rounded-lg font-semibold">
                                 Booking Details
                             </span>

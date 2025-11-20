@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $pageTitle ?? 'Admin Dashboard' }} - Laiya Grande</title>
+    <title>{{ $pageTitle ?? 'Laiya Grande Admin' }}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
 
@@ -86,6 +86,15 @@
         .notification-item:last-child {
             border-bottom: none;
         }
+
+        .search-results {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .search-results li {
+            list-style: none;
+        }
     </style>
 </head>
 
@@ -103,13 +112,23 @@
             <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                 <div class="flex-1 max-w-md">
                     <div class="relative">
-                        <input type="text" placeholder="Search"
-                            class="search-input w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--teal-primary)] focus:border-transparent">
+                        <input type="text"
+                            class="search-input w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--teal-primary)] focus:border-transparent"
+                            placeholder="Search...">
                         <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <ul class="search-results absolute bg-white shadow rounded w-full mt-1 hidden z-50"></ul>
                     </div>
+
                 </div>
 
                 <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <a href="{{ route('admin.settings.index') }}"
+                            class="relative text-gray-600 hover:text-[var(--teal-primary)] transition-colors">
+                            <i class="fas fa-cog text-xl"></i>
+                        </a>
+                    </div>
+
                     <div class="relative">
                         <a href="{{ route('admin.inbox.index') }}"
                             class="relative text-gray-600 hover:text-[var(--teal-primary)] transition-colors">
@@ -292,6 +311,45 @@
                         }).catch(console.error);
                     });
                 }
+            }
+        });
+
+
+        //search functions
+
+        const navItems = @json(config('admin_nav')); 
+
+        const searchInput = document.querySelector('.search-input');
+        const resultsContainer = document.querySelector('.search-results');
+
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase();
+            const filtered = navItems.filter(item => item.label.toLowerCase().includes(query));
+
+            resultsContainer.innerHTML = '';
+
+            if (filtered.length > 0 && query.length > 0) {
+                filtered.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item.label;
+                    li.classList.add('px-4', 'py-2', 'hover:bg-gray-100', 'cursor-pointer');
+                    li.addEventListener('click', () => {
+                        if (item.route !== '#') {
+                            window.location.href = '{{ url('/') }}/' + item.route.replace(
+                                /\./g, '/');
+                        }
+                    });
+                    resultsContainer.appendChild(li);
+                });
+                resultsContainer.classList.remove('hidden');
+            } else {
+                resultsContainer.classList.add('hidden');
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) {
+                resultsContainer.classList.add('hidden');
             }
         });
     </script>

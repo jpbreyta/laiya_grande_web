@@ -9,4 +9,6 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::put('/reservation/{id}', [ReservationController::class, 'update'])->name('reservation.update');
     Route::post('/reservation/{id}/approve', [ReservationController::class, 'approve'])->name('reservation.approve');
     Route::post('/reservation/{id}/cancel', [ReservationController::class, 'cancel'])->name('reservation.cancel');
+    Route::post('/reservation/{id}/process-first-payment-ocr', [ReservationController::class, 'processFirstPaymentOCR'])->name('reservation.processFirstPaymentOCR');
+    Route::post('/reservation/{id}/process-second-payment-ocr', [ReservationController::class, 'processSecondPaymentOCR'])->name('reservation.processSecondPaymentOCR');
 });

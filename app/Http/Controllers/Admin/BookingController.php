@@ -201,6 +201,7 @@ class BookingController extends Controller
             'status' => 'required|in:pending,confirmed,cancelled',
             'total_price' => 'required|numeric|min:0',
             'special_request' => 'nullable|string',
+            'reservation_number' => 'required|string|unique:bookings,reservation_number,' . $booking->id,
         ]);
 
         $booking->update($validated);

@@ -6,35 +6,55 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('booking_id')->constrained()->onDelete('cascade');
+
+            // Parent references (one will be null depending on source)
+            $table->foreignId('booking_id')
+                ->nullable()
+                ->constrained()
+                ->onDelete('cascade');
+
+            $table->foreignId('reservation_id')
+                ->nullable()
+                ->constrained()
+                ->onDelete('cascade');
+
+            // Unique payment reference
             $table->string('reference_id', 20)->unique();
+
             $table->string('customer_name');
             $table->string('contact_number', 20);
             $table->datetime('payment_date');
+
             $table->decimal('amount', 10, 2)->nullable();
-            $table->enum('status', ['pending', 'verified', 'rejected'])->default('pending');
+
+            // For reservation partial + final payments
+            $table->enum('payment_stage', ['full', 'partial', 'final'])
+                ->default('full');
+
+            $table->enum('status', ['pending', 'verified', 'rejected'])
+                ->default('pending');
+
             $table->string('payment_method')->default('gcash');
+
             $table->timestamp('verified_at')->nullable();
-            $table->foreignId('verified_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('verified_by')
+                ->nullable()
+                ->constrained('users')
+                ->onDelete('set null');
+
             $table->text('notes')->nullable();
+
             $table->timestamps();
 
             $table->index(['booking_id', 'status']);
-            $table->index('reference_id');
-            $table->index('status');
+            $table->index(['reservation_id', 'status']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('payments');

@@ -25,8 +25,10 @@ class DatabaseSeeder extends Seeder
             TermsAndConditionsSeeder::class,
             HouseRulesSeeder::class,
             TourPackagesSeeder::class,
-            WaterSportsSeeder::class, 
+            WaterSportsSeeder::class,
+            PopulateReservationNumbersSeeder::class,
+            NotificationSeeder::class,
+            GeneralSettingsSeeder::class,
         ]);
-
     }
 }
