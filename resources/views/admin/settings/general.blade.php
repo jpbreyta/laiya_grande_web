@@ -1,7 +1,13 @@
 @extends('admin.layouts.app')
 
 @section('content')
-    <div class="space-y-6">
+    <form action="{{ route('admin.settings.general.update') }}" 
+          method="POST" 
+          enctype="multipart/form-data" 
+          class="space-y-6">
+        @csrf
+        @method('PUT')
+
         <!-- Page Header -->
         <div class="flex items-center justify-between">
             <div>
@@ -13,7 +19,9 @@
                     class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                     <i class="fas fa-arrow-left mr-2"></i>Back to Settings
                 </a>
-                <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+
+                <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <i class="fas fa-save mr-2"></i>Save Changes
                 </button>
             </div>
@@ -32,41 +40,50 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Resort Name -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Resort Name</label>
-                    <input type="text"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Laiya Grande Resort" value="Laiya Grande Resort">
+                    <input type="text" name="resort_name"
+                        value="{{ old('resort_name', $settings->resort_name) }}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
+
+                <!-- Tagline -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tagline</label>
-                    <input type="text"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Your perfect beach getaway" value="Your perfect beach getaway">
+                    <input type="text" name="tagline"
+                        value="{{ old('tagline', $settings->tagline) }}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
+
+                <!-- Contact Email -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Contact Email</label>
-                    <input type="email"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="info@laiyagrande.com" value="info@laiyagrande.com">
+                    <input type="email" name="contact_email"
+                        value="{{ old('contact_email', $settings->contact_email) }}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
+
+                <!-- Contact Phone -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Contact Phone</label>
-                    <input type="tel"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="+63 123 456 7890" value="+63 123 456 7890">
+                    <input type="tel" name="contact_phone"
+                        value="{{ old('contact_phone', $settings->contact_phone) }}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
+
+                <!-- Address -->
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                    <textarea rows="3"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter full address">Laiya, Batangas, Philippines</textarea>
+                    <textarea name="contact_address" rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('contact_address', $settings->contact_address) }}</textarea>
                 </div>
+
+                <!-- Description -->
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <textarea rows="4"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Brief description of your resort">Experience luxury and relaxation at Laiya Grande Resort, nestled along the pristine beaches of Laiya. Our resort offers world-class amenities, exceptional service, and unforgettable memories for every guest.</textarea>
+                    <textarea name="description" rows="4"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('description', $settings->description) }}</textarea>
                 </div>
             </div>
         </div>
@@ -84,28 +101,35 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Logo -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Logo</label>
                     <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                         <div class="mb-4">
-                            <img src="{{ asset('logo.png') }}" alt="Current Logo" class="w-16 h-16 mx-auto mb-2">
+                            <img src="{{ $settings->logo_path ? asset('storage/'.$settings->logo_path) : asset('logo.png') }}"
+                                alt="Logo" class="w-16 h-16 mx-auto mb-2">
                             <p class="text-sm text-gray-600">Current logo</p>
                         </div>
-                        <input type="file" accept="image/*" class="hidden" id="logo-upload">
+
+                        <input type="file" name="logo" accept="image/*" class="hidden" id="logo-upload">
                         <label for="logo-upload"
                             class="cursor-pointer bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors inline-block">
                             <i class="fas fa-upload mr-2"></i>Change Logo
                         </label>
                     </div>
                 </div>
+
+                <!-- Favicon -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Favicon</label>
                     <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                         <div class="mb-4">
-                            <img src="{{ asset('favicon.ico') }}" alt="Current Favicon" class="w-8 h-8 mx-auto mb-2">
+                            <img src="{{ $settings->favicon_path ? asset('storage/'.$settings->favicon_path) : asset('favicon.ico') }}"
+                                alt="Favicon" class="w-8 h-8 mx-auto mb-2">
                             <p class="text-sm text-gray-600">Current favicon</p>
                         </div>
-                        <input type="file" accept="image/*" class="hidden" id="favicon-upload">
+
+                        <input type="file" name="favicon" accept="image/*" class="hidden" id="favicon-upload">
                         <label for="favicon-upload"
                             class="cursor-pointer bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors inline-block">
                             <i class="fas fa-upload mr-2"></i>Change Favicon
@@ -123,7 +147,7 @@
                 </div>
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800">Business Hours</h3>
-                    <p class="text-sm text-gray-600">Set operating hours for different resort services</p>
+                    <p class="text-sm text-gray-600">Set operating hours</p>
                 </div>
             </div>
 
@@ -134,13 +158,17 @@
                         <i class="fas fa-concierge-bell text-green-600 mr-3"></i>
                         <div>
                             <p class="font-medium text-gray-800">Reception</p>
-                            <p class="text-sm text-gray-600">Front desk and check-in services</p>
                         </div>
                     </div>
+
                     <div class="flex items-center space-x-2">
-                        <input type="time" class="px-2 py-1 border border-gray-300 rounded text-sm" value="06:00">
+                        <input type="time" name="reception_hours_start"
+                            value="{{ old('reception_hours_start', $settings->reception_hours_start) }}"
+                            class="px-2 py-1 border border-gray-300 rounded text-sm">
                         <span class="text-gray-500">to</span>
-                        <input type="time" class="px-2 py-1 border border-gray-300 rounded text-sm" value="22:00">
+                        <input type="time" name="reception_hours_end"
+                            value="{{ old('reception_hours_end', $settings->reception_hours_end) }}"
+                            class="px-2 py-1 border border-gray-300 rounded text-sm">
                     </div>
                 </div>
 
@@ -150,29 +178,37 @@
                         <i class="fas fa-utensils text-green-600 mr-3"></i>
                         <div>
                             <p class="font-medium text-gray-800">Restaurant</p>
-                            <p class="text-sm text-gray-600">Dining services</p>
                         </div>
                     </div>
+
                     <div class="flex items-center space-x-2">
-                        <input type="time" class="px-2 py-1 border border-gray-300 rounded text-sm" value="07:00">
+                        <input type="time" name="restaurant_hours_start"
+                            value="{{ old('restaurant_hours_start', $settings->restaurant_hours_start) }}"
+                            class="px-2 py-1 border border-gray-300 rounded text-sm">
                         <span class="text-gray-500">to</span>
-                        <input type="time" class="px-2 py-1 border border-gray-300 rounded text-sm" value="21:00">
+                        <input type="time" name="restaurant_hours_end"
+                            value="{{ old('restaurant_hours_end', $settings->restaurant_hours_end) }}"
+                            class="px-2 py-1 border border-gray-300 rounded text-sm">
                     </div>
                 </div>
 
-                <!-- Pool & Beach -->
+                <!-- Pool -->
                 <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div class="flex items-center">
                         <i class="fas fa-swimmer text-green-600 mr-3"></i>
                         <div>
                             <p class="font-medium text-gray-800">Pool & Beach</p>
-                            <p class="text-sm text-gray-600">Swimming pool and beach access</p>
                         </div>
                     </div>
+
                     <div class="flex items-center space-x-2">
-                        <input type="time" class="px-2 py-1 border border-gray-300 rounded text-sm" value="06:00">
+                        <input type="time" name="pool_hours_start"
+                            value="{{ old('pool_hours_start', $settings->pool_hours_start) }}"
+                            class="px-2 py-1 border border-gray-300 rounded text-sm">
                         <span class="text-gray-500">to</span>
-                        <input type="time" class="px-2 py-1 border border-gray-300 rounded text-sm" value="18:00">
+                        <input type="time" name="pool_hours_end"
+                            value="{{ old('pool_hours_end', $settings->pool_hours_end) }}"
+                            class="px-2 py-1 border border-gray-300 rounded text-sm">
                     </div>
                 </div>
 
@@ -182,19 +218,23 @@
                         <i class="fas fa-hiking text-green-600 mr-3"></i>
                         <div>
                             <p class="font-medium text-gray-800">Activities</p>
-                            <p class="text-sm text-gray-600">Sports and recreational activities</p>
                         </div>
                     </div>
+
                     <div class="flex items-center space-x-2">
-                        <input type="time" class="px-2 py-1 border border-gray-300 rounded text-sm" value="08:00">
+                        <input type="time" name="activities_hours_start"
+                            value="{{ old('activities_hours_start', $settings->activities_hours_start) }}"
+                            class="px-2 py-1 border border-gray-300 rounded text-sm">
                         <span class="text-gray-500">to</span>
-                        <input type="time" class="px-2 py-1 border border-gray-300 rounded text-sm" value="17:00">
+                        <input type="time" name="activities_hours_end"
+                            value="{{ old('activities_hours_end', $settings->activities_hours_end) }}"
+                            class="px-2 py-1 border border-gray-300 rounded text-sm">
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Social Media Links -->
+        <!-- Social Media -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-center mb-6">
                 <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center mr-3">
@@ -202,42 +242,40 @@
                 </div>
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800">Social Media Links</h3>
-                    <p class="text-sm text-gray-600">Connect your social media accounts</p>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Facebook -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fab fa-facebook text-blue-600 mr-2"></i>Facebook
-                    </label>
-                    <input type="url"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="https://facebook.com/laiyagrande" value="https://facebook.com/laiyagrande">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Facebook</label>
+                    <input type="url" name="social_facebook"
+                        value="{{ old('social_facebook', $settings->social_facebook) }}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 </div>
+
+                <!-- Instagram -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fab fa-instagram text-pink-600 mr-2"></i>Instagram
-                    </label>
-                    <input type="url"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="https://instagram.com/laiyagrande" value="https://instagram.com/laiyagrande">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Instagram</label>
+                    <input type="url" name="social_instagram"
+                        value="{{ old('social_instagram', $settings->social_instagram) }}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 </div>
+
+                <!-- Twitter -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fab fa-twitter text-blue-400 mr-2"></i>Twitter
-                    </label>
-                    <input type="url"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="https://twitter.com/laiyagrande">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Twitter</label>
+                    <input type="url" name="social_twitter"
+                        value="{{ old('social_twitter', $settings->social_twitter) }}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 </div>
+
+                <!-- Tripadvisor -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fab fa-tripadvisor text-green-600 mr-2"></i>TripAdvisor
-                    </label>
-                    <input type="url"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="https://tripadvisor.com/laiyagrande">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">TripAdvisor</label>
+                    <input type="url" name="social_tripadvisor"
+                        value="{{ old('social_tripadvisor', $settings->social_tripadvisor) }}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 </div>
             </div>
         </div>
@@ -250,38 +288,42 @@
                 </div>
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800">System Preferences</h3>
-                    <p class="text-sm text-gray-600">General system settings and preferences</p>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Currency -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Default Currency</label>
-                    <select
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent">
-                        <option value="PHP" selected>PHP (₱)</option>
-                        <option value="USD">USD ($)</option>
-                        <option value="EUR">EUR (€)</option>
+                    <select name="currency"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="PHP" {{ old('currency', $settings->currency) == 'PHP' ? 'selected' : '' }}>PHP (₱)</option>
+                        <option value="USD" {{ old('currency', $settings->currency) == 'USD' ? 'selected' : '' }}>USD ($)</option>
+                        <option value="EUR" {{ old('currency', $settings->currency) == 'EUR' ? 'selected' : '' }}>EUR (€)</option>
                     </select>
                 </div>
+
+                <!-- Date Format -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Date Format</label>
-                    <select
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent">
-                        <option value="d/m/Y">DD/MM/YYYY</option>
-                        <option value="m/d/Y" selected>MM/DD/YYYY</option>
-                        <option value="Y-m-d">YYYY-MM-DD</option>
+                    <select name="date_format"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="d/m/Y" {{ old('date_format', $settings->date_format) == 'd/m/Y' ? 'selected' : '' }}>DD/MM/YYYY</option>
+                        <option value="m/d/Y" {{ old('date_format', $settings->date_format) == 'm/d/Y' ? 'selected' : '' }}>MM/DD/YYYY</option>
+                        <option value="Y-m-d" {{ old('date_format', $settings->date_format) == 'Y-m-d' ? 'selected' : '' }}>YYYY-MM-DD</option>
                     </select>
                 </div>
+
+                <!-- Time Format -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Time Format</label>
-                    <select
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent">
-                        <option value="12" selected>12 Hour</option>
-                        <option value="24">24 Hour</option>
+                    <select name="time_format"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="12" {{ old('time_format', $settings->time_format) == '12' ? 'selected' : '' }}>12 Hour</option>
+                        <option value="24" {{ old('time_format', $settings->time_format) == '24' ? 'selected' : '' }}>24 Hour</option>
                     </select>
                 </div>
             </div>
         </div>
-    </div>
+    </form>
 @endsection

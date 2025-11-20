@@ -1,5 +1,9 @@
 @extends('admin.layouts.app')
 
+@php
+    $pageTitle = 'Edit Booking';
+@endphp
+
 @section('content')
     <section class="bg-gradient-to-br from-slate-50 via-white to-slate-100 min-h-screen py-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

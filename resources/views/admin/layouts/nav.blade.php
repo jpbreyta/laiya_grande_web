@@ -12,14 +12,14 @@
         <!-- Dashboard & Overview -->
         <div class="accordion-section">
             <button type="button" data-accordion-button data-target="accordion-overview"
-                class="accordion-toggle active flex items-center justify-between w-full rounded-lg px-2.5 py-1.5 transition">
+                class="accordion-toggle flex items-center justify-between w-full rounded-lg px-2.5 py-1.5 transition">
                 <span class="nav-text text-[13px] font-semibold tracking-wide flex items-center gap-2">
                     <i class="fas fa-layer-group"></i>
                     Dashboard & Overview
                 </span>
                 <i class="fas fa-chevron-down text-xs accordion-arrow rotate-180 transition-transform duration-200"></i>
             </button>
-            <div id="accordion-overview" class="accordion-panel open mt-1 space-y-0.5">
+            <div id="accordion-overview" class="accordion-panel mt-1 space-y-0.5">
                 <a href="{{ route('admin.new.index') }}" class="accordion-link">
                     <i class="fas fa-plus"></i>
                     <span>New</span>
@@ -149,6 +149,7 @@
 </nav>
 
 <script>
+    
     const toggleBtn = document.getElementById('toggleSidebarBtn');
     const sidebar = document.getElementById('sidebar');
 
@@ -197,12 +198,10 @@
     }
 
     accordionPanels.forEach((panel, index) => {
-        if (panel.classList.contains('open')) {
-            panel.style.maxHeight = panel.scrollHeight + 'px';
-            accordionButtons[index]?.classList.add('active');
-        } else {
-            panel.style.maxHeight = '0px';
-        }
+        panel.classList.remove('open');
+        panel.style.maxHeight = '0px';
+        accordionButtons[index]?.classList.remove('active');
+        accordionButtons[index]?.querySelector('.accordion-arrow')?.classList.remove('rotate-180');
     });
 
     accordionButtons.forEach((button, index) => {

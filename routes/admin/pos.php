@@ -3,7 +3,7 @@
 use App\Http\Controllers\Admin\PointOfSaleController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('pos')->group(function () {
+Route::prefix('pos')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', [PointOfSaleController::class, 'index'])->name('admin.pos.index');
     Route::post('/add-to-cart', [PointOfSaleController::class, 'addToCart'])->name('admin.pos.addToCart');
     Route::post('/update-cart', [PointOfSaleController::class, 'updateCart'])->name('admin.pos.updateCart');
