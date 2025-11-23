@@ -14,7 +14,9 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+    
         :root {
             --font-body: 'Poppins', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, 'Noto Sans', 'Helvetica Neue', sans-serif;
         }
@@ -106,6 +108,16 @@
 
     @include('user.layouts.footer')
 
+    <script>
+        @if(session('alert'))
+            var alertData = @json(session('alert'));
+            Swal.fire({
+                icon: alertData.type,
+                title: alertData.type.charAt(0).toUpperCase() + alertData.type.slice(1),
+                text: alertData.message,
+            });
+        @endif
+    </script>
     <!-- Page-specific scripts -->
     @stack('scripts')
 </body>

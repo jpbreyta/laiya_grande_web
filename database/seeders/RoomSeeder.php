@@ -23,11 +23,11 @@ class RoomSeeder extends Seeder
                 'has_free_parking' => true,
                 'no_entrance_fee' => true,
                 'no_corkage_fee' => true,
-                'image' => 'images/rooms/hermosa_kadayawan.jpg',
-                'images' => json_encode([
-                    'images/rooms/hermosa_kadayawan_1.jpg',
+                'image' => 'images/rooms/HermosaKadayawan.jpg',
+                'images' => [
+                    'images/rooms/HermosaKadayawan.jpg',
                     'images/rooms/hermosa_kadayawan_2.jpg'
-                ]),
+                ],
                 'rate_name' => 'overnight',
             ],
             [
@@ -43,11 +43,11 @@ class RoomSeeder extends Seeder
                 'has_free_parking' => true,
                 'no_entrance_fee' => true,
                 'no_corkage_fee' => true,
-                'image' => 'images/rooms/sigpawan.jpg',
-                'images' => json_encode([
-                    'images/rooms/sigpawan_1.jpg',
+                'image' => 'images/rooms/Sigapawan.jpg',
+                'images' => [
+                    'images/rooms/Sigapawan.jpg',
                     'images/rooms/sigpawan_2.jpg'
-                ]),
+                ],
                 'rate_name' => 'overnight',
             ],
             [
@@ -64,10 +64,10 @@ class RoomSeeder extends Seeder
                 'no_entrance_fee' => true,
                 'no_corkage_fee' => true,
                 'image' => 'images/rooms/dinagyang.jpg',
-                'images' => json_encode([
+                'images' => [
                     'images/rooms/dinagyang_1.jpg',
                     'images/rooms/dinagyang_2.jpg'
-                ]),
+                ],
                 'rate_name' => 'overnight',
             ],
             [
@@ -83,11 +83,11 @@ class RoomSeeder extends Seeder
                 'has_free_parking' => true,
                 'no_entrance_fee' => true,
                 'no_corkage_fee' => true,
-                'image' => 'images/rooms/aliwan.jpg',
-                'images' => json_encode([
-                    'images/rooms/aliwan_1.jpg',
+                'image' => 'images/rooms/Aliwan.jpg',
+                'images' => [
+                    'images/rooms/Aliwan.jpg',
                     'images/rooms/aliwan_2.jpg'
-                ]),
+                ],
                 'rate_name' => 'overnight',
             ],
             [
@@ -103,11 +103,11 @@ class RoomSeeder extends Seeder
                 'has_free_parking' => true,
                 'no_entrance_fee' => true,
                 'no_corkage_fee' => true,
-                'image' => 'images/rooms/sublian.jpg',
-                'images' => json_encode([
-                    'images/rooms/sublian_1.jpg',
+                'image' => 'images/rooms/Sublian.jpg',
+                'images' => [
+                    'images/rooms/Sublian.jpg',
                     'images/rooms/sublian_2.jpg'
-                ]),
+                ],
                 'rate_name' => 'overnight',
             ],
             [
@@ -123,11 +123,11 @@ class RoomSeeder extends Seeder
                 'has_free_parking' => true,
                 'no_entrance_fee' => true,
                 'no_corkage_fee' => true,
-                'image' => 'images/rooms/lambayok_pahiyas.jpg',
-                'images' => json_encode([
+                'image' => 'images/rooms/Pahiyas.jpg',
+                'images' => [
                     'images/rooms/lambayok_pahiyas_1.jpg',
                     'images/rooms/lambayok_pahiyas_2.jpg'
-                ]),
+                ],
                 'rate_name' => 'overnight',
             ],
             [
@@ -143,11 +143,11 @@ class RoomSeeder extends Seeder
                 'has_free_parking' => true,
                 'no_entrance_fee' => true,
                 'no_corkage_fee' => true,
-                'image' => 'images/rooms/atiatihan.jpg',
-                'images' => json_encode([
-                    'images/rooms/atiatihan_1.jpg',
+                'image' => 'images/rooms/Ati-Atihan.jpg',
+                'images' => [
+                    'images/rooms/Ati-atihan.jpg',
                     'images/rooms/atiatihan_2.jpg'
-                ]),
+                ],
                 'rate_name' => 'overnight',
             ],
             [
@@ -164,10 +164,10 @@ class RoomSeeder extends Seeder
                 'no_entrance_fee' => true,
                 'no_corkage_fee' => true,
                 'image' => 'images/rooms/moriones_hamaka.jpg',
-                'images' => json_encode([
+                'images' => [
                     'images/rooms/moriones_hamaka_1.jpg',
                     'images/rooms/moriones_hamaka_2.jpg'
-                ]),
+                ],
                 'rate_name' => 'overnight',
             ],
             [
@@ -183,11 +183,11 @@ class RoomSeeder extends Seeder
                 'has_free_parking' => true,
                 'no_entrance_fee' => true,
                 'no_corkage_fee' => true,
-                'image' => 'images/rooms/pintados_panagbenga.jpg',
-                'images' => json_encode([
+                'image' => 'images/rooms/Panagbenga.jpg',
+                'images' => [
                     'images/rooms/pintados_panagbenga_1.jpg',
                     'images/rooms/pintados_panagbenga_2.jpg'
-                ]),
+                ],
                 'rate_name' => 'overnight',
             ],
             [
@@ -203,11 +203,11 @@ class RoomSeeder extends Seeder
                 'has_free_parking' => true,
                 'no_entrance_fee' => true,
                 'no_corkage_fee' => true,
-                'image' => 'images/rooms/marina_covina.jpg',
-                'images' => json_encode([
+                'image' => 'images/rooms/Marina (1).jpg',
+                'images' => [
                     'images/rooms/marina_covina_1.jpg',
                     'images/rooms/marina_covina_2.jpg'
-                ]),
+                ],
                 'rate_name' => 'overnight',
             ],
         ];

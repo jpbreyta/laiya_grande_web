@@ -1,4 +1,4 @@
-@extends('admin.layouts.app')
+@extends('admin.settings.layouts.app')
 
 @section('content')
     <form action="{{ route('admin.settings.general.update') }}" 

@@ -28,10 +28,6 @@
                     <i class="fas fa-home"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="accordion-link">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Analytics & Reports</span>
-                </a>
             </div>
         </div>
 
@@ -98,7 +94,7 @@
                 <i class="fas fa-chevron-down text-xs accordion-arrow rotate-0 transition-transform duration-200"></i>
             </button>
             <div id="accordion-financials" class="accordion-panel mt-1 space-y-0.5">
-                <a href="{{ route('admin.test-payment-ocr') }}" class="accordion-link">
+                <a href="{{ route('admin.payments.index') }}" class="accordion-link">
                     <i class="fas fa-credit-card"></i>
                     <span>Payments</span>
                 </a>
@@ -126,7 +122,11 @@
             <div id="accordion-documents" class="accordion-panel mt-1 space-y-0.5">
                 <a href="{{ route('admin.qr.scanner') }}" class="accordion-link">
                     <i class="fas fa-qrcode"></i>
-                    <span>Documents & QR</span>
+                    <span>QR</span>
+                </a>
+                <a href="{{ route('admin.qr.scanner') }}" class="accordion-link">
+                    <i class="fas fa-qrcode"></i>
+                    <span>Documents</span>
                 </a>
             </div>
         </div>
@@ -149,7 +149,6 @@
 </nav>
 
 <script>
-    
     const toggleBtn = document.getElementById('toggleSidebarBtn');
     const sidebar = document.getElementById('sidebar');
 

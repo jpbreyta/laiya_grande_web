@@ -664,7 +664,7 @@
                                             confirmButtonColor: '#d4a853'
                                         }).then(() => {
                                             window.location.href =
-                                                '{{ route('user.reservation.index') }}';
+                                                '{{ route('home') }}';
                                         });
                                     } else {
                                         Swal.fire({
