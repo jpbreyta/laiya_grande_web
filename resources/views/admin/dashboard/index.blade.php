@@ -27,6 +27,7 @@
             }
 
             @keyframes pulse {
+
                 0%,
                 100% {
                     transform: scale(1);
@@ -99,7 +100,9 @@
                     <p class="text-sm text-gray-500">Last updated</p>
                     <p class="text-sm font-medium text-gray-700">{{ now()->format('M d, Y H:i') }}</p>
                 </div>
-                <button class="btn-primary text-white px-4 py-2 rounded-lg flex items-center" onclick="location.reload()">
+                <button
+                    class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-4 py-2 rounded-lg flex items-center"
+                    onclick="location.reload()">
                     <i class="fas fa-sync-alt mr-2"></i>Refresh
                 </button>
             </div>
@@ -155,7 +158,7 @@
         {{-- Content Sections --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Revenue Overview (Last 7 Days)</h2>
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Revenue Overview (Daily)</h2>
                 <div class="h-64">
                     <canvas id="revenueChart"></canvas>
                 </div>
@@ -186,7 +189,8 @@
                                 <p class="font-medium text-gray-800">
                                     ₱{{ number_format($booking->total_price, 2, '.', ',') }}</p>
                                 <p class="text-sm text-gray-500">
-                                    {{ \Carbon\Carbon::parse($booking->check_in)->format('M d') }} - {{ \Carbon\Carbon::parse($booking->check_out)->format('M d') }}
+                                    {{ \Carbon\Carbon::parse($booking->check_in)->format('M d') }} -
+                                    {{ \Carbon\Carbon::parse($booking->check_out)->format('M d') }}
                                 </p>
                             </div>
                         </div>
@@ -229,14 +233,14 @@
     @push('scripts')
         <!-- Chart.js CDN -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-        
+
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 // Revenue Chart
                 const ctx = document.getElementById('revenueChart');
                 if (ctx) {
                     const revenueData = @json($revenueData ?? ['labels' => [], 'data' => []]);
-                    
+
                     new Chart(ctx, {
                         type: 'line',
                         data: {
@@ -324,14 +328,6 @@
                 if (searchInput) {
                     searchInput.addEventListener('input', e => {
                         console.log('Searching for:', e.target.value);
-                    });
-                }
-
-                // Notification button handler
-                const notificationBtn = document.querySelector('.notification-badge')?.parentElement;
-                if (notificationBtn) {
-                    notificationBtn.addEventListener('click', () => {
-                        alert('Notifications clicked!');
                     });
                 }
             });

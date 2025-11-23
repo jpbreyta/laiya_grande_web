@@ -65,6 +65,39 @@ class DashboardController extends Controller
             return $activity['time']; // This is a string, might need adjustment
         })->take(4);
 
+        // Revenue data for chart (daily, starting from first booking, up to 30 days)
+        $firstBooking = Booking::where('status', 'confirmed')->orderBy('created_at')->first();
+        $startDate = $firstBooking ? Carbon::parse($firstBooking->created_at)->startOfDay() : Carbon::now()->startOfDay();
+        $endDate = Carbon::now()->endOfDay();
+
+        // Limit to 30 days if more
+        $maxDays = 30;
+        $daysDiff = $startDate->diffInDays($endDate);
+        if ($daysDiff > $maxDays) {
+            $startDate = $endDate->copy()->subDays($maxDays - 1)->startOfDay();
+        }
+
+        $revenueData = [];
+        $labels = [];
+        $currentDate = $startDate->copy();
+
+        while ($currentDate <= $endDate) {
+            $labels[] = $currentDate->format('M d');
+
+            $dailyRevenue = Booking::where('status', 'confirmed')
+                ->whereDate('created_at', $currentDate->toDateString())
+                ->sum('total_price');
+
+            $revenueData[] = $dailyRevenue;
+
+            $currentDate->addDay();
+        }
+
+        $revenueData = [
+            'labels' => $labels,
+            'data' => $revenueData
+        ];
+
         // Notifications
         $unreadNotifications = Notification::unread()->count();
         $recentNotifications = Notification::latest()->take(5)->get();
@@ -76,6 +109,7 @@ class DashboardController extends Controller
             'pendingBookings',
             'recentBookings',
             'recentActivities',
+            'revenueData',
             'unreadNotifications',
             'recentNotifications'
         ));

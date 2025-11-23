@@ -9,9 +9,21 @@
         <div class="max-w-7xl mx-auto">
 
             @include('admin.components.table-controls', [
+                'more' => [
+                    ['label' => 'Export as CSV', 'route' => '#'],
+                    ['label' => 'Export as Excel', 'route' => '#'],
+                    ['label' => 'Export as PDF', 'route' => '#'],
+                ],
                 'title' => $pageTitle,
                 'search' => true,
                 'entries' => true,
+                'button' => [
+                    'type' => 'deleted',
+                    'text' => 'Deleted Bookings',
+                    'route' => 'admin.booking.deleted',
+                    'color' => 'bg-gradient-to-r from-red-500 to to-red-700',
+                ],
+                
             ])
 
 

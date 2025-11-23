@@ -11,4 +11,5 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::post('/booking/{id}/approve', [BookingController::class, 'approve'])->name('booking.approve');
     Route::post('/booking/{id}/reject', [BookingController::class, 'reject'])->name('booking.reject');
     Route::post('/booking/{id}/process-ocr', [BookingController::class, 'processOCRForBooking'])->name('booking.process-ocr');
+    Route::get('/booking/deleted', [BookingController::class, 'deleted'])->name('booking.deleted');
 });

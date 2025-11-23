@@ -18,7 +18,7 @@ class ReservationController extends Controller
      */
     public function index()
     {
-        $reservations = Reservation::with('room')->latest()->get();
+        $reservations = Reservation::with('room')->latest()->paginate(10);
         return view('admin.reservation.index', compact('reservations'));
     }
 

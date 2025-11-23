@@ -53,6 +53,8 @@
     </svg>
 </button>
 
+<script src="https://kit.fontawesome.com/3f65e8b90a.js" crossorigin="anonymous"></script>
+
 <style>
 #backToTopBtn {
   width: 55px;

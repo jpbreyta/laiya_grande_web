@@ -1,8 +1,10 @@
 <?php
+
 use App\Http\Controllers\Admin\ReservationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
+    Route::get('/reservation/deleted', [ReservationController::class, 'deleted'])->name('reservation.deleted');
     Route::get('/reservation', [ReservationController::class, 'index'])->name('reservation.index');
     Route::get('/reservation/{id}', [ReservationController::class, 'show'])->name('reservation.show');
     Route::get('/reservation/{id}/edit', [ReservationController::class, 'edit'])->name('reservation.edit');
