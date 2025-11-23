@@ -11,40 +11,29 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
 
-            // Parent references (one will be null depending on source)
-            $table->foreignId('booking_id')
-                ->nullable()
-                ->constrained()
-                ->onDelete('cascade');
+            // independent parent references (nullable)
+            $table->unsignedBigInteger('booking_id')->nullable();
+            $table->unsignedBigInteger('reservation_id')->nullable();
 
-            $table->foreignId('reservation_id')
-                ->nullable()
-                ->constrained()
-                ->onDelete('cascade');
-
-            // Unique payment reference
-            $table->string('reference_id', 20)->unique();
+            // Unique payment reference (nullable)
+            $table->string('reference_id', 20)->nullable()->unique();
 
             $table->string('customer_name');
             $table->string('contact_number', 20);
-            $table->datetime('payment_date');
+            $table->dateTime('payment_date')->nullable();
 
-            $table->decimal('amount', 10, 2)->nullable();
+            // renamed/normalized amount column
+            $table->decimal('amount_paid', 10, 2)->nullable();
 
             // For reservation partial + final payments
-            $table->enum('payment_stage', ['full', 'partial', 'final'])
-                ->default('full');
+            $table->enum('payment_stage', ['full', 'partial', 'final'])->default('full');
 
-            $table->enum('status', ['pending', 'verified', 'rejected'])
-                ->default('pending');
+            $table->enum('status', ['pending', 'verified', 'rejected'])->default('pending');
 
             $table->string('payment_method')->default('gcash');
 
             $table->timestamp('verified_at')->nullable();
-            $table->foreignId('verified_by')
-                ->nullable()
-                ->constrained('users')
-                ->onDelete('set null');
+            $table->unsignedBigInteger('verified_by')->nullable();
 
             $table->text('notes')->nullable();
 
