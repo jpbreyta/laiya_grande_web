@@ -20,11 +20,19 @@
 
     <!-- Navigation Links -->
     <div class="flex flex-col space-y-4 px-6 flex-1 text-white">
+        <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
+            <i class="fas fa-envelope-open-text text-xl w-6 shrink-0"></i>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">All Mail</span>
+        </a>
+
         <a href="{{ route('admin.inbox.index') }}" class="flex items-center space-x-3 hover:text-yellow-400 transition">
             <i class="fas fa-inbox text-xl w-6 shrink-0"></i>
             <span class=" gap-2 nav-text text-sm font-medium transition-opacity duration-300 flex items-center">
                 Inbox
-                <span class="ml-auto bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs">12</span>
+                @if ($unreadCount > 0)
+                    <span
+                        class="ml-auto bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs">{{ $unreadCount }}</span>
+                @endif
             </span>
         </a>
 
@@ -34,8 +42,8 @@
         </a>
 
         <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
-            <i class="fas fa-envelope-open-text text-xl w-6 shrink-0"></i>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">All Mail</span>
+            <i class="fas fa-archive text-xl w-6 shrink-0"></i>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">Archives</span>
         </a>
 
         <!-- Labels Section -->

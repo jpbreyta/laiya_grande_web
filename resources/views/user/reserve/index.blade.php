@@ -539,7 +539,7 @@
                                 <!-- Action Buttons -->
                                 <div class="row mt-4 form-actions">
                                     <div class="col-md-6 mb-3">
-                                        <a href="{{ route('booking.index') }}" class="btn-back">
+                                        <a href="{{ route('user.rooms.index') }}" class="btn-back">
                                             <i class="fas fa-arrow-left me-2"></i>
                                             Back to Rooms
                                         </a>
@@ -664,7 +664,7 @@
                                             confirmButtonColor: '#d4a853'
                                         }).then(() => {
                                             window.location.href =
-                                                '{{ route('user.reservation.index') }}';
+                                                '{{ route('home') }}';
                                         });
                                     } else {
                                         Swal.fire({

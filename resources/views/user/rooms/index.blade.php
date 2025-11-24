@@ -88,11 +88,9 @@
     <!-- Reservation Hero -->
     <section class="relative isolate bg-center min-h-[40svh] overflow-hidden flex items-center justify-center text-center">
         <div class="absolute inset-0 -z-10">
-            <img src="{{ asset('images/laiyagrande.png') }}" alt="" aria-hidden="true"
-                class="h-full w-full object-cover">
+            <img src="{{ asset('images/real.jpg') }}" alt="" aria-hidden="true" class="h-full w-full object-cover">
         </div>
-        <div
-            class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-teal-900/50 dark:from-black/70 dark:via-black/50 dark:to-teal-900/60">
+        <div class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-teal-900/50">
         </div>
         <div class="relative mx-auto max-w-7xl px-6 py-16 flex min-h-[40svh] items-center justify-center">
             <div class="text-center text-white max-w-4xl">
@@ -125,15 +123,11 @@
                             <!-- Room Image -->
                             <div class="relative h-[300px] overflow-hidden cursor-pointer"
                                 data-bs-target="#roomModal{{ $room->id }}">
-                                <img src="{{ asset($room->image ?? 'images/user/luxury-ocean-view-suite-hotel-room.jpg') }}"
+                                <a href="{{ route('user.rooms.show', $room->id) }}">
+                                                                    <img src="{{ asset($room->image ?? 'images/user/luxury-ocean-view-suite-hotel-room.jpg') }}"
                                     class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                                     alt="{{ $room->name }}">
-                                @if ($room->availability <= 2)
-                                    <div
-                                        class="absolute top-4 right-4 bg-amber-100/90 text-blue-900 px-4 py-2 rounded-md font-semibold">
-                                        ONLY {{ $room->availability }} LEFT
-                                    </div>
-                                @endif
+                                </a>
                             </div>
 
                             <!-- Room Info -->
@@ -207,7 +201,15 @@
                                 </button>
                             </div>
                             <div class="flex justify-between items-center mb-2">
-                                <span class="text-gray-600 text-sm">Qty: {{ $item['quantity'] }}</span>
+                                <span class="text-gray-600 text-sm">Qty:
+                                    <div class="flex items-center space-x-2">
+                                        <button type="button" class="px-2 py-1 bg-gray-200 rounded decrement"
+                                            data-id="{{ $item['room_id'] }}">-</button>
+                                        <span class="text-gray-600 text-sm">{{ $item['quantity'] }}</span>
+                                        <button type="button" class="px-2 py-1 bg-gray-200 rounded increment"
+                                            data-id="{{ $item['room_id'] }}">+</button>
+                                    </div>
+                                </span>
                                 <span class="font-semibold text-amber-600">PHP
                                     {{ number_format($item['room_price'] * $item['quantity'], 2) }}</span>
                             </div>
@@ -257,26 +259,6 @@
     </div>
 
 
-
-    <!-- Amenities Section -->
-    <section class="py-12" id="amenities">
-        <div class="container mx-auto px-4">
-            <h2 class="text-center text-4xl font-serif mb-12">Resort Amenities</h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                @foreach ([['icon' => 'fa-wifi', 'title' => 'Free WiFi', 'desc' => 'High-speed internet throughout the resort'], ['icon' => 'fa-swimming-pool', 'title' => 'Swimming Pool', 'desc' => 'Olympic-sized pool with heated water'], ['icon' => 'fa-utensils', 'title' => 'Fine Dining', 'desc' => 'Award-winning restaurant and bar'], ['icon' => 'fa-spa', 'title' => 'Spa & Wellness', 'desc' => 'Full-service spa with massage therapy']] as $amenity)
-                    <div class="text-center">
-                        <div class="text-5xl text-amber-600 mb-4">
-                            <i class="fas {{ $amenity['icon'] }}"></i>
-                        </div>
-                        <h5 class="font-semibold mb-2">{{ $amenity['title'] }}</h5>
-                        <p class="text-gray-600 text-sm">{{ $amenity['desc'] }}</p>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
     @push('scripts')
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script>
@@ -297,7 +279,14 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            location.reload(); // Reload to show updated cart
+                            Swal.fire({
+                                title: "Room added to cart successfully!",
+                                icon: "success",
+                                confirmButtonColor: "#3085d6",
+                                confirmButtonText: "Go Back"
+                            }).then(() => {
+                                location.reload(); // Reload after user clicks "Go Back"
+                            });
                         }
                     })
                     .catch(error => console.error('Error:', error));
@@ -341,7 +330,14 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            location.reload();
+                            Swal.fire({
+                                title: "Room removed from cart!",
+                                icon: "success",
+                                confirmButtonColor: "#3085d6",
+                                confirmButtonText: "OK"
+                            }).then(() => {
+                                location.reload();
+                            });
                         }
                     })
                     .catch(error => console.error('Error:', error));
@@ -409,6 +405,148 @@
                 if (parseInt(input.value) > 0) {
                     input.value = parseInt(input.value) - 1;
                 }
+            }
+
+            function addToCart(roomId, roomName, roomPrice) {
+                Swal.fire({
+                    title: 'Adding to cart...',
+                    html: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+
+                fetch('{{ route('cart.add') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            room_id: roomId,
+                            room_name: roomName,
+                            room_price: roomPrice,
+                            quantity: 1
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        Swal.close(); // Close the loading alert
+                        if (data.success) {
+                            Swal.fire({
+                                title: "Room Added",
+                                html: `
+                    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+                    <div style="
+                        font-family:'Poppins',sans-serif;
+                        font-size:15px;
+                        color:#444;
+                        margin-top:8px;">
+                        <strong>${roomName}</strong> has been added to your cart.
+                    </div>
+                `,
+                                icon: "success",
+                                background: "#ffffff",
+                                color: "#333",
+                                confirmButtonColor: "#3085d6",
+                                confirmButtonText: "Continue",
+                                customClass: {
+                                    popup: 'swal-clean',
+                                    confirmButton: 'swal-btn'
+                                }
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: "Error",
+                                text: "Something went wrong. Please try again.",
+                                icon: "error",
+                                confirmButtonColor: "#d33"
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.close();
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: "Error",
+                            text: "Something went wrong. Please try again.",
+                            icon: "error",
+                            confirmButtonColor: "#d33"
+                        });
+                    });
+            }
+
+
+            function removeFromCart(roomId, roomName) {
+                Swal.fire({
+                    title: 'Removing from cart...',
+                    html: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+
+                fetch('{{ route('cart.remove') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            room_id: roomId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        Swal.close();
+                        if (data.success) {
+                            Swal.fire({
+                                title: "Room Removed",
+                                html: `
+                    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+                    <div style="
+                        font-family:'Poppins',sans-serif;
+                        font-size:15px;
+                        color:#444;
+                        margin-top:8px;">
+                        <strong>${roomName}</strong> has been removed from your cart.
+                    </div>
+                `,
+                                icon: "success",
+                                background: "#ffffff",
+                                color: "#333",
+                                confirmButtonColor: "#3085d6",
+                                confirmButtonText: "Continue",
+                                customClass: {
+                                    popup: 'swal-clean',
+                                    confirmButton: 'swal-btn'
+                                }
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: "Error",
+                                text: "Something went wrong. Please try again.",
+                                icon: "error",
+                                confirmButtonColor: "#d33"
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.close();
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: "Error",
+                            text: "Something went wrong. Please try again.",
+                            icon: "error",
+                            confirmButtonColor: "#d33"
+                        });
+                    });
             }
 
             function addRoom() {

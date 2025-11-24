@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Laiya Grande Resort</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
 </head>
 
 <body class="relative bg-gradient-to-br from-yellow-100 via-white to-blue-100 text-white min-h-screen flex items-center justify-center px-4">

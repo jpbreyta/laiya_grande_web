@@ -7,9 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\Booking;
 use App\Models\Room;
+use App\Models\Payment;
 use App\Mail\BookingConfirmationMail;
 
 class BookingController extends Controller
@@ -28,9 +30,151 @@ class BookingController extends Controller
      */
     public function show($id)
     {
-        $booking = Booking::with('room')->findOrFail($id);
+        $booking = Booking::with('room', 'paymentRecord')->findOrFail($id);
+
         return view('admin.booking.show', compact('booking'));
     }
+
+    /**
+     * Process OCR for a specific booking
+     */
+    public function processOCRForBooking($id)
+    {
+        $booking = Booking::findOrFail($id);
+
+        if (!$booking->paymentRecord) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No payment proof found for this booking.'
+            ]);
+        }
+
+        try {
+            $paymentPath = storage_path('app/public/' . $booking->payment); 
+            if (!file_exists($paymentPath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment proof file not found.'
+                ]);
+            }
+
+            $ocrResult = $this->processOCR($paymentPath);
+            $validation = $this->validatePaymentData($ocrResult);
+
+            if (!$validation['valid']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'OCR validation failed: ' . implode(', ', $validation['errors'])
+                ]);
+            }
+
+            // Create or update payment record with OCR data
+            $paymentData = [
+                'reference_id' => $ocrResult['reference_id'],
+                'customer_name' => $booking->firstname . ' ' . $booking->lastname,
+                'contact_number' => $booking->phone_number,
+                'payment_date' => $ocrResult['date_time'],
+                'amount_paid' => $ocrResult['total_amount'] ?? null,
+                'status' => 'verified',
+                'payment_method' => 'gcash', // Default to GCash
+                'verified_at' => now(),
+                'verified_by' => Auth::check() ? Auth::id() : null,
+                'notes' => 'Processed via OCR button'
+            ];
+
+            $payment = $booking->paymentRecord()->updateOrCreate(
+                ['booking_id' => $booking->id],
+                $paymentData
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'OCR processed successfully!',
+                'data' => [
+                    'reference_id' => $payment->reference_id,
+                    'payment_date' => $payment->payment_date,
+                    'payment_method' => $payment->payment_method,
+                    'amount_paid' => $payment->amount_paid
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('OCR processing failed for booking ' . $id . ': ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'OCR processing failed: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Process OCR on image
+     */
+    private function processOCR($imagePath)
+    {
+        // Ensure the file exists
+        if (!file_exists($imagePath)) {
+            throw new \Exception('Image file does not exist: ' . $imagePath);
+        }
+
+        $command = [
+            'python',
+            base_path('process_payment_ocr.py'),
+            $imagePath
+        ];
+
+        $result = shell_exec(implode(' ', array_map('escapeshellarg', $command)));
+
+        if (!$result) {
+            throw new \Exception('OCR processing failed - no output from command');
+        }
+
+        // Remove any non-JSON output like "Active code page: 65001" and "Tesseract version:"
+        $lines = explode("\n", trim($result));
+        $jsonLines = array_filter($lines, function($line) {
+            $trimmed = trim($line);
+            return !preg_match('/^(Active code page|Tesseract version):/', $trimmed) && !empty($trimmed);
+        });
+        $cleanResult = implode("\n", $jsonLines);
+
+        $data = json_decode($cleanResult, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Exception('Invalid OCR output: ' . $cleanResult . ' | Full result: ' . $result);
+        }
+
+        return $data;
+    }
+
+    /**
+     * Validate payment data
+     */
+    private function validatePaymentData($data)
+    {
+        $errors = [];
+
+        if (isset($data['error'])) {
+            return ['valid'=>false,'errors'=>[$data['error']]];
+        }
+
+        $required_fields = ['reference_id','date_time'];
+        foreach ($required_fields as $field) {
+            if (!isset($data[$field]) || empty($data[$field])) {
+                $errors[] = "Missing or empty field: {$field}";
+            }
+        }
+
+        if (!empty($data['reference_id']) && (!ctype_digit($data['reference_id']) || strlen($data['reference_id']) < 10 || strlen($data['reference_id']) > 13)) {
+            $errors[] = "Reference ID should be 10-13 digits";
+        }
+
+        if (!empty($data['date_time']) && !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/',$data['date_time'])) {
+            $errors[] = "Date/time should be in YYYY-MM-DD HH:MM:SS format";
+        }
+
+        return ['valid'=>empty($errors),'errors'=>$errors];
+    }
+
     public function edit($id)
     {
         $booking = Booking::with('room')->findOrFail($id);
@@ -57,6 +201,7 @@ class BookingController extends Controller
             'status' => 'required|in:pending,confirmed,cancelled',
             'total_price' => 'required|numeric|min:0',
             'special_request' => 'nullable|string',
+            'reservation_number' => 'required|string|unique:bookings,reservation_number,' . $booking->id,
         ]);
 
         $booking->update($validated);
@@ -169,5 +314,25 @@ class BookingController extends Controller
             'success' => true,
             'message' => 'Booking has been cancelled successfully.'
         ]);
+    }
+
+    public function comparePayments()
+    {
+        $bookings = Booking::with('paymentRecord')->get();
+        $discrepancies = [];
+
+        foreach ($bookings as $booking) {
+            if ($booking->paymentRecord) {
+                if (floatval($booking->total_price) !== floatval($booking->paymentRecord->amount_paid)) {
+                    $discrepancies[] = [
+                        'booking_id' => $booking->id,
+                        'expected_amount' => $booking->total_price,
+                        'paid_amount' => $booking->paymentRecord->amount_paid,
+                    ];
+                }
+            }
+        }
+
+        return view('admin.booking.discrepancies', compact('discrepancies'));
     }
 }

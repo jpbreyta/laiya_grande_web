@@ -100,7 +100,9 @@
                     <p class="text-sm text-gray-500">Last updated</p>
                     <p class="text-sm font-medium text-gray-700">{{ now()->format('M d, Y H:i') }}</p>
                 </div>
-                <button class="btn-primary text-white px-4 py-2 rounded-lg flex items-center" onclick="location.reload()">
+                <button
+                    class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-4 py-2 rounded-lg flex items-center"
+                    onclick="location.reload()">
                     <i class="fas fa-sync-alt mr-2"></i>Refresh
                 </button>
             </div>
@@ -108,7 +110,7 @@
 
         {{-- Statistic Cards --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="dashboard-card bg-gradient-to-r from-[#2C5F5F] to-[#1A4A4A] text-white p-6 rounded-lg">
+            <div class="dashboard-card bg-gradient-to-r from-[#add8e6] to-[#99e6b3] text-gray-800 p-6 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium opacity-90">Total Bookings</h3>
@@ -119,18 +121,18 @@
                 </div>
             </div>
 
-            <div class="dashboard-card bg-gradient-to-r from-[#1E3A5F] to-[#2C5F5F] text-white p-6 rounded-lg">
+            <div class="dashboard-card bg-gradient-to-r from-[#add8e6] to-[#00ced1] text-gray-800 p-6 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium opacity-90">Revenue</h3>
-                        <p class="text-3xl font-bold">₱{{ number_format($totalRevenue ?? 0, 0, ',', ',') }}</p>
+                        <p class="text-3xl font-bold">₱{{ number_format($totalRevenue ?? 0, 2, '.', ',') }}</p>
                         <p class="text-sm opacity-80">From confirmed bookings</p>
                     </div>
                     <i class="fas fa-dollar-sign text-3xl opacity-80"></i>
                 </div>
             </div>
 
-            <div class="dashboard-card bg-gradient-to-r from-[#F4D03F] to-[#FB923C] text-gray-800 p-6 rounded-lg">
+            <div class="dashboard-card bg-gradient-to-r from-[#add8e6] to-[#3eb489] text-gray-800 p-6 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium">Occupancy Rate</h3>
@@ -141,7 +143,7 @@
                 </div>
             </div>
 
-            <div class="dashboard-card bg-gradient-to-r from-[#E74C3C] to-[#EC4899] text-white p-6 rounded-lg">
+            <div class="dashboard-card bg-gradient-to-r from-[#add8e6] to-[#00fa9a] text-gray-800 p-6 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium opacity-90">Pending</h3>
@@ -156,12 +158,9 @@
         {{-- Content Sections --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Revenue Overview</h2>
-                <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                    <div class="text-center">
-                        <i class="fas fa-chart-line text-4xl text-gray-400 mb-2"></i>
-                        <p class="text-gray-500">Chart will be rendered here</p>
-                    </div>
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Revenue Overview (Daily)</h2>
+                <div class="h-64">
+                    <canvas id="revenueChart"></canvas>
                 </div>
             </div>
 
@@ -182,15 +181,16 @@
                                 <div>
                                     <p class="font-medium text-gray-800">{{ $booking->firstname }} {{ $booking->lastname }}
                                     </p>
-                                    <p class="text-sm text-gray-600">{{ $booking->room->name ?? 'N/A' }} -
+                                    <p class="text-sm text-gray-600">{{ $booking->room?->name ?? 'N/A' }} -
                                         {{ $booking->number_of_guests }} guests</p>
                                 </div>
                             </div>
                             <div class="text-right">
                                 <p class="font-medium text-gray-800">
-                                    ₱{{ number_format($booking->total_price, 0, ',', ',') }}</p>
+                                    ₱{{ number_format($booking->total_price, 2, '.', ',') }}</p>
                                 <p class="text-sm text-gray-500">
-                                    {{ \Carbon\Carbon::parse($booking->check_in)->format('M d') }}-{{ \Carbon\Carbon::parse($booking->check_out)->format('M d') }}
+                                    {{ \Carbon\Carbon::parse($booking->check_in)->format('M d') }} -
+                                    {{ \Carbon\Carbon::parse($booking->check_out)->format('M d') }}
                                 </p>
                             </div>
                         </div>
@@ -231,19 +231,103 @@
     </div>
 
     @push('scripts')
+        <!-- Chart.js CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
         <script>
             document.addEventListener('DOMContentLoaded', () => {
+                // Revenue Chart
+                const ctx = document.getElementById('revenueChart');
+                if (ctx) {
+                    const revenueData = @json($revenueData ?? ['labels' => [], 'data' => []]);
+
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: revenueData.labels,
+                            datasets: [{
+                                label: 'Revenue (₱)',
+                                data: revenueData.data,
+                                borderColor: '#2C5F5F',
+                                backgroundColor: 'rgba(44, 95, 95, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#2C5F5F',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        font: {
+                                            size: 12,
+                                            family: 'inherit'
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    padding: 12,
+                                    titleFont: {
+                                        size: 14
+                                    },
+                                    bodyFont: {
+                                        size: 13
+                                    },
+                                    callbacks: {
+                                        label: function(context) {
+                                            return 'Revenue: ₱' + context.parsed.y.toLocaleString('en-PH', {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            });
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '₱' + value.toLocaleString('en-PH');
+                                        },
+                                        font: {
+                                            size: 11
+                                        }
+                                    },
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.05)'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        font: {
+                                            size: 11
+                                        }
+                                    },
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Search input handler
                 const searchInput = document.querySelector('.search-input');
                 if (searchInput) {
                     searchInput.addEventListener('input', e => {
                         console.log('Searching for:', e.target.value);
-                    });
-                }
-
-                const notificationBtn = document.querySelector('.notification-badge')?.parentElement;
-                if (notificationBtn) {
-                    notificationBtn.addEventListener('click', () => {
-                        alert('Notifications clicked!');
                     });
                 }
             });

@@ -12,13 +12,16 @@ class InboxController extends Controller
     public function index()
     {
         $messages = ContactMessage::latest()->paginate(10);
-        return view('admin.inbox.index', compact('messages'));
+        $unreadCount = ContactMessage::unread()->count();
+        return view('admin.inbox.index', compact('messages', 'unreadCount'));
+
     }
 
     public function sent()
     {
         $messages = ContactMessage::replied()->latest()->paginate(10);
-        return view('admin.inbox.sent', compact('messages'));
+        $unreadCount = ContactMessage::unread()->count();
+        return view('admin.inbox.sent', compact('messages', 'unreadCount'));
     }
 
     public function compose()
@@ -37,8 +40,8 @@ class InboxController extends Controller
         // Send email
         Mail::raw($request->message, function ($mail) use ($request) {
             $mail->to($request->to_email)
-                 ->subject($request->subject)
-                 ->from(config('mail.from.address'), config('mail.from.name'));
+                ->subject($request->subject)
+                ->from(config('mail.from.address'), config('mail.from.name'));
         });
 
         return redirect()->route('admin.inbox.sent')->with('success', 'Message sent successfully.');
