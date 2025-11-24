@@ -166,6 +166,11 @@
                         <div class="space-y-4">
                             <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Reservation Details</h3>
                             
+                            <div class="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 shadow-sm">
+                                <label class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1 block">Reservation ID</label>
+                                <div class="text-lg font-semibold text-slate-900 font-mono">{{ $reservation->reservation_number ?? $reservation->id }}</div>
+                            </div>
+                            
                             <div class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 shadow-sm">
                                 <label class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1 block">Room</label>
                                 <select name="room_id" class="w-full px-3 py-2 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">
