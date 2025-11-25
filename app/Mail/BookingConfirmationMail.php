@@ -3,14 +3,14 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Models\Booking;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 
 class BookingConfirmationMail extends Mailable
 {
@@ -31,69 +31,52 @@ class BookingConfirmationMail extends Mailable
     }
 
     /**
-     * Generate QR code for the booking
+     * Generate QR code using Endroid only (PNG guaranteed)
      */
     private function generateQrCode()
     {
-        $qrData = [
-            'booking_id' => $this->booking->id,
-            'reservation_number' => $this->booking->reservation_number,
-            'check_in' => $this->booking->check_in,
-            'check_out' => $this->booking->check_out,
-            'room_id' => $this->booking->room_id,
-            'total_price' => $this->booking->total_price,
-            'guest_name' => $this->bookingDetails['guest_name'] ?? 'Guest',
-            'guest_email' => $this->bookingDetails['guest_email'] ?? '',
-        ];
-
-        // Sanitize guest name to ASCII characters only
+        // Sanitize guest name
         $guestName = isset($this->bookingDetails['guest_name'])
             ? preg_replace('/[^\x20-\x7E]/', '', $this->bookingDetails['guest_name'])
             : 'Guest';
 
-        $qrString = "LAIYA GRANDE BOOKING\n" .
-                   "Booking ID: " . $this->booking->id . "\n" .
-                   "Reservation Code: " . ($this->booking->reservation_number ?? 'N/A') . "\n" .
-                   "Guest: " . $guestName . "\n" .
-                   "Check-in: " . $this->booking->check_in . "\n" .
-                   "Check-out: " . $this->booking->check_out . "\n" .
-                   "Room ID: " . $this->booking->room_id . "\n" .
-                   "Total: PHP " . number_format($this->booking->total_price, 2, '.', '');
+        // Build QR text content
+        $qrString =
+            "LAIYA GRANDE BOOKING\n" .
+            "Booking ID: {$this->booking->id}\n" .
+            "Reservation Code: " . ($this->booking->reservation_number ?? 'N/A') . "\n" .
+            "Guest: {$guestName}\n" .
+            "Check-in: {$this->booking->check_in}\n" .
+            "Check-out: {$this->booking->check_out}\n" .
+            "Room ID: {$this->booking->room_id}\n" .
+            "Total: PHP " . number_format($this->booking->total_price, 2, '.', '');
 
-        // Generate QR code and save to storage
+        // File path
         $qrCodeFilename = 'qr_codes/booking_' . $this->booking->id . '.png';
         $qrCodePath = storage_path('app/' . $qrCodeFilename);
 
-        // Create directory if it doesn't exist
+        // Ensure directory exists
         if (!file_exists(dirname($qrCodePath))) {
             mkdir(dirname($qrCodePath), 0755, true);
         }
 
-        try {
-            // Try to generate QR code with specific settings for GD
-            $qrCodeData = QrCode::format('png')
-                  ->size(300)
-                  ->margin(2)
-                  ->errorCorrection('M')
-                  ->generate($qrString);
+        // Create QR code object
+        $qrCode = QrCode::create($qrString)
+            ->setSize(300)
+            ->setMargin(10);
 
-            // Save the QR code data to file
-            file_put_contents($qrCodePath, $qrCodeData);
-        } catch (\Exception $e) {
-            // Fallback: Generate SVG instead if PNG fails
-            $qrCodePath = str_replace('.png', '.svg', $qrCodePath);
-            $qrCodeData = QrCode::format('svg')
-                  ->size(300)
-                  ->margin(2)
-                  ->generate($qrString);
-            file_put_contents($qrCodePath, $qrCodeData);
-        }
+        // Write PNG
+        $writer = new PngWriter();
+        $result = $writer->write($qrCode);
+
+        // Save to file
+        file_put_contents($qrCodePath, $result->getString());
 
         $this->qrCodePath = $qrCodePath;
     }
 
     /**
-     * Get the message envelope.
+     * Email subject
      */
     public function envelope(): Envelope
     {
@@ -103,7 +86,7 @@ class BookingConfirmationMail extends Mailable
     }
 
     /**
-     * Get the message content definition.
+     * Email view
      */
     public function content(): Content
     {
@@ -113,9 +96,7 @@ class BookingConfirmationMail extends Mailable
     }
 
     /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * Attach the PNG QR code
      */
     public function attachments(): array
     {
@@ -123,14 +104,10 @@ class BookingConfirmationMail extends Mailable
             return [];
         }
 
-        $extension = pathinfo($this->qrCodePath, PATHINFO_EXTENSION);
-        $mimeType = $extension === 'svg' ? 'image/svg+xml' : 'image/png';
-        $filename = 'booking_qr_code.' . $extension;
-
         return [
             Attachment::fromPath($this->qrCodePath)
-                      ->as($filename)
-                      ->withMime($mimeType),
+                ->as('booking_qr_code.png')
+                ->withMime('image/png'),
         ];
     }
 }

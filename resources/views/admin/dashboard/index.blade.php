@@ -163,7 +163,12 @@
                     <canvas id="revenueChart"></canvas>
                 </div>
             </div>
-
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Occupancy Chart</h2>
+                <div class="h-64">
+                    <canvas id="occupancyChart"></canvas>
+                </div>
+            </div>
             <div class="bg-white rounded-lg shadow-sm p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-bold text-gray-800">Recent Bookings</h2>
@@ -179,7 +184,8 @@
                                     <i class="fas fa-user text-white"></i>
                                 </div>
                                 <div>
-                                    <p class="font-medium text-gray-800">{{ $booking->firstname }} {{ $booking->lastname }}
+                                    <p class="font-medium text-gray-800">{{ $booking->firstname }}
+                                        {{ $booking->lastname }}
                                     </p>
                                     <p class="text-sm text-gray-600">{{ $booking->room?->name ?? 'N/A' }} -
                                         {{ $booking->number_of_guests }} guests</p>
@@ -322,6 +328,26 @@
                         }
                     });
                 }
+                const occupancyCtx = document.getElementById('occupancyChart');
+                new Chart(occupancyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: @json($occupancyLabels),
+                        datasets: [{
+                            label: 'Occupancy Rate (%)',
+                            data: @json($occupancyData),
+                            borderColor: '#3eb489',
+                            backgroundColor: 'rgba(62,180,137,0.1)',
+                            fill: true,
+                            tension: 0.4,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+
 
                 // Search input handler
                 const searchInput = document.querySelector('.search-input');

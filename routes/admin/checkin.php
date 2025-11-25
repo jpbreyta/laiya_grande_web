@@ -1,10 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\CheckinController;
+use App\Http\Controllers\Admin\GuestStayController;
 
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
-    Route::get('/checkin', [CheckinController::class, 'index'])->name('checkin.index');
-    Route::get('/checkin/{id}', [CheckinController::class, 'show'])->name('checkin.show');
-    Route::post('/checkin/{id}', [CheckinController::class, 'processCheckin'])->name('checkin.process');
+Route::prefix('admin/guest-stays')->name('admin.guest-stays.')->group(function () {
+    Route::get('/', [GuestStayController::class, 'index'])->name('index');
+    Route::get('/{id}', [GuestStayController::class, 'show'])->name('show');
+    Route::post('/{id}/checkout', [GuestStayController::class, 'checkout'])->name('checkout');
+
+    Route::post('/admin/guest-stay/checkin', [GuestStayController::class, 'storeOrCheckin'])->name('admin.gueststay.checkin');
 });
+

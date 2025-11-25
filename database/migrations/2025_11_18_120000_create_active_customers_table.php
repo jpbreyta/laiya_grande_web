@@ -7,19 +7,23 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('active_customers', function (Blueprint $table) {
+        Schema::create('guest_stays', function (Blueprint $table) {
             $table->id();
 
-            // Connections to either booking or reservation
+            // Connections to bookings or reservations
             $table->unsignedBigInteger('booking_id')->nullable();
             $table->unsignedBigInteger('reservation_id')->nullable();
             $table->unsignedBigInteger('room_id')->nullable();
 
-            // Snapshot details
+            // Guest snapshot (optional if you want redundancy)
             $table->string('guest_name');
-            $table->enum('status', ['active', 'confirmed', 'paid', 'pending', 'cancelled', 'completed'])->default('active');
-            $table->date('check_in')->nullable();
-            $table->date('check_out')->nullable();
+
+            // Only two statuses needed
+            $table->enum('status', ['checked-in', 'checked-out'])->default('checked-in');
+
+            // Track exact times
+            $table->timestamp('check_in_time')->nullable();
+            $table->timestamp('check_out_time')->nullable();
 
             $table->timestamps();
 
@@ -28,14 +32,15 @@ return new class extends Migration {
             $table->foreign('reservation_id')->references('id')->on('reservations')->onDelete('cascade');
             $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
 
-            // Indexes
+            // Indexes for quick queries
             $table->index(['booking_id', 'reservation_id']);
             $table->index('status');
+            $table->index('room_id');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('active_customers');
+        Schema::dropIfExists('guest_stays');
     }
 };
