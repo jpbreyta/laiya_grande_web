@@ -50,7 +50,7 @@
                     <i class="fas fa-list-ul"></i>
                     <span>Manage Reservation</span>
                 </a>
-                <a href="{{ route('admin.checkin.index') }}" class="accordion-link">
+                <a href="{{ route('admin.guest-stays.index') }}" class="accordion-link">
                     <i class="fas fa-user-check"></i>
                     <span>Guest & Booking</span>
                 </a>

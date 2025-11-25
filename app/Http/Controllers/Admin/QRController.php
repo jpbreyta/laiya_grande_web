@@ -5,9 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Booking;
-use Barryvdh\DomPDF\Facade\Pdf;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use Illuminate\Support\Facades\Log;
+use App\Models\GuestStay;
+use Zxing\QrReader; // Make sure: composer require khanamiryan/qrcode-detector-decoder
 
 class QRController extends Controller
 {
@@ -20,7 +19,7 @@ class QRController extends Controller
     }
 
     /**
-     * Process QR code scan and return booking data
+     * Process QR code scan from camera (AJAX)
      */
     public function scan(Request $request)
     {
@@ -28,93 +27,102 @@ class QRController extends Controller
             'qr_code' => 'required|string'
         ]);
 
-        $qrCode = $request->qr_code;
+        $qrCode = trim($request->qr_code);
 
-        // Find booking by reservation number
-        $booking = Booking::with('room')
-            ->where('reservation_number', $qrCode)
+        // Extract valid reservation number if extra text exists
+        if (preg_match('/(BK|RSV)-\d{14}-[A-Z0-9]{6}/', $qrCode, $matches)) {
+            $qrCode = $matches[0];
+        }
+
+        $booking = Booking::with('room')->where('reservation_number', $qrCode)
             ->orWhere('id', $qrCode)
             ->first();
 
         if (!$booking) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Booking not found for this QR code.'
-            ], 404);
+            return response()->json(['success' => false, 'message' => 'Booking not found for this QR code.']);
         }
 
-        return response()->json([
-            'success' => true,
-            'booking' => $booking,
-            'qr_url' => route('admin.qr.generate-pdf', $booking->id)
-        ]);
+        // Mark guest as checked-in
+        $guestStay = GuestStay::updateOrCreate(
+            ['booking_id' => $booking->id],
+            [
+                'guest_name' => $booking->firstname . ' ' . $booking->lastname,
+                'room_id' => $booking->room_id,
+                'status' => 'checked-in',
+                'check_in_time' => now(),
+            ]
+        );
+
+        return response()->json(['success' => true, 'message' => 'Guest checked-in successfully!']);
     }
 
     /**
-     * Generate PDF voucher for booking
+     * Process manual reservation code submission
      */
-    public function generatePdf($id)
+    public function manual(Request $request)
     {
-        $booking = Booking::with('room')->findOrFail($id);
-
-        // Generate QR code as base64
-        $qrCodeData = $booking->reservation_number ?? $booking->id;
-        $qrCodeBase64 = base64_encode(QrCode::size(150)->margin(1)->generate($qrCodeData));
-
-        // Calculate remaining balance
-        $depositedAmount = $booking->payment_amount ?? 0; // Assuming you have this field
-        $remainingBalance = $booking->total_price - $depositedAmount;
-
-        $data = [
-            'booking' => $booking,
-            'qr_code_base64' => $qrCodeBase64,
-            'deposited_amount' => $depositedAmount,
-            'remaining_balance' => $remainingBalance,
-            'prepared_by' => 'System Generated', // You can customize this
-            'booking_id_display' => '24-LGBR-C-' . str_pad($booking->id, 5, '0', STR_PAD_LEFT)
-        ];
-
-        $pdf = Pdf::loadView('admin.qr.voucher', $data)
-            ->setPaper('a4', 'portrait')
-            ->setOptions(['defaultFont' => 'sans-serif']);
-
-        // Log PDF generation
-        Log::info('Booking confirmation PDF generated', [
-            'booking_id' => $booking->id,
-            'reservation_number' => $booking->reservation_number
+        $request->validate([
+            'reservation_code' => 'required|string'
         ]);
 
-        return $pdf->download('booking-voucher-' . ($booking->reservation_number ?? $booking->id) . '.pdf');
+        $booking = Booking::with('room')->where('reservation_number', $request->reservation_code)
+            ->orWhere('id', $request->reservation_code)
+            ->first();
+
+        if (!$booking) {
+            return back()->with('error', 'Booking not found.');
+        }
+
+        // Mark guest as checked-in
+        $guestStay = GuestStay::updateOrCreate(
+            ['booking_id' => $booking->id],
+            [
+                'guest_name' => $booking->firstname . ' ' . $booking->lastname,
+                'room_id' => $booking->room_id,
+                'status' => 'checked-in',
+                'check_in_time' => now(),
+            ]
+        );
+
+        return view('admin.qr.scanner', compact('booking'))->with('success','Booking found & checked-in!');
     }
 
     /**
-     * Stream PDF for preview
+     * Process QR image upload
      */
-    public function previewPdf($id)
+    public function upload(Request $request)
     {
-        $booking = Booking::with('room')->findOrFail($id);
+        $request->validate([
+            'qr_image' => 'required|image|max:2048'
+        ]);
 
-        $qrCodeData = $booking->reservation_number ?? $booking->id;
-        $qrCodeBase64 = base64_encode(QrCode::size(150)->margin(1)->generate($qrCodeData));
+        $path = $request->file('qr_image')->getRealPath();
+        $qrcode = new QrReader($path);
+        $decodedText = $qrcode->text();
 
-        $depositedAmount = $booking->payment_amount ?? 0;
-        $remainingBalance = $booking->total_price - $depositedAmount;
+        if (!$decodedText) {
+            return back()->with('error','QR code not detected in the image.');
+        }
 
-        $data = [
-            'booking' => $booking,
-            'qr_code_base64' => $qrCodeBase64,
-            'deposited_amount' => $depositedAmount,
-            'remaining_balance' => $remainingBalance,
-            'prepared_by' => 'System Generated',
-            'booking_id_display' => '24-LGBR-C-' . str_pad($booking->id, 5, '0', STR_PAD_LEFT)
-        ];
+        $booking = Booking::with('room')->where('reservation_number', $decodedText)
+            ->orWhere('id', $decodedText)
+            ->first();
 
-        $pdf = Pdf::loadView('admin.qr.voucher', $data)
-            ->setPaper('a4', 'portrait')
-            ->setOptions(['defaultFont' => 'sans-serif']);
+        if (!$booking) {
+            return back()->with('error','Booking not found for this QR code.');
+        }
 
-        return $pdf->stream('booking-voucher-preview.pdf');
+        // Mark guest as checked-in
+        $guestStay = GuestStay::updateOrCreate(
+            ['booking_id' => $booking->id],
+            [
+                'guest_name' => $booking->firstname . ' ' . $booking->lastname,
+                'room_id' => $booking->room_id,
+                'status' => 'checked-in',
+                'check_in_time' => now(),
+            ]
+        );
+
+        return view('admin.qr.scanner', compact('booking'))->with('success','Booking found & checked-in!');
     }
-
-
 }

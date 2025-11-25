@@ -12,7 +12,7 @@ return new class extends Migration {
 
             // Link to active customer
             $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('active_customers')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('guest_stays')->onDelete('cascade');
 
             // Sale details
             $table->string('item');

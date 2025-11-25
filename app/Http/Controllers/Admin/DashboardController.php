@@ -21,10 +21,7 @@ class DashboardController extends Controller
         $totalBookings = Booking::count();
         $totalRevenue = Booking::where('status', 'confirmed')->sum('total_price');
         $totalRooms = Room::count();
-        $occupiedRooms = Booking::where('status', 'confirmed')
-            ->where('check_in', '<=', Carbon::now())
-            ->where('check_out', '>', Carbon::now())
-            ->count();
+        $occupiedRooms = \App\Models\GuestStay::where('status', 'checked-in')->count();
         $occupancyRate = $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100) : 0;
         $pendingBookings = Booking::where('status', 'pending')->count();
 
@@ -102,6 +99,23 @@ class DashboardController extends Controller
         $unreadNotifications = Notification::unread()->count();
         $recentNotifications = Notification::latest()->take(5)->get();
 
+
+        $occupancyLabels = [];
+        $occupancyData = [];
+
+        $days = 30;
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
+            $occupancyLabels[] = $date->format('M d');
+
+            $occupied = \App\Models\GuestStay::where('status', 'checked-in')
+                ->whereDate('check_in_time', '<=', $date)
+                ->whereDate('check_out_time', '>=', $date)
+                ->count();
+
+            $occupancyData[] = $totalRooms > 0 ? round(($occupied / $totalRooms) * 100) : 0;
+        }
+
         return view('admin.dashboard.index', compact(
             'totalBookings',
             'totalRevenue',
@@ -110,6 +124,8 @@ class DashboardController extends Controller
             'recentBookings',
             'recentActivities',
             'revenueData',
+            'occupancyData',
+            'occupancyLabels', // <-- add this
             'unreadNotifications',
             'recentNotifications'
         ));
