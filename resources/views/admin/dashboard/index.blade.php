@@ -288,6 +288,166 @@
                 </div>
             </div>
         </div>
+
+        {{-- Advanced Insights --}}
+        <div class="space-y-6 mb-8">
+            {{-- KPI Row (Today / Snapshot) --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="dashboard-card bg-white border border-gray-100 rounded-lg p-5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Total Guests (Sample)</p>
+                            <p class="text-2xl font-bold text-gray-800">324</p>
+                        </div>
+                        <span
+                            class="inline-flex items-center text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                            <i class="fas fa-arrow-up mr-1"></i>12% vs yesterday
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-500">Demo metric for layout only</p>
+                </div>
+
+                <div class="dashboard-card bg-white border border-gray-100 rounded-lg p-5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Occupancy Rate</p>
+                            <p class="text-2xl font-bold text-gray-800">
+                                {{ $occupancyRate ?? 0 }}%
+                            </p>
+                        </div>
+                        <i class="fas fa-bed text-2xl text-[#2C5F5F]"></i>
+                    </div>
+                    <p class="text-xs text-gray-500">Based on current checked-in guests</p>
+                </div>
+
+                <div class="dashboard-card bg-white border border-gray-100 rounded-lg p-5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Check-ins Today (Sample)</p>
+                            <p class="text-2xl font-bold text-gray-800">37</p>
+                        </div>
+                        <i class="fas fa-sign-in-alt text-2xl text-[#2C5F5F]"></i>
+                    </div>
+                    <p class="text-xs text-gray-500">23 pending check-ins (demo)</p>
+                </div>
+
+                <div class="dashboard-card bg-white border border-gray-100 rounded-lg p-5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Revenue Today (Sample)</p>
+                            <p class="text-2xl font-bold text-gray-800">₱76.7K</p>
+                        </div>
+                        <i class="fas fa-coins text-2xl text-[#2C5F5F]"></i>
+                    </div>
+                    <p class="text-xs text-gray-500">Across all services (demo)</p>
+                </div>
+            </div>
+
+            {{-- Guest / Room / Amenities Insights --}}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {{-- Left: Guest & Booking Charts --}}
+                <div class="space-y-6">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h2 class="text-lg font-bold text-gray-800 mb-4">Guest Type Distribution (Sample)</h2>
+                        <div class="h-60">
+                            <canvas id="guestTypeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h2 class="text-lg font-bold text-gray-800 mb-4">Booking Status Breakdown (Sample)</h2>
+                        <div class="h-60">
+                            <canvas id="bookingStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Right: Room Status, Guest Insights, Amenities --}}
+                <div class="space-y-6">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h2 class="text-lg font-bold text-gray-800 mb-4">Room Status Overview (Sample)</h2>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Occupied</span>
+                                <span class="font-semibold text-emerald-600">158 rooms</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Available</span>
+                                <span class="font-semibold text-blue-600">24 rooms</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Cleaning</span>
+                                <span class="font-semibold text-amber-500">12 rooms</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Maintenance</span>
+                                <span class="font-semibold text-red-500">8 rooms</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h2 class="text-lg font-bold text-gray-800 mb-4">Guest Insights (Sample)</h2>
+                        <dl class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <dt class="text-gray-600">Returning Guests</dt>
+                                <dd class="font-semibold text-emerald-600">42%</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-600">Avg Stay Duration</dt>
+                                <dd class="font-semibold text-blue-600">3.2 days</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-600">Avg Spend / Guest</dt>
+                                <dd class="font-semibold text-violet-600">₱8,450</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-600">Peak Check-in Window</dt>
+                                <dd class="font-semibold text-amber-500">2–4 PM</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h2 class="text-lg font-bold text-gray-800 mb-4">Popular Amenities (Sample)</h2>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Pool Access</span>
+                                <span class="font-semibold text-emerald-600">89%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Spa Services</span>
+                                <span class="font-semibold text-blue-600">67%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Beach Activities</span>
+                                <span class="font-semibold text-violet-600">54%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Revenue by Service & Check-in/out Activity --}}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4">Revenue by Service (Sample)</h2>
+                    <div class="h-64">
+                        <canvas id="revenueByServiceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-lg font-bold text-gray-800">Check-in / Check-out Activity (Sample)</h2>
+                        <span class="text-xs text-gray-500">Today</span>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="checkInOutChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     @push('scripts')
@@ -481,8 +641,123 @@
                             }
                         }
                     });
-                    
+
                     calendar.render();
+                }
+
+                // Guest Type Distribution (Sample)
+                const guestTypeCtx = document.getElementById('guestTypeChart');
+                if (guestTypeCtx) {
+                    new Chart(guestTypeCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Families', 'Couples', 'Solo', 'Groups'],
+                            datasets: [{
+                                data: [45, 35, 15, 5],
+                                backgroundColor: ['#3b82f6', '#a855f7', '#f97316', '#22c55e'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Booking Status Breakdown (Sample)
+                const bookingStatusCtx = document.getElementById('bookingStatusChart');
+                if (bookingStatusCtx) {
+                    new Chart(bookingStatusCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Confirmed', 'Pending', 'Cancelled'],
+                            datasets: [{
+                                data: [74, 16, 9],
+                                backgroundColor: ['#22c55e', '#fbbf24', '#ef4444'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Revenue by Service (Sample)
+                const revenueByServiceCtx = document.getElementById('revenueByServiceChart');
+                if (revenueByServiceCtx) {
+                    new Chart(revenueByServiceCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Rooms', 'F&B', 'Spa', 'Activities'],
+                            datasets: [{
+                                label: 'Revenue (₱)',
+                                data: [48000, 21000, 12000, 8000],
+                                backgroundColor: '#10b981'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Check-in / Check-out Activity (Sample)
+                const checkInOutCtx = document.getElementById('checkInOutChart');
+                if (checkInOutCtx) {
+                    new Chart(checkInOutCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['8AM', '10AM', '12PM', '2PM', '4PM', '6PM'],
+                            datasets: [{
+                                    label: 'Check-ins',
+                                    data: [1, 3, 6, 9, 5, 2],
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: 'rgba(59,130,246,0.15)',
+                                    tension: 0.4,
+                                    fill: true
+                                },
+                                {
+                                    label: 'Check-outs',
+                                    data: [0, 1, 2, 3, 4, 5],
+                                    borderColor: '#ef4444',
+                                    backgroundColor: 'rgba(239,68,68,0.1)',
+                                    tension: 0.4,
+                                    fill: true
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
                 }
             });
         </script>
