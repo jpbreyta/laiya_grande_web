@@ -19,6 +19,11 @@
             <span class="nav-text text-sm font-medium transition-opacity duration-300">General Settings</span>
         </a>
 
+        <a href="{{ route('admin.settings.communication')}}" class="flex items-center space-x-3 hover:text-yellow-400 transition">
+            <i class="fas fa-comments text-xl w-6 shrink-0"></i>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">Communication</span>
+        </a>
+
         <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
             <i class="fas fa-calendar-alt text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Reservation Settings</span>
@@ -37,11 +42,6 @@
         <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
             <i class="fas fa-utensils text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Food Settings</span>
-        </a>
-
-        <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
-            <i class="fas fa-comments text-xl w-6 shrink-0"></i>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">Communication</span>
         </a>
 
         <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
