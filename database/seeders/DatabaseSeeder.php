@@ -28,6 +28,8 @@ class DatabaseSeeder extends Seeder
             PopulateReservationNumbersSeeder::class,
             NotificationSeeder::class,
             GeneralSettingsSeeder::class,
+            RentalItemSeeder::class,
+            GuestStaySeeder::class,
         ]);
     }
 }

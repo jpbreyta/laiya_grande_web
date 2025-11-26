@@ -30,10 +30,10 @@ return new class extends Migration {
             $table->text('special_request')->nullable();
 
             // payment fields expected by your seeder
-            $table->enum('payment_method', ['gcash', 'paymaya', 'bank_transfer'])->nullable();
+            $table->enum('payment_method', ['cash', 'gcash', 'paymaya', 'bank_transfer'])->nullable();
             $table->string('payment')->nullable(); // e.g. 'full' or file/ref
             $table->decimal('total_price', 10, 2)->default(0);
-
+            $table->enum('source', ['online', 'pos'])->default('online');
             // actual timestamps (do not use ->after() in create)
             $table->timestamp('actual_check_in_time')->nullable();
             $table->timestamp('actual_check_out_time')->nullable();
