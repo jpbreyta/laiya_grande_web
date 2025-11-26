@@ -127,53 +127,63 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <!-- Left Column: Guest Information -->
                         <div class="space-y-4">
-                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Guest Information</h3>
-                            
-                            <div class="p-5 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-100 shadow-sm">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Guest Information
+                            </h3>
+
+                            <div
+                                class="p-5 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-100 shadow-sm">
                                 <div class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">Guest Name</div>
                                 <div class="text-lg font-semibold text-slate-900">{{ $booking->firstname }}
                                     {{ $booking->lastname }}</div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Email Address</div>
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Email Address
+                                </div>
                                 <div class="text-sm font-medium text-slate-900">{{ $booking->email }}</div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Phone Number</div>
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Phone Number
+                                </div>
                                 <div class="text-sm font-medium text-slate-900">{{ $booking->phone_number }}</div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Number of Guests</div>
-                                <div class="text-sm font-medium text-slate-900">{{ $booking->number_of_guests }} guests</div>
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Number of Guests
+                                </div>
+                                <div class="text-sm font-medium text-slate-900">{{ $booking->number_of_guests }} guests
+                                </div>
                             </div>
                         </div>
 
                         <!-- Right Column: Booking Details -->
                         <div class="space-y-4">
                             <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Booking Details</h3>
-                            
-                            <div class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 shadow-sm">
+
+                            <div
+                                class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 shadow-sm">
                                 <div class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1">Room</div>
                                 <div class="text-lg font-semibold text-slate-900">{{ $booking->room->name ?? 'N/A' }}</div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Check-in Date</div>
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Check-in Date
+                                </div>
                                 <div class="text-sm font-medium text-slate-900">
                                     {{ \Carbon\Carbon::parse($booking->check_in)->format('M d, Y') }}</div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Check-out Date</div>
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Check-out Date
+                                </div>
                                 <div class="text-sm font-medium text-slate-900">
                                     {{ \Carbon\Carbon::parse($booking->check_out)->format('M d, Y') }}</div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Date Booked</div>
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Date Booked
+                                </div>
                                 <div class="text-sm font-medium text-slate-900">
                                     {{ $booking->created_at->format('M d, Y H:i') }}
                                 </div>
@@ -192,16 +202,19 @@
                     <!-- Payment Information Section -->
                     <div class="mb-8">
                         <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Payment Information</h3>
-                        
+
                         <!-- Payment Summary Card -->
-                        <div class="p-6 bg-gradient-to-r from-teal-50 via-emerald-50 to-cyan-50 rounded-2xl border-2 border-teal-200 shadow-lg mb-6">
+                        <div
+                            class="p-6 bg-gradient-to-r from-teal-50 via-emerald-50 to-cyan-50 rounded-2xl border-2 border-teal-200 shadow-lg mb-6">
                             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
+                                    <div
+                                        class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
                                         <i class="fas fa-credit-card text-teal-600 text-lg"></i>
                                     </div>
                                     <div>
-                                        <div class="text-xs font-bold text-teal-600 uppercase tracking-wider">Payment Method</div>
+                                        <div class="text-xs font-bold text-teal-600 uppercase tracking-wider">Payment Method
+                                        </div>
                                         <div class="text-sm font-bold text-slate-900" data-field="payment_method">
                                             {{ $booking->paymentRecord ? ucfirst($booking->paymentRecord->payment_method) : 'N/A' }}
                                         </div>
@@ -209,11 +222,13 @@
                                 </div>
 
                                 <div class="flex items-center gap-3">
-                                    <div class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
+                                    <div
+                                        class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
                                         <i class="fas fa-hashtag text-emerald-600 text-lg"></i>
                                     </div>
                                     <div>
-                                        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Reference ID</div>
+                                        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Reference
+                                            ID</div>
                                         <div class="text-sm font-bold text-slate-900 font-mono" data-field="reference_id">
                                             {{ $booking->paymentRecord ? $booking->paymentRecord->reference_id : 'N/A' }}
                                         </div>
@@ -221,11 +236,13 @@
                                 </div>
 
                                 <div class="flex items-center gap-3">
-                                    <div class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
+                                    <div
+                                        class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
                                         <i class="fas fa-calendar-alt text-cyan-600 text-lg"></i>
                                     </div>
                                     <div>
-                                        <div class="text-xs font-bold text-cyan-600 uppercase tracking-wider">Payment Date</div>
+                                        <div class="text-xs font-bold text-cyan-600 uppercase tracking-wider">Payment Date
+                                        </div>
                                         <div class="text-sm font-bold text-slate-900" data-field="payment_date">
                                             {{ $booking->paymentRecord && $booking->paymentRecord->reference_id ? \Carbon\Carbon::parse($booking->paymentRecord->payment_date)->format('M d, Y H:i') : 'N/A' }}
                                         </div>
@@ -233,11 +250,13 @@
                                 </div>
 
                                 <div class="flex items-center gap-3">
-                                    <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md">
+                                    <div
+                                        class="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md">
                                         <i class="fas fa-money-bill-wave text-white text-lg"></i>
                                     </div>
                                     <div>
-                                        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Amount Paid</div>
+                                        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Amount
+                                            Paid</div>
                                         <div class="text-lg font-black text-emerald-700" data-field="amount_paid">
                                             {{ $booking->paymentRecord && $booking->paymentRecord->reference_id ? '₱' . number_format($booking->paymentRecord->amount_paid, 2) : 'N/A' }}
                                         </div>
@@ -249,12 +268,14 @@
                         <!-- Payment Proof Section -->
                         <div class="bg-slate-50 rounded-2xl border border-slate-200 p-6">
                             <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                                <h4
+                                    class="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
                                     <i class="fas fa-receipt text-teal-600"></i>
                                     Payment Proof
                                 </h4>
                                 @if ($booking->paymentRecord && $booking->paymentRecord->reference_id)
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                    <span
+                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200">
                                         <i class="fas fa-check-circle mr-1.5"></i>
                                         Verified
                                     </span>
@@ -264,7 +285,8 @@
                             @if ($booking->paymentRecord)
                                 @if (file_exists(storage_path('app/public/' . $booking->payment)))
                                     <div id="paymentProofSection" class="space-y-4">
-                                        <div class="relative rounded-xl overflow-hidden border-2 border-slate-300 shadow-lg bg-white p-4">
+                                        <div
+                                            class="relative rounded-xl overflow-hidden border-2 border-slate-300 shadow-lg bg-white p-4">
                                             <img src="{{ asset('storage/' . $booking->payment) }}" alt="Payment Proof"
                                                 class="w-full h-auto max-h-96 object-contain mx-auto">
                                         </div>
@@ -286,7 +308,8 @@
                                         </div>
                                     </div>
                                 @else
-                                    <div class="p-6 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border-2 border-red-200">
+                                    <div
+                                        class="p-6 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border-2 border-red-200">
                                         <div class="flex items-center gap-3 text-red-700">
                                             <i class="fas fa-exclamation-triangle text-xl"></i>
                                             <div>
@@ -341,7 +364,6 @@
         </div>
     </section>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         (function() {
             const slides = document.querySelectorAll('.carousel-slide');
@@ -537,8 +559,8 @@
         // OCR Processing
         document.getElementById('processOCRBtn')?.addEventListener('click', function() {
             Swal.fire({
-                title: 'Process OCR?',
-                text: 'This will extract payment information from the uploaded proof.',
+                title: 'Process Payment?',
+                text: 'This will read the uploaded proof and pull out the payment details.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#2563eb',
@@ -548,7 +570,7 @@
                 if (!result.isConfirmed) return;
 
                 Swal.fire({
-                    title: 'Processing OCR...',
+                    title: 'Extracting Data...',
                     text: 'Please wait while we extract the payment information.',
                     allowOutsideClick: false,
                     didOpen: () => Swal.showLoading()

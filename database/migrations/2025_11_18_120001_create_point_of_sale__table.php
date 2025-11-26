@@ -10,19 +10,25 @@ return new class extends Migration {
         Schema::create('point_of_sale', function (Blueprint $table) {
             $table->id();
 
-            // Link to active customer
-            $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('guest_stays')->onDelete('cascade');
+            // Link to the guest_stays table (The checked-in guest)
+            $table->unsignedBigInteger('guest_stay_id');
+            $table->foreign('guest_stay_id')->references('id')->on('guest_stays')->onDelete('cascade');
 
-            // Sale details
-            $table->string('item');
-            $table->decimal('price', 10, 2);
+            // Transaction Details
+            $table->string('item_name');   // Name of the item/service at the time of purchase
+            $table->string('item_type');   // 'rental', 'water_sport', 'other'
+            $table->integer('quantity')->default(1);
+            
+            // Financials
+            $table->decimal('price', 10, 2); // Price per item
+            $table->decimal('total_amount', 10, 2); // (Price * Quantity) - Discount
             $table->decimal('discount', 10, 2)->default(0);
 
             $table->timestamps();
 
-            // Index for faster lookups
-            $table->index('user_id');
+            // Indexes for faster reporting
+            $table->index('guest_stay_id');
+            $table->index('item_type');
         });
     }
 

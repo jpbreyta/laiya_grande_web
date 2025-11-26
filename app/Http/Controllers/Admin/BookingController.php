@@ -50,7 +50,7 @@ class BookingController extends Controller
         }
 
         try {
-            $paymentPath = storage_path('app/public/' . $booking->payment); 
+            $paymentPath = storage_path('app/public/' . $booking->payment);
             if (!file_exists($paymentPath)) {
                 return response()->json([
                     'success' => false,
@@ -97,7 +97,6 @@ class BookingController extends Controller
                     'amount_paid' => $payment->amount_paid
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('OCR processing failed for booking ' . $id . ': ' . $e->getMessage());
             return response()->json([
@@ -131,7 +130,7 @@ class BookingController extends Controller
 
         // Remove any non-JSON output like "Active code page: 65001" and "Tesseract version:"
         $lines = explode("\n", trim($result));
-        $jsonLines = array_filter($lines, function($line) {
+        $jsonLines = array_filter($lines, function ($line) {
             $trimmed = trim($line);
             return !preg_match('/^(Active code page|Tesseract version):/', $trimmed) && !empty($trimmed);
         });
@@ -154,10 +153,10 @@ class BookingController extends Controller
         $errors = [];
 
         if (isset($data['error'])) {
-            return ['valid'=>false,'errors'=>[$data['error']]];
+            return ['valid' => false, 'errors' => [$data['error']]];
         }
 
-        $required_fields = ['reference_id','date_time'];
+        $required_fields = ['reference_id', 'date_time'];
         foreach ($required_fields as $field) {
             if (!isset($data[$field]) || empty($data[$field])) {
                 $errors[] = "Missing or empty field: {$field}";
@@ -168,11 +167,11 @@ class BookingController extends Controller
             $errors[] = "Reference ID should be 10-13 digits";
         }
 
-        if (!empty($data['date_time']) && !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/',$data['date_time'])) {
+        if (!empty($data['date_time']) && !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $data['date_time'])) {
             $errors[] = "Date/time should be in YYYY-MM-DD HH:MM:SS format";
         }
 
-        return ['valid'=>empty($errors),'errors'=>$errors];
+        return ['valid' => empty($errors), 'errors' => $errors];
     }
 
     public function edit($id)
@@ -284,7 +283,7 @@ class BookingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Booking confirmed – email sent and SMS triggered.'
+            'message' => 'Booking confirmed – we’ve sent the email and text message.',
         ]);
     }
 
