@@ -160,9 +160,13 @@
                         <!-- Right Column: Booking Details -->
                         <div class="space-y-4">
                             <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Booking Details</h3>
-
-                            <div
-                                class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 shadow-sm">
+                            
+                            <div class="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 shadow-sm">
+                                <div class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Booking ID</div>
+                                <div class="text-lg font-semibold text-slate-900 font-mono">{{ $booking->reservation_number }}</div>
+                            </div>
+                            
+                            <div class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 shadow-sm">
                                 <div class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1">Room</div>
                                 <div class="text-lg font-semibold text-slate-900">{{ $booking->room->name ?? 'N/A' }}</div>
                             </div>
@@ -180,22 +184,48 @@
                                 <div class="text-sm font-medium text-slate-900">
                                     {{ \Carbon\Carbon::parse($booking->check_out)->format('M d, Y') }}</div>
                             </div>
-
-                            <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Date Booked
-                                </div>
-                                <div class="text-sm font-medium text-slate-900">
-                                    {{ $booking->created_at->format('M d, Y H:i') }}
-                                </div>
-                            </div>
                         </div>
                     </div>
 
-                    <!-- Total Amount Highlight -->
-                    <div class="p-6 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl shadow-lg mb-8">
-                        <div class="text-xs font-bold text-emerald-50 uppercase tracking-wider mb-2">Total Amount</div>
-                        <div class="text-3xl font-black text-white">
-                            ₱{{ number_format($booking->total_price, 2) }}
+                    <!-- Total Amount & Status Highlight -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="p-6 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl shadow-lg">
+                            <div class="text-xs font-bold text-emerald-50 uppercase tracking-wider mb-2">Total Amount</div>
+                            <div class="text-3xl font-black text-white">
+                                ₱{{ number_format($booking->total_price, 2) }}
+                            </div>
+                        </div>
+
+                        <div class="p-6 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Status</div>
+                            <span
+                                class="inline-flex items-center px-4 py-2 rounded-full text-xs font-bold shadow-sm
+                                @if ($booking->status === 'pending') bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200
+                                @elseif($booking->status === 'confirmed') bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200
+                                @else bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200 @endif">
+                                <span
+                                    class="w-2 h-2 rounded-full mr-2 {{ $booking->status === 'confirmed' ? 'bg-green-500' : ($booking->status === 'pending' ? 'bg-amber-500' : 'bg-red-500') }}"></span>
+                                {{ ucfirst($booking->status) }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Booking Code Section -->
+                    <div
+                        class="p-6 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-200 shadow-sm mb-8">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">Booking Code
+                                </div>
+                                <div class="text-2xl font-black text-slate-900 font-mono tracking-wide">
+                                    {{ $booking->reservation_number ?? $booking->id }}
+                                </div>
+                            </div>
+                            <button id="openPassModal"
+                                class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white px-5 py-2.5 text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                                <i class="fas fa-qrcode"></i>
+                                View QR & Code
+                            </button>
                         </div>
                     </div>
 
@@ -206,7 +236,7 @@
                         <!-- Payment Summary Card -->
                         <div
                             class="p-6 bg-gradient-to-r from-teal-50 via-emerald-50 to-cyan-50 rounded-2xl border-2 border-teal-200 shadow-lg mb-6">
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="flex items-center gap-3">
                                     <div
                                         class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
@@ -215,22 +245,8 @@
                                     <div>
                                         <div class="text-xs font-bold text-teal-600 uppercase tracking-wider">Payment Method
                                         </div>
-                                        <div class="text-sm font-bold text-slate-900" data-field="payment_method">
+                                        <div class="text-sm font-bold text-slate-900">
                                             {{ $booking->paymentRecord ? ucfirst($booking->paymentRecord->payment_method) : 'N/A' }}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center gap-3">
-                                    <div
-                                        class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
-                                        <i class="fas fa-hashtag text-emerald-600 text-lg"></i>
-                                    </div>
-                                    <div>
-                                        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Reference
-                                            ID</div>
-                                        <div class="text-sm font-bold text-slate-900 font-mono" data-field="reference_id">
-                                            {{ $booking->paymentRecord ? $booking->paymentRecord->reference_id : 'N/A' }}
                                         </div>
                                     </div>
                                 </div>
@@ -241,10 +257,10 @@
                                         <i class="fas fa-calendar-alt text-cyan-600 text-lg"></i>
                                     </div>
                                     <div>
-                                        <div class="text-xs font-bold text-cyan-600 uppercase tracking-wider">Payment Date
-                                        </div>
-                                        <div class="text-sm font-bold text-slate-900" data-field="payment_date">
-                                            {{ $booking->paymentRecord && $booking->paymentRecord->reference_id ? \Carbon\Carbon::parse($booking->paymentRecord->payment_date)->format('M d, Y H:i') : 'N/A' }}
+                                        <div class="text-xs font-bold text-cyan-600 uppercase tracking-wider">Booking
+                                            Date</div>
+                                        <div class="text-sm font-bold text-slate-900">
+                                            {{ $booking->created_at->format('M d, Y H:i') }}
                                         </div>
                                     </div>
                                 </div>
@@ -255,10 +271,10 @@
                                         <i class="fas fa-money-bill-wave text-white text-lg"></i>
                                     </div>
                                     <div>
-                                        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Amount
-                                            Paid</div>
-                                        <div class="text-lg font-black text-emerald-700" data-field="amount_paid">
-                                            {{ $booking->paymentRecord && $booking->paymentRecord->reference_id ? '₱' . number_format($booking->paymentRecord->amount_paid, 2) : 'N/A' }}
+                                        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Total
+                                            Amount</div>
+                                        <div class="text-lg font-black text-emerald-700">
+                                            ₱{{ number_format($booking->total_price, 2) }}
                                         </div>
                                     </div>
                                 </div>
@@ -364,7 +380,100 @@
         </div>
     </section>
 
+    <!-- Booking Pass Modal -->
+    <div id="bookingPassOverlay" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"></div>
+    <div id="bookingPassModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+            <div
+                class="px-6 py-4 border-b bg-gradient-to-r from-teal-600 to-emerald-600 text-white flex items-center justify-between">
+                <h3 class="text-lg font-bold">Booking Pass</h3>
+                <button class="text-white/80 hover:text-white transition" data-close-booking-pass>&times;</button>
+            </div>
+            <div id="bookingPassPrintArea" class="p-6 space-y-4">
+                <div>
+                    <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Booking Code</div>
+                    <div id="bookingCodeValue" class="text-2xl font-extrabold text-slate-900 tracking-wide font-mono">
+                        {{ $booking->reservation_number ?? $booking->id }}
+                    </div>
+                </div>
+                <div class="flex items-center justify-center">
+                    <div class="bg-white p-4 rounded-xl shadow border">
+                        {!! QrCode::size(200)->margin(1)->generate($booking->reservation_number ?? $booking->id) !!}
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 text-center">Present this at the front desk for quick verification.</p>
+            </div>
+            <div class="px-6 py-4 border-t bg-slate-50 flex items-center justify-end gap-2">
+                <button id="copyBookingCodeBtn"
+                    class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 transition">Copy
+                    Code</button>
+                <button id="printBookingPassBtn"
+                    class="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:from-teal-700 hover:to-emerald-700 transition">Print</button>
+                <button class="px-4 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition"
+                    data-close-booking-pass>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Booking Pass Modal
+        (function() {
+            const openBtn = document.getElementById('openPassModal');
+            const modal = document.getElementById('bookingPassModal');
+            const overlay = document.getElementById('bookingPassOverlay');
+            const closeBtns = document.querySelectorAll('[data-close-booking-pass]');
+            const copyBtn = document.getElementById('copyBookingCodeBtn');
+            const printBtn = document.getElementById('printBookingPassBtn');
+
+            const toggle = (show) => {
+                if (!modal || !overlay) return;
+                if (show) {
+                    overlay.classList.remove('hidden');
+                    modal.classList.remove('hidden');
+                } else {
+                    overlay.classList.add('hidden');
+                    modal.classList.add('hidden');
+                }
+            };
+
+            openBtn?.addEventListener('click', () => toggle(true));
+            overlay?.addEventListener('click', () => toggle(false));
+            closeBtns.forEach(btn => btn.addEventListener('click', () => toggle(false)));
+
+            copyBtn?.addEventListener('click', () => {
+                const codeEl = document.getElementById('bookingCodeValue');
+                if (!codeEl) return;
+                navigator.clipboard.writeText(codeEl.textContent.trim()).then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Copied',
+                        text: 'Booking code copied.',
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+                });
+            });
+
+            printBtn?.addEventListener('click', () => {
+                const printArea = document.getElementById('bookingPassPrintArea');
+                if (!printArea) return;
+                const win = window.open('', 'PRINT', 'height=600,width=800');
+                win.document.write('<html><head><title>Booking Pass</title>');
+                win.document.write(
+                    '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">'
+                );
+                win.document.write('</head><body>');
+                win.document.write(printArea.innerHTML);
+                win.document.write('</body></html>');
+                win.document.close();
+                win.focus();
+                win.print();
+                win.close();
+            });
+        })();
+
+        // Image Carousel Functionality
         (function() {
             const slides = document.querySelectorAll('.carousel-slide');
             const indicators = document.querySelectorAll('.carousel-indicator');

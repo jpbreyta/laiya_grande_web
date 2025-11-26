@@ -84,6 +84,38 @@
                 transform: translateY(-2px);
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
             }
+
+            /* Calendar styling */
+            #bookingCalendar {
+                max-width: 100%;
+            }
+
+            .fc-event {
+                cursor: pointer;
+            }
+
+            .fc-daygrid-day.booked-date {
+                background-color: rgba(44, 95, 95, 0.15);
+            }
+
+            .fc-daygrid-day.available-date {
+                background-color: rgba(173, 216, 230, 0.1);
+            }
+
+            .fc .fc-button-primary {
+                background-color: #2C5F5F;
+                border-color: #2C5F5F;
+            }
+
+            .fc .fc-button-primary:hover {
+                background-color: #1A4A4A;
+                border-color: #1A4A4A;
+            }
+
+            .fc .fc-button-primary:not(:disabled).fc-button-active {
+                background-color: #1A4A4A;
+                border-color: #1A4A4A;
+            }
         </style>
     @endpush
 
@@ -169,6 +201,28 @@
                     <canvas id="occupancyChart"></canvas>
                 </div>
             </div>
+        </div>
+
+        {{-- Booking Calendar --}}
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Booking Calendar</h2>
+                <div class="flex items-center space-x-2">
+                    <span class="flex items-center text-sm">
+                        <span class="w-3 h-3 bg-[#2C5F5F] rounded-full mr-2"></span>
+                        Booked
+                    </span>
+                    <span class="flex items-center text-sm ml-4">
+                        <span class="w-3 h-3 bg-cyan-400 rounded-full mr-2"></span>
+                        Available
+                    </span>
+                </div>
+            </div>
+            <div id="bookingCalendar"></div>
+        </div>
+
+        {{-- Content Sections Continued --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div class="bg-white rounded-lg shadow-sm p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-bold text-gray-800">Recent Bookings</h2>
@@ -208,37 +262,195 @@
                     @endforelse
                 </div>
             </div>
+
+            {{-- Recent Activity --}}
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Activity</h2>
+                <div class="space-y-4">
+                    @forelse($recentActivities ?? [] as $activity)
+                        <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center"
+                                style="background-color: {{ $activity['color'] }}">
+                                <i class="fas {{ $activity['icon'] }} text-white"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-800">{{ $activity['title'] }}</p>
+                                <p class="text-sm text-gray-600">{{ $activity['description'] }}</p>
+                            </div>
+                            <span class="text-sm text-gray-500">{{ $activity['time'] }}</span>
+                        </div>
+                    @empty
+                        <div class="text-center py-8">
+                            <i class="fas fa-history text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-500">No recent activities</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
         </div>
 
-        {{-- Recent Activity --}}
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Activity</h2>
-            <div class="space-y-4">
-                @forelse($recentActivities ?? [] as $activity)
-                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center"
-                            style="background-color: {{ $activity['color'] }}">
-                            <i class="fas {{ $activity['icon'] }} text-white"></i>
+        {{-- Advanced Insights --}}
+        <div class="space-y-6 mb-8">
+            {{-- KPI Row (Today / Snapshot) --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="dashboard-card bg-white border border-gray-100 rounded-lg p-5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Total Guests (Sample)</p>
+                            <p class="text-2xl font-bold text-gray-800">324</p>
                         </div>
-                        <div class="flex-1">
-                            <p class="font-medium text-gray-800">{{ $activity['title'] }}</p>
-                            <p class="text-sm text-gray-600">{{ $activity['description'] }}</p>
+                        <span
+                            class="inline-flex items-center text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                            <i class="fas fa-arrow-up mr-1"></i>12% vs yesterday
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-500">Demo metric for layout only</p>
+                </div>
+
+                <div class="dashboard-card bg-white border border-gray-100 rounded-lg p-5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Occupancy Rate</p>
+                            <p class="text-2xl font-bold text-gray-800">
+                                {{ $occupancyRate ?? 0 }}%
+                            </p>
                         </div>
-                        <span class="text-sm text-gray-500">{{ $activity['time'] }}</span>
+                        <i class="fas fa-bed text-2xl text-[#2C5F5F]"></i>
                     </div>
-                @empty
-                    <div class="text-center py-8">
-                        <i class="fas fa-history text-4xl text-gray-400 mb-2"></i>
-                        <p class="text-gray-500">No recent activities</p>
+                    <p class="text-xs text-gray-500">Based on current checked-in guests</p>
+                </div>
+
+                <div class="dashboard-card bg-white border border-gray-100 rounded-lg p-5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Check-ins Today (Sample)</p>
+                            <p class="text-2xl font-bold text-gray-800">37</p>
+                        </div>
+                        <i class="fas fa-sign-in-alt text-2xl text-[#2C5F5F]"></i>
                     </div>
-                @endforelse
+                    <p class="text-xs text-gray-500">23 pending check-ins (demo)</p>
+                </div>
+
+                <div class="dashboard-card bg-white border border-gray-100 rounded-lg p-5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Revenue Today (Sample)</p>
+                            <p class="text-2xl font-bold text-gray-800">₱76.7K</p>
+                        </div>
+                        <i class="fas fa-coins text-2xl text-[#2C5F5F]"></i>
+                    </div>
+                    <p class="text-xs text-gray-500">Across all services (demo)</p>
+                </div>
+            </div>
+
+            {{-- Guest / Room / Amenities Insights --}}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {{-- Left: Guest & Booking Charts --}}
+                <div class="space-y-6">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h2 class="text-lg font-bold text-gray-800 mb-4">Guest Type Distribution (Sample)</h2>
+                        <div class="h-60">
+                            <canvas id="guestTypeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h2 class="text-lg font-bold text-gray-800 mb-4">Booking Status Breakdown (Sample)</h2>
+                        <div class="h-60">
+                            <canvas id="bookingStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Right: Room Status, Guest Insights, Amenities --}}
+                <div class="space-y-6">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h2 class="text-lg font-bold text-gray-800 mb-4">Room Status Overview (Sample)</h2>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Occupied</span>
+                                <span class="font-semibold text-emerald-600">158 rooms</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Available</span>
+                                <span class="font-semibold text-blue-600">24 rooms</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Cleaning</span>
+                                <span class="font-semibold text-amber-500">12 rooms</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Maintenance</span>
+                                <span class="font-semibold text-red-500">8 rooms</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h2 class="text-lg font-bold text-gray-800 mb-4">Guest Insights (Sample)</h2>
+                        <dl class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <dt class="text-gray-600">Returning Guests</dt>
+                                <dd class="font-semibold text-emerald-600">42%</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-600">Avg Stay Duration</dt>
+                                <dd class="font-semibold text-blue-600">3.2 days</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-600">Avg Spend / Guest</dt>
+                                <dd class="font-semibold text-violet-600">₱8,450</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-gray-600">Peak Check-in Window</dt>
+                                <dd class="font-semibold text-amber-500">2–4 PM</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h2 class="text-lg font-bold text-gray-800 mb-4">Popular Amenities (Sample)</h2>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Pool Access</span>
+                                <span class="font-semibold text-emerald-600">89%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Spa Services</span>
+                                <span class="font-semibold text-blue-600">67%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Beach Activities</span>
+                                <span class="font-semibold text-violet-600">54%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Revenue by Service & Check-in/out Activity --}}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4">Revenue by Service (Sample)</h2>
+                    <div class="h-64">
+                        <canvas id="revenueByServiceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-lg font-bold text-gray-800">Check-in / Check-out Activity (Sample)</h2>
+                        <span class="text-xs text-gray-500">Today</span>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="checkInOutChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     @push('scripts')
-        <!-- Chart.js CDN -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
         <script>
             document.addEventListener('DOMContentLoaded', () => {
@@ -354,6 +566,197 @@
                 if (searchInput) {
                     searchInput.addEventListener('input', e => {
                         console.log('Searching for:', e.target.value);
+                    });
+                }
+
+                // Booking Calendar
+                const calendarEl = document.getElementById('bookingCalendar');
+                if (calendarEl) {
+                    const bookings = @json($calendarBookings ?? []);
+                    
+                    const calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,dayGridWeek'
+                        },
+                        height: 'auto',
+                        events: bookings.map(booking => ({
+                            id: booking.id,
+                            title: `${booking.room_name} - ${booking.guest_name}`,
+                            start: booking.check_in,
+                            end: booking.check_out,
+                            backgroundColor: booking.status === 'confirmed' ? '#2C5F5F' : '#00CED1',
+                            borderColor: booking.status === 'confirmed' ? '#1A4A4A' : '#00B8BB',
+                            extendedProps: {
+                                guests: booking.number_of_guests,
+                                status: booking.status,
+                                phone: booking.phone_number,
+                                email: booking.email
+                            }
+                        })),
+                        eventClick: function(info) {
+                            const event = info.event;
+                            const props = event.extendedProps;
+                            
+                            alert(
+                                `Booking Details:\n\n` +
+                                `Guest: ${event.title}\n` +
+                                `Check-in: ${event.start.toLocaleDateString()}\n` +
+                                `Check-out: ${event.end ? event.end.toLocaleDateString() : 'N/A'}\n` +
+                                `Guests: ${props.guests}\n` +
+                                `Status: ${props.status}\n` +
+                                `Phone: ${props.phone}\n` +
+                                `Email: ${props.email}`
+                            );
+                        },
+                        dayCellDidMount: function(info) {
+                            const dateStr = info.date.toISOString().split('T')[0];
+                            const hasBooking = bookings.some(booking => {
+                                const checkIn = new Date(booking.check_in).toISOString().split('T')[0];
+                                const checkOut = new Date(booking.check_out).toISOString().split('T')[0];
+                                return dateStr >= checkIn && dateStr <= checkOut;
+                            });
+                            
+                            if (hasBooking) {
+                                info.el.classList.add('booked-date');
+                            } else {
+                                info.el.classList.add('available-date');
+                            }
+                        },
+                        dateClick: function(info) {
+                            const dateStr = info.dateStr;
+                            const hasBooking = bookings.some(booking => {
+                                const checkIn = new Date(booking.check_in).toISOString().split('T')[0];
+                                const checkOut = new Date(booking.check_out).toISOString().split('T')[0];
+                                return dateStr >= checkIn && dateStr <= checkOut;
+                            });
+                            
+                            if (hasBooking) {
+                                alert('This date is already booked and cannot be selected.');
+                            } else {
+                                // You can add functionality here to create a new booking
+                                console.log('Available date clicked:', dateStr);
+                            }
+                        }
+                    });
+
+                    calendar.render();
+                }
+
+                // Guest Type Distribution (Sample)
+                const guestTypeCtx = document.getElementById('guestTypeChart');
+                if (guestTypeCtx) {
+                    new Chart(guestTypeCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Families', 'Couples', 'Solo', 'Groups'],
+                            datasets: [{
+                                data: [45, 35, 15, 5],
+                                backgroundColor: ['#3b82f6', '#a855f7', '#f97316', '#22c55e'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Booking Status Breakdown (Sample)
+                const bookingStatusCtx = document.getElementById('bookingStatusChart');
+                if (bookingStatusCtx) {
+                    new Chart(bookingStatusCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Confirmed', 'Pending', 'Cancelled'],
+                            datasets: [{
+                                data: [74, 16, 9],
+                                backgroundColor: ['#22c55e', '#fbbf24', '#ef4444'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Revenue by Service (Sample)
+                const revenueByServiceCtx = document.getElementById('revenueByServiceChart');
+                if (revenueByServiceCtx) {
+                    new Chart(revenueByServiceCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Rooms', 'F&B', 'Spa', 'Activities'],
+                            datasets: [{
+                                label: 'Revenue (₱)',
+                                data: [48000, 21000, 12000, 8000],
+                                backgroundColor: '#10b981'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Check-in / Check-out Activity (Sample)
+                const checkInOutCtx = document.getElementById('checkInOutChart');
+                if (checkInOutCtx) {
+                    new Chart(checkInOutCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['8AM', '10AM', '12PM', '2PM', '4PM', '6PM'],
+                            datasets: [{
+                                    label: 'Check-ins',
+                                    data: [1, 3, 6, 9, 5, 2],
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: 'rgba(59,130,246,0.15)',
+                                    tension: 0.4,
+                                    fill: true
+                                },
+                                {
+                                    label: 'Check-outs',
+                                    data: [0, 1, 2, 3, 4, 5],
+                                    borderColor: '#ef4444',
+                                    backgroundColor: 'rgba(239,68,68,0.1)',
+                                    tension: 0.4,
+                                    fill: true
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
                     });
                 }
             });

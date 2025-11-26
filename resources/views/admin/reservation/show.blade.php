@@ -159,6 +159,12 @@
                             </h3>
 
                             <div
+                                class="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 shadow-sm">
+                                <div class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Reservation ID</div>
+                                <div class="text-lg font-semibold text-slate-900 font-mono">{{ $reservation->reservation_number ?? $reservation->id }}</div>
+                            </div>
+
+                            <div
                                 class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 shadow-sm">
                                 <div class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1">Room</div>
                                 <div class="text-lg font-semibold text-slate-900">{{ $reservation->room->name ?? 'N/A' }}

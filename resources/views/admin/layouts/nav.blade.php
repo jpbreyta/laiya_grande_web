@@ -98,10 +98,6 @@
                     <i class="fas fa-credit-card"></i>
                     <span>Payments</span>
                 </a>
-                <a href="#" class="accordion-link">
-                    <i class="fas fa-percentage"></i>
-                    <span>Promos & Discounts</span>
-                </a>
                 <a href="{{ route('admin.pos.index') }}" class="accordion-link">
                     <i class="fa-solid fa-cash-register"></i>
                     <span>Point of Sale</span>
@@ -109,27 +105,6 @@
             </div>
         </div>
 
-        <!-- Documents -->
-        <div class="accordion-section">
-            <button type="button" data-accordion-button data-target="accordion-documents"
-                class="accordion-toggle flex items-center justify-between w-full rounded-lg px-2.5 py-1.5 transition">
-                <span class="nav-text text-[13px] font-semibold tracking-wide flex items-center gap-2">
-                    <i class="fas fa-file-alt"></i>
-                    Documents
-                </span>
-                <i class="fas fa-chevron-down text-xs accordion-arrow rotate-0 transition-transform duration-200"></i>
-            </button>
-            <div id="accordion-documents" class="accordion-panel mt-1 space-y-0.5">
-                <a href="{{ route('admin.qr.scanner') }}" class="accordion-link">
-                    <i class="fas fa-qrcode"></i>
-                    <span>QR</span>
-                </a>
-                <a href="{{ route('admin.qr.scanner') }}" class="accordion-link">
-                    <i class="fas fa-qrcode"></i>
-                    <span>Documents</span>
-                </a>
-            </div>
-        </div>
     </div>
 
     <!-- Divider -->

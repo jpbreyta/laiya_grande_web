@@ -107,7 +107,7 @@
                                     <td class="py-3 px-4 text-center">
                                         <div class="flex items-center justify-center gap-2">
                                             <a href="{{ route('admin.reservation.show', $reservation->id) }}"
-                                                class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md hover:shadow-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200">
+                                                class="bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md hover:shadow-lg hover:from-blue-600 hover:to-cyan-700 transform hover:scale-105 transition-all duration-200">
                                                 View
                                             </a>
                                             <a href="{{ route('admin.reservation.edit', $reservation->id) }}"
