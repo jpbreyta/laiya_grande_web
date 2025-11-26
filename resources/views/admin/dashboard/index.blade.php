@@ -84,6 +84,38 @@
                 transform: translateY(-2px);
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
             }
+
+            /* Calendar styling */
+            #bookingCalendar {
+                max-width: 100%;
+            }
+
+            .fc-event {
+                cursor: pointer;
+            }
+
+            .fc-daygrid-day.booked-date {
+                background-color: rgba(44, 95, 95, 0.15);
+            }
+
+            .fc-daygrid-day.available-date {
+                background-color: rgba(173, 216, 230, 0.1);
+            }
+
+            .fc .fc-button-primary {
+                background-color: #2C5F5F;
+                border-color: #2C5F5F;
+            }
+
+            .fc .fc-button-primary:hover {
+                background-color: #1A4A4A;
+                border-color: #1A4A4A;
+            }
+
+            .fc .fc-button-primary:not(:disabled).fc-button-active {
+                background-color: #1A4A4A;
+                border-color: #1A4A4A;
+            }
         </style>
     @endpush
 
@@ -169,6 +201,28 @@
                     <canvas id="occupancyChart"></canvas>
                 </div>
             </div>
+        </div>
+
+        {{-- Booking Calendar --}}
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Booking Calendar</h2>
+                <div class="flex items-center space-x-2">
+                    <span class="flex items-center text-sm">
+                        <span class="w-3 h-3 bg-[#2C5F5F] rounded-full mr-2"></span>
+                        Booked
+                    </span>
+                    <span class="flex items-center text-sm ml-4">
+                        <span class="w-3 h-3 bg-cyan-400 rounded-full mr-2"></span>
+                        Available
+                    </span>
+                </div>
+            </div>
+            <div id="bookingCalendar"></div>
+        </div>
+
+        {{-- Content Sections Continued --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div class="bg-white rounded-lg shadow-sm p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-bold text-gray-800">Recent Bookings</h2>
@@ -208,37 +262,35 @@
                     @endforelse
                 </div>
             </div>
-        </div>
 
-        {{-- Recent Activity --}}
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Activity</h2>
-            <div class="space-y-4">
-                @forelse($recentActivities ?? [] as $activity)
-                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center"
-                            style="background-color: {{ $activity['color'] }}">
-                            <i class="fas {{ $activity['icon'] }} text-white"></i>
+            {{-- Recent Activity --}}
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Activity</h2>
+                <div class="space-y-4">
+                    @forelse($recentActivities ?? [] as $activity)
+                        <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center"
+                                style="background-color: {{ $activity['color'] }}">
+                                <i class="fas {{ $activity['icon'] }} text-white"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-800">{{ $activity['title'] }}</p>
+                                <p class="text-sm text-gray-600">{{ $activity['description'] }}</p>
+                            </div>
+                            <span class="text-sm text-gray-500">{{ $activity['time'] }}</span>
                         </div>
-                        <div class="flex-1">
-                            <p class="font-medium text-gray-800">{{ $activity['title'] }}</p>
-                            <p class="text-sm text-gray-600">{{ $activity['description'] }}</p>
+                    @empty
+                        <div class="text-center py-8">
+                            <i class="fas fa-history text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-500">No recent activities</p>
                         </div>
-                        <span class="text-sm text-gray-500">{{ $activity['time'] }}</span>
-                    </div>
-                @empty
-                    <div class="text-center py-8">
-                        <i class="fas fa-history text-4xl text-gray-400 mb-2"></i>
-                        <p class="text-gray-500">No recent activities</p>
-                    </div>
-                @endforelse
+                    @endforelse
+                </div>
             </div>
         </div>
     </div>
 
     @push('scripts')
-        <!-- Chart.js CDN -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
         <script>
             document.addEventListener('DOMContentLoaded', () => {
@@ -355,6 +407,82 @@
                     searchInput.addEventListener('input', e => {
                         console.log('Searching for:', e.target.value);
                     });
+                }
+
+                // Booking Calendar
+                const calendarEl = document.getElementById('bookingCalendar');
+                if (calendarEl) {
+                    const bookings = @json($calendarBookings ?? []);
+                    
+                    const calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,dayGridWeek'
+                        },
+                        height: 'auto',
+                        events: bookings.map(booking => ({
+                            id: booking.id,
+                            title: `${booking.room_name} - ${booking.guest_name}`,
+                            start: booking.check_in,
+                            end: booking.check_out,
+                            backgroundColor: booking.status === 'confirmed' ? '#2C5F5F' : '#00CED1',
+                            borderColor: booking.status === 'confirmed' ? '#1A4A4A' : '#00B8BB',
+                            extendedProps: {
+                                guests: booking.number_of_guests,
+                                status: booking.status,
+                                phone: booking.phone_number,
+                                email: booking.email
+                            }
+                        })),
+                        eventClick: function(info) {
+                            const event = info.event;
+                            const props = event.extendedProps;
+                            
+                            alert(
+                                `Booking Details:\n\n` +
+                                `Guest: ${event.title}\n` +
+                                `Check-in: ${event.start.toLocaleDateString()}\n` +
+                                `Check-out: ${event.end ? event.end.toLocaleDateString() : 'N/A'}\n` +
+                                `Guests: ${props.guests}\n` +
+                                `Status: ${props.status}\n` +
+                                `Phone: ${props.phone}\n` +
+                                `Email: ${props.email}`
+                            );
+                        },
+                        dayCellDidMount: function(info) {
+                            const dateStr = info.date.toISOString().split('T')[0];
+                            const hasBooking = bookings.some(booking => {
+                                const checkIn = new Date(booking.check_in).toISOString().split('T')[0];
+                                const checkOut = new Date(booking.check_out).toISOString().split('T')[0];
+                                return dateStr >= checkIn && dateStr <= checkOut;
+                            });
+                            
+                            if (hasBooking) {
+                                info.el.classList.add('booked-date');
+                            } else {
+                                info.el.classList.add('available-date');
+                            }
+                        },
+                        dateClick: function(info) {
+                            const dateStr = info.dateStr;
+                            const hasBooking = bookings.some(booking => {
+                                const checkIn = new Date(booking.check_in).toISOString().split('T')[0];
+                                const checkOut = new Date(booking.check_out).toISOString().split('T')[0];
+                                return dateStr >= checkIn && dateStr <= checkOut;
+                            });
+                            
+                            if (hasBooking) {
+                                alert('This date is already booked and cannot be selected.');
+                            } else {
+                                // You can add functionality here to create a new booking
+                                console.log('Available date clicked:', dateStr);
+                            }
+                        }
+                    });
+                    
+                    calendar.render();
                 }
             });
         </script>
