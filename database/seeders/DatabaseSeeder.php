@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             GeneralSettingsSeeder::class,
             RentalItemSeeder::class,
             GuestStaySeeder::class,
+            ContactSubjectSeeder::class,
         ]);
     }
 }

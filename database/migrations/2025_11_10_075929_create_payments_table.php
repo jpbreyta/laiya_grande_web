@@ -11,23 +11,20 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
 
-            // independent parent references (nullable)
+            // nullable parent references
             $table->unsignedBigInteger('booking_id')->nullable();
             $table->unsignedBigInteger('reservation_id')->nullable();
 
-            // Unique payment reference (nullable)
+            // Unique payment reference
             $table->string('reference_id', 20)->nullable()->unique();
 
             $table->string('customer_name');
             $table->string('contact_number', 20);
             $table->dateTime('payment_date')->nullable();
 
-            // renamed/normalized amount column
             $table->decimal('amount_paid', 10, 2)->nullable();
 
-            // For reservation partial + final payments
             $table->enum('payment_stage', ['full', 'partial', 'final'])->default('full');
-
             $table->enum('status', ['pending', 'verified', 'rejected'])->default('pending');
 
             $table->string('payment_method')->default('gcash');
@@ -39,8 +36,26 @@ return new class extends Migration
 
             $table->timestamps();
 
+            // indexes
             $table->index(['booking_id', 'status']);
             $table->index(['reservation_id', 'status']);
+
+            // *************** FOREIGN KEYS ***************
+            $table->foreign('booking_id')
+                  ->references('id')
+                  ->on('bookings')
+                  ->onDelete('set null');
+
+            $table->foreign('reservation_id')
+                  ->references('id')
+                  ->on('reservations')
+                  ->onDelete('set null');
+
+            $table->foreign('verified_by')
+                  ->references('id')
+                  ->on('users')
+                  ->nullOnDelete();
+            // ********************************************
         });
     }
 

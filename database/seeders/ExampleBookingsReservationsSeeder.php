@@ -6,16 +6,60 @@ use Illuminate\Database\Seeder;
 use App\Models\Booking;
 use App\Models\Reservation;
 use App\Models\Room;
+use App\Models\Customer; // NEW: Import the Customer model
 use Carbon\Carbon;
 
 class ExampleBookingsReservationsSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
         // Ensure at least 4 rooms exist
         $rooms = Room::take(4)->get();
         if ($rooms->isEmpty()) {
+            // NOTE: Assuming you have a RoomFactory defined
             $rooms = Room::factory(4)->create();
+        }
+
+        // Define a list of unique customers we will use
+        $customerData = [
+            [
+                'firstname' => 'Julience',
+                'lastname' => 'Castillo',
+                'email' => 'julience.castillo@example.com',
+                'phone_number' => '09123456789',
+            ],
+            [
+                'firstname' => 'Jaika Remina',
+                'lastname' => 'Madrid',
+                'email' => 'jaika.madrid@example.com',
+                'phone_number' => '09123456790',
+            ],
+            [
+                'firstname' => 'Aldren',
+                'lastname' => 'Perez',
+                'email' => 'aldren.perez@example.com',
+                'phone_number' => '09123456791',
+            ],
+            [
+                'firstname' => 'John Paul Bryan',
+                'lastname' => 'Reyta',
+                'email' => 'john.reyta@example.com',
+                'phone_number' => '09123456792',
+            ],
+        ];
+
+        // 1. Create or retrieve the customers and map them for easy lookup
+        $customers = [];
+        foreach ($customerData as $data) {
+            $customer = Customer::firstOrCreate(
+                ['email' => $data['email']], // Check only by unique email
+                $data // Data to create if not found
+            );
+            // Map customer IDs using their email for the booking/reservation arrays
+            $customers[$data['email']] = $customer->id;
         }
 
         // Generate timestamp for demo
@@ -25,10 +69,8 @@ class ExampleBookingsReservationsSeeder extends Seeder
         $bookings = [
             [
                 'room_id' => $rooms[0]->id,
-                'firstname' => 'Julience',
-                'lastname' => 'Castillo',
-                'email' => 'julience.castillo@example.com',
-                'phone_number' => 9123456789,
+                // FIX: Replaced guest details with customer_id
+                'customer_id' => $customers['julience.castillo@example.com'], 
                 'check_in' => Carbon::now()->subDays(10),
                 'check_out' => Carbon::now()->subDays(8),
                 'number_of_guests' => 2,
@@ -41,10 +83,8 @@ class ExampleBookingsReservationsSeeder extends Seeder
             ],
             [
                 'room_id' => $rooms[1]->id,
-                'firstname' => 'Jaika Remina',
-                'lastname' => 'Madrid',
-                'email' => 'jaika.madrid@example.com',
-                'phone_number' => 9123456790,
+                // FIX: Replaced guest details with customer_id
+                'customer_id' => $customers['jaika.madrid@example.com'],
                 'check_in' => Carbon::now()->subDays(15),
                 'check_out' => Carbon::now()->subDays(12),
                 'number_of_guests' => 3,
@@ -57,10 +97,8 @@ class ExampleBookingsReservationsSeeder extends Seeder
             ],
             [
                 'room_id' => $rooms[2]->id,
-                'firstname' => 'Aldren',
-                'lastname' => 'Perez',
-                'email' => 'aldren.perez@example.com',
-                'phone_number' => 9123456791,
+                // FIX: Replaced guest details with customer_id
+                'customer_id' => $customers['aldren.perez@example.com'],
                 'check_in' => Carbon::now()->subDays(20),
                 'check_out' => Carbon::now()->subDays(18),
                 'number_of_guests' => 1,
@@ -73,10 +111,8 @@ class ExampleBookingsReservationsSeeder extends Seeder
             ],
             [
                 'room_id' => $rooms[3]->id,
-                'firstname' => 'John Paul Bryan',
-                'lastname' => 'Reyta',
-                'email' => 'john.reyta@example.com',
-                'phone_number' => 9123456792,
+                // FIX: Replaced guest details with customer_id
+                'customer_id' => $customers['john.reyta@example.com'],
                 'check_in' => Carbon::now()->subDays(25),
                 'check_out' => Carbon::now()->subDays(22),
                 'number_of_guests' => 4,
@@ -97,10 +133,8 @@ class ExampleBookingsReservationsSeeder extends Seeder
         $reservations = [
             [
                 'room_id' => $rooms[0]->id,
-                'firstname' => 'Julience',
-                'lastname' => 'Castillo',
-                'email' => 'julience.castillo@example.com',
-                'phone_number' => '09123456789',
+                // FIX: Replaced guest details with customer_id
+                'customer_id' => $customers['julience.castillo@example.com'],
                 'check_in' => Carbon::now()->addDays(5),
                 'check_out' => Carbon::now()->addDays(7),
                 'number_of_guests' => 2,
@@ -114,10 +148,8 @@ class ExampleBookingsReservationsSeeder extends Seeder
             ],
             [
                 'room_id' => $rooms[1]->id,
-                'firstname' => 'Jaika Remina',
-                'lastname' => 'Madrid',
-                'email' => 'jaika.madrid@example.com',
-                'phone_number' => '09123456790',
+                // FIX: Replaced guest details with customer_id
+                'customer_id' => $customers['jaika.madrid@example.com'],
                 'check_in' => Carbon::now()->addDays(10),
                 'check_out' => Carbon::now()->addDays(12),
                 'number_of_guests' => 3,
@@ -131,10 +163,8 @@ class ExampleBookingsReservationsSeeder extends Seeder
             ],
             [
                 'room_id' => $rooms[2]->id,
-                'firstname' => 'Aldren',
-                'lastname' => 'Perez',
-                'email' => 'aldren.perez@example.com',
-                'phone_number' => '09123456791',
+                // FIX: Replaced guest details with customer_id
+                'customer_id' => $customers['aldren.perez@example.com'],
                 'check_in' => Carbon::now()->addDays(15),
                 'check_out' => Carbon::now()->addDays(17),
                 'number_of_guests' => 1,
@@ -148,10 +178,8 @@ class ExampleBookingsReservationsSeeder extends Seeder
             ],
             [
                 'room_id' => $rooms[3]->id,
-                'firstname' => 'John Paul Bryan',
-                'lastname' => 'Reyta',
-                'email' => 'john.reyta@example.com',
-                'phone_number' => '09123456792',
+                // FIX: Replaced guest details with customer_id
+                'customer_id' => $customers['john.reyta@example.com'],
                 'check_in' => Carbon::now()->addDays(20),
                 'check_out' => Carbon::now()->addDays(22),
                 'number_of_guests' => 4,
@@ -166,6 +194,11 @@ class ExampleBookingsReservationsSeeder extends Seeder
         ];
 
         foreach ($reservations as $reservation) {
+            // NOTE: The reservation array still contains 'first_payment' and 'second_payment'. 
+            // If you keep those in the migration, you need to ensure they are added here.
+            // For now, I've left them out as the Booking table didn't have them, 
+            // assuming 'payment' field covers it. If you need them, you must add them back
+            // to the reservation arrays above.
             Reservation::create($reservation);
         }
     }
