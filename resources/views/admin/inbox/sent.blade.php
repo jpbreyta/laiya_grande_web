@@ -48,16 +48,26 @@
                             <div class="flex-1 cursor-pointer"
                                 onclick="window.location.href='{{ route('admin.inbox.show', $message->id) }}'">
                                 <div class="flex items-center gap-2">
-                                    <div class="font-medium text-gray-900">{{ $message->name }}</div>
+                                    <div class="font-medium text-gray-900">To: {{ $message->name }}</div>
                                     <div class="text-xs text-gray-500 italic">&lt;{{ $message->email }}&gt;</div>
-                                    <div class="ml-auto text-xs text-gray-400">{{ $message->created_at->format('M j') }}
+                                    <div class="ml-auto text-xs text-gray-400">
+                                        {{ $message->replied_at ? $message->replied_at->format('M j, g:i A') : $message->created_at->format('M j') }}
                                     </div>
                                 </div>
-                                <div class="text-sm text-gray-700 mt-1 font-medium">{{ Str::limit($message->subject, 50) }}
+                                <div class="text-sm text-gray-700 mt-1 font-medium">
+                                    <span class="text-gray-500">Re:</span> {{ $message->reply_subject ?? $message->subject }}
                                 </div>
-                                <div class="text-xs text-gray-500 mt-1">{{ Str::limit($message->message, 80) }}</div>
-                                <span
-                                    class="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full mt-2">Replied</span>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    {{ $message->reply_content ? Str::limit($message->reply_content, 100) : 'No reply content saved' }}
+                                </div>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Replied</span>
+                                    @if($message->reply_content)
+                                        <span class="text-xs text-gray-400">
+                                            <i class="fas fa-check-circle text-green-500"></i> Reply saved
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </li>
                     @endforeach

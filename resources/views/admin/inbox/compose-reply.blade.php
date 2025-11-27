@@ -27,7 +27,7 @@
             <h3 class="text-lg font-semibold text-gray-800 mb-3">Replying to:</h3>
             <div class="space-y-2 text-sm text-gray-700">
                 <p><strong>From:</strong> {{ $message->name }} ({{ $message->email }})</p>
-                <p><strong>Subject:</strong> {{ $message->subject }}</p>
+                <p><strong>Label:</strong> {{ $message->subject }}</p>
                 <p><strong>Received:</strong> {{ $message->created_at->format('F j, Y \a\t g:i A') }}</p>
             </div>
         </div>
@@ -42,7 +42,7 @@
             </div>
 
             <div>
-                <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject:</label>
+                <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Label:</label>
                 <input type="text" id="subject" name="subject" value="Re: {{ $message->subject }}"
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition shadow-sm"
                        required>

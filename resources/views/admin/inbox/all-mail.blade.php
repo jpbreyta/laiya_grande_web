@@ -20,13 +20,12 @@
             <div class="flex items-start justify-between mb-8">
                 <div>
                     <h1 class="text-2xl font-semibold text-gray-900 tracking-tight">
-                        <i class="fas fa-inbox text-blue-600 mr-2"></i> Admin Inbox
+                        <i class="fas fa-envelope-open-text text-purple-600 mr-2"></i> All Mail
                     </h1>
-                    <p class="text-sm text-gray-500 mt-1">Manage and organize your messages</p>
+                    <p class="text-sm text-gray-500 mt-1">View all messages including inbox, sent, and archived</p>
                 </div>
 
                 <div class="flex gap-2 items-center">
-
                     <button onclick="location.reload()" class="p-2 rounded-full hover:bg-gray-100 transition"
                         title="Refresh">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none"
@@ -60,7 +59,6 @@
                         hover:bg-red-50 hover:scale-105 transition-all duration-200 ease-in-out
                         focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-50"
                         title="Delete selected">
-
                         <svg xmlns="http://www.w3.org/2000/svg"
                             class="h-6 w-6 text-red-500 group-hover:text-red-600 transition-colors" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
@@ -69,7 +67,6 @@
                                     m2 0a2 2 0 00-2-2H9a2 2 0
                                     00-2 2m3 0h6" />
                         </svg>
-
                         <span
                             class="absolute -bottom-9 left-1/2 -translate-x-1/2 
                                 px-2 py-1 text-xs rounded-md bg-gray-800 text-white opacity-0 
@@ -88,7 +85,7 @@
 
             <div class="flex flex-wrap gap-3 mb-6 text-sm font-medium">
                 <button data-filter="all"
-                    class="filter-btn px-4 py-1.5 rounded-full bg-teal-100 text-teal-700 hover:bg-teal-100 hover:text-teal-700 transition">All</button>
+                    class="filter-btn px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 hover:bg-purple-200 transition">All</button>
                 <button data-filter="read"
                     class="filter-btn px-4 py-1.5 rounded-full bg-gray-100 text-gray-700 hover:bg-teal-100 hover:text-teal-700 transition">Read</button>
                 <button data-filter="unread"
@@ -126,6 +123,21 @@
                                         <span class="w-2 h-2 rounded-full {{ $labelColor }}"></span>
                                         <span class="text-gray-700">{{ $message->subject }}</span>
                                     </span>
+                                    
+                                    @if ($message->archived_at)
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-gray-200 text-xs">
+                                            <i class="fas fa-archive text-gray-600"></i>
+                                            <span class="text-gray-600">Archived</span>
+                                        </span>
+                                    @endif
+
+                                    @if ($message->status === 'replied')
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-xs">
+                                            <i class="fas fa-reply text-green-600"></i>
+                                            <span class="text-green-600">Replied</span>
+                                        </span>
+                                    @endif
+
                                     <div class="ml-auto text-xs text-gray-400">{{ $message->created_at->format('M j') }}
                                     </div>
                                 </div>
@@ -190,11 +202,17 @@
                     
                     // Update active button style
                     filterBtns.forEach(b => {
-                        b.classList.remove('bg-teal-100', 'text-teal-700');
+                        b.classList.remove('bg-purple-100', 'text-purple-700', 'bg-teal-100', 'text-teal-700');
                         b.classList.add('bg-gray-100', 'text-gray-700');
                     });
-                    this.classList.remove('bg-gray-100', 'text-gray-700');
-                    this.classList.add('bg-teal-100', 'text-teal-700');
+                    
+                    if (filter === 'all') {
+                        this.classList.remove('bg-gray-100', 'text-gray-700');
+                        this.classList.add('bg-purple-100', 'text-purple-700');
+                    } else {
+                        this.classList.remove('bg-gray-100', 'text-gray-700');
+                        this.classList.add('bg-teal-100', 'text-teal-700');
+                    }
                     
                     // Filter messages
                     let visibleCount = 0;
