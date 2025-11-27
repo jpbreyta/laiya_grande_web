@@ -33,6 +33,55 @@
                             </button>
                         </form>
                     @endif
+
+                    @if ($message->archived_at)
+                        <form method="POST" action="{{ route('admin.inbox.unarchive', $message->id) }}" class="inline">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit"
+                                class="relative group p-2.5 rounded-full bg-white border border-gray-200 shadow-sm 
+                                hover:bg-green-50 hover:scale-105 transition-all duration-200 ease-in-out
+                                focus:outline-none focus:ring-2 focus:ring-green-300"
+                                title="Restore from archive">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-6 w-6 text-green-500 group-hover:text-green-600 transition-colors" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                        d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                </svg>
+                                <span
+                                    class="absolute -bottom-9 left-1/2 -translate-x-1/2 
+                                    px-2 py-1 text-xs rounded-md bg-gray-800 text-white opacity-0 
+                                    group-hover:opacity-100 transition pointer-events-none whitespace-nowrap">
+                                    Restore
+                                </span>
+                            </button>
+                        </form>
+                    @else
+                        <form method="POST" action="{{ route('admin.inbox.archive', $message->id) }}" class="inline">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit"
+                                class="relative group p-2.5 rounded-full bg-white border border-gray-200 shadow-sm 
+                                hover:bg-gray-50 hover:scale-105 transition-all duration-200 ease-in-out
+                                focus:outline-none focus:ring-2 focus:ring-gray-300"
+                                title="Archive message">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-6 w-6 text-gray-500 group-hover:text-gray-600 transition-colors" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                </svg>
+                                <span
+                                    class="absolute -bottom-9 left-1/2 -translate-x-1/2 
+                                    px-2 py-1 text-xs rounded-md bg-gray-800 text-white opacity-0 
+                                    group-hover:opacity-100 transition pointer-events-none">
+                                    Archive
+                                </span>
+                            </button>
+                        </form>
+                    @endif
+
                     <form method="POST" action="{{ route('admin.inbox.destroy', $message->id) }}" class="inline"
                         onsubmit="return confirm('Are you sure you want to delete this message?')">
                         @csrf
@@ -72,8 +121,23 @@
                             <h3 class="text-lg font-semibold text-gray-900">{{ $message->name }}</h3>
                             <span class="text-sm text-gray-500 italic">{{ $message->email }}</span>
                         </div>
-                        <div class="text-sm text-gray-700 mb-2">
-                            <strong class="font-medium">Subject:</strong> {{ $message->subject }}
+                        <div class="text-sm text-gray-700 mb-2 flex items-center gap-2">
+                            <strong class="font-medium">Label:</strong>
+                            @php
+                                $labelColors = [
+                                    'Reservation Inquiry' => 'bg-blue-400',
+                                    'Booking Assistance' => 'bg-green-400',
+                                    'General Question' => 'bg-purple-400',
+                                    'Feedback' => 'bg-yellow-400',
+                                    'Complaint' => 'bg-red-400',
+                                    'Other' => 'bg-gray-400',
+                                ];
+                                $labelColor = $labelColors[$message->subject] ?? 'bg-gray-400';
+                            @endphp
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-gray-100">
+                                <span class="w-2 h-2 rounded-full {{ $labelColor }}"></span>
+                                <span class="text-gray-700 text-xs">{{ $message->subject }}</span>
+                            </span>
                         </div>
                         <div class="text-xs text-gray-500">
                             <strong>Received:</strong> {{ $message->created_at->format('F j, Y \a\t g:i A') }}
@@ -83,8 +147,30 @@
             </div>
 
             <div class="prose max-w-none text-gray-800 leading-relaxed">
+                <h4 class="text-sm font-semibold text-gray-600 mb-2">Original Message:</h4>
                 <p class="whitespace-pre-line">{{ $message->message }}</p>
             </div>
+
+            @if ($message->reply_content)
+                <div class="mt-8 p-6 bg-green-50 border-l-4 border-green-500 rounded-lg">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fas fa-reply text-green-600"></i>
+                        <h4 class="text-lg font-semibold text-gray-900">Your Reply</h4>
+                        @if ($message->replied_at)
+                            <span class="ml-auto text-xs text-gray-500">
+                                Sent: {{ $message->replied_at->format('M j, Y g:i A') }}
+                            </span>
+                        @endif
+                    </div>
+                    <div class="mb-3">
+                        <strong class="text-sm text-gray-700">Subject:</strong>
+                        <span class="text-sm text-gray-900">{{ $message->reply_subject }}</span>
+                    </div>
+                    <div class="prose max-w-none text-gray-800 leading-relaxed">
+                        <p class="whitespace-pre-line">{{ $message->reply_content }}</p>
+                    </div>
+                </div>
+            @endif
 
             @if ($message->phone)
                 <div class="mt-6 flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-100 shadow-sm">
@@ -101,6 +187,12 @@
                 </div>
             @endif
 
+            @if (session('success'))
+                <div class="mt-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
+                    {{ session('success') }}
+                </div>
+            @endif
+
             <div class="mt-10 pt-6 border-t border-gray-200 flex items-center gap-6 text-sm text-gray-600">
                 <span>
                     <strong>Status:</strong>
@@ -114,6 +206,14 @@
                 </span>
                 @if ($message->read_at)
                     <span><strong>Read at:</strong> {{ $message->read_at->format('M j, Y g:i A') }}</span>
+                @endif
+                @if ($message->archived_at)
+                    <span>
+                        <strong>Archived:</strong>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                            {{ $message->archived_at->format('M j, Y g:i A') }}
+                        </span>
+                    </span>
                 @endif
             </div>
         </div>

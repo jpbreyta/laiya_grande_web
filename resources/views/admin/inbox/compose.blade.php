@@ -35,10 +35,18 @@
             </div>
 
             <div>
-                <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                <input type="text" id="subject" name="subject"
+                <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Label</label>
+                <select id="subject" name="subject"
                     class="w-full px-4 py-2.5 border border-gray-300 rounded-md bg-white text-gray-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition shadow-sm"
-                    placeholder="Enter subject" required>
+                    required>
+                    <option value="">Select a label</option>
+                    <option value="Reservation Inquiry">Reservation Inquiry</option>
+                    <option value="Booking Assistance">Booking Assistance</option>
+                    <option value="General Question">General Question</option>
+                    <option value="Feedback">Feedback</option>
+                    <option value="Complaint">Complaint</option>
+                    <option value="Other">Other</option>
+                </select>
             </div>
 
             <div>

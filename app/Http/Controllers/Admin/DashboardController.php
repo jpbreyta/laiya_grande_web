@@ -25,6 +25,25 @@ class DashboardController extends Controller
         $occupancyRate = $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100) : 0;
         $pendingBookings = Booking::where('status', 'pending')->count();
 
+        $today = Carbon::today();
+
+        // Today snapshot KPIs
+        $totalGuestsToday = Booking::whereDate('check_in', $today)
+            ->whereIn('status', ['confirmed', 'checked-in'])
+            ->sum('number_of_guests');
+
+        $checkInsToday = Booking::whereDate('check_in', $today)
+            ->whereIn('status', ['confirmed', 'checked-in'])
+            ->count();
+
+        $pendingCheckInsToday = Booking::whereDate('check_in', $today)
+            ->where('status', 'pending')
+            ->count();
+
+        $revenueToday = Booking::where('status', 'confirmed')
+            ->whereDate('created_at', $today)
+            ->sum('total_price');
+
         // Recent bookings
         $recentBookings = Booking::with('room')->latest()->take(3)->get();
 
@@ -116,18 +135,230 @@ class DashboardController extends Controller
             $occupancyData[] = $totalRooms > 0 ? round(($occupied / $totalRooms) * 100) : 0;
         }
 
+        // Guest type distribution (based on number_of_guests on confirmed / checked-in bookings)
+        $guestTypeCounts = [
+            'families' => 0,
+            'couples' => 0,
+            'solo' => 0,
+            'groups' => 0,
+        ];
+
+        Booking::whereIn('status', ['confirmed', 'checked-in'])
+            ->select('number_of_guests')
+            ->chunk(200, function ($bookings) use (&$guestTypeCounts) {
+                foreach ($bookings as $booking) {
+                    $guests = (int) $booking->number_of_guests;
+                    if ($guests <= 0) {
+                        continue;
+                    } elseif ($guests === 1) {
+                        $guestTypeCounts['solo']++;
+                    } elseif ($guests === 2) {
+                        $guestTypeCounts['couples']++;
+                    } elseif ($guests >= 3 && $guests <= 5) {
+                        $guestTypeCounts['families']++;
+                    } else {
+                        $guestTypeCounts['groups']++;
+                    }
+                }
+            });
+
+        $guestTypeChart = [
+            'labels' => ['Families', 'Couples', 'Solo', 'Groups'],
+            'data' => [
+                $guestTypeCounts['families'],
+                $guestTypeCounts['couples'],
+                $guestTypeCounts['solo'],
+                $guestTypeCounts['groups'],
+            ],
+        ];
+
+        // Booking status breakdown
+        $bookingStatusChart = [
+            'labels' => ['Confirmed', 'Pending', 'Cancelled'],
+            'data' => [
+                Booking::where('status', 'confirmed')->count(),
+                Booking::where('status', 'pending')->count(),
+                Booking::where('status', 'cancelled')->count(),
+            ],
+        ];
+
+        // Room status overview
+        $maintenanceRooms = Room::where('status', 'maintenance')->count();
+        $cleaningRooms = Room::where('status', 'cleaning')->count();
+        $availableRooms = max($totalRooms - $occupiedRooms - $maintenanceRooms - $cleaningRooms, 0);
+
+        $roomStatusOverview = [
+            'occupied' => $occupiedRooms,
+            'available' => $availableRooms,
+            'cleaning' => $cleaningRooms,
+            'maintenance' => $maintenanceRooms,
+        ];
+
+        // Guest insights
+        $totalDistinctGuests = Booking::distinct('email')->count('email');
+
+        $returningGuestsCount = Booking::select('email')
+            ->whereNotNull('email')
+            ->groupBy('email')
+            ->havingRaw('COUNT(*) > 1')
+            ->get()
+            ->count();
+
+        $returningGuestsPercent = $totalDistinctGuests > 0
+            ? round(($returningGuestsCount / $totalDistinctGuests) * 100)
+            : 0;
+
+        $avgStayDuration = Booking::where('status', 'confirmed')
+            ->whereNotNull('check_in')
+            ->whereNotNull('check_out')
+            ->get()
+            ->map(function ($booking) {
+                return $booking->check_in->diffInDays($booking->check_out) ?: 1;
+            })->avg() ?? 0;
+
+        $totalGuestNights = Booking::where('status', 'confirmed')
+            ->whereNotNull('check_in')
+            ->whereNotNull('check_out')
+            ->get()
+            ->reduce(function ($carry, $booking) {
+                $nights = $booking->check_in->diffInDays($booking->check_out) ?: 1;
+                return $carry + ($nights * max((int) $booking->number_of_guests, 1));
+            }, 0);
+
+        $totalRevenueForAvg = Booking::where('status', 'confirmed')->sum('total_price');
+
+        $avgSpendPerGuest = $totalGuestNights > 0
+            ? round($totalRevenueForAvg / $totalGuestNights, 2)
+            : 0;
+
+        // Peak check-in window (group by hour for today)
+        $hourBuckets = [
+            '08:00' => 0,
+            '10:00' => 0,
+            '12:00' => 0,
+            '14:00' => 0,
+            '16:00' => 0,
+            '18:00' => 0,
+        ];
+
+        Booking::whereDate('check_in', $today)
+            ->whereNotNull('actual_check_in_time')
+            ->get()
+            ->each(function ($booking) use (&$hourBuckets) {
+                $hour = (int) $booking->actual_check_in_time->format('H');
+                if ($hour < 9) {
+                    $hourBuckets['08:00']++;
+                } elseif ($hour < 11) {
+                    $hourBuckets['10:00']++;
+                } elseif ($hour < 13) {
+                    $hourBuckets['12:00']++;
+                } elseif ($hour < 15) {
+                    $hourBuckets['14:00']++;
+                } elseif ($hour < 17) {
+                    $hourBuckets['16:00']++;
+                } else {
+                    $hourBuckets['18:00']++;
+                }
+            });
+
+        arsort($hourBuckets);
+        $peakCheckInWindow = count($hourBuckets)
+            ? array_key_first($hourBuckets)
+            : null;
+
+        $guestInsights = [
+            'returningGuestsPercent' => $returningGuestsPercent,
+            'avgStayDuration' => round($avgStayDuration, 1),
+            'avgSpendPerGuest' => $avgSpendPerGuest,
+            'peakCheckInWindow' => $peakCheckInWindow,
+        ];
+
+        // Check-in / out activity for today (hourly)
+        $activityLabels = ['8AM', '10AM', '12PM', '2PM', '4PM', '6PM'];
+        $checkInSeries = [];
+        $checkOutSeries = [];
+
+        foreach ($activityLabels as $label) {
+            $checkInSeries[] = 0;
+            $checkOutSeries[] = 0;
+        }
+
+        $timeRanges = [
+            ['start' => 8, 'end' => 10],
+            ['start' => 10, 'end' => 12],
+            ['start' => 12, 'end' => 14],
+            ['start' => 14, 'end' => 16],
+            ['start' => 16, 'end' => 18],
+            ['start' => 18, 'end' => 20],
+        ];
+
+        foreach ($timeRanges as $index => $range) {
+            $checkInSeries[$index] = Booking::whereDate('actual_check_in_time', $today)
+                ->whereBetween(\DB::raw('HOUR(actual_check_in_time)'), [$range['start'], $range['end'] - 1])
+                ->count();
+
+            $checkOutSeries[$index] = Booking::whereDate('actual_check_out_time', $today)
+                ->whereBetween(\DB::raw('HOUR(actual_check_out_time)'), [$range['start'], $range['end'] - 1])
+                ->count();
+        }
+
+        $checkInOutActivity = [
+            'labels' => $activityLabels,
+            'checkins' => $checkInSeries,
+            'checkouts' => $checkOutSeries,
+        ];
+
+        // Revenue by service (basic: room revenue + POS total)
+        $roomsRevenue = Booking::where('status', 'confirmed')->sum('total_price');
+        $posRevenue = \App\Models\PosTransaction::sum('total');
+
+        $revenueByService = [
+            'labels' => ['Rooms', 'F&B / POS'],
+            'data' => [$roomsRevenue, $posRevenue],
+        ];
+
+        // Calendar bookings data
+        $calendarBookings = Booking::with('room')
+            ->whereIn('status', ['confirmed', 'pending'])
+            ->where('check_out', '>=', Carbon::now()->subMonths(1))
+            ->get()
+            ->map(function ($booking) {
+                return [
+                    'id' => $booking->id,
+                    'room_name' => $booking->room->name ?? 'N/A',
+                    'guest_name' => $booking->firstname . ' ' . $booking->lastname,
+                    'check_in' => $booking->check_in->format('Y-m-d'),
+                    'check_out' => $booking->check_out->format('Y-m-d'),
+                    'number_of_guests' => $booking->number_of_guests,
+                    'status' => $booking->status,
+                    'phone_number' => $booking->phone_number,
+                    'email' => $booking->email,
+                ];
+            });
+
         return view('admin.dashboard.index', compact(
             'totalBookings',
             'totalRevenue',
             'occupancyRate',
             'pendingBookings',
+            'totalGuestsToday',
+            'checkInsToday',
+            'pendingCheckInsToday',
+            'revenueToday',
             'recentBookings',
             'recentActivities',
             'revenueData',
             'occupancyData',
-            'occupancyLabels', // <-- add this
+            'occupancyLabels',
             'unreadNotifications',
-            'recentNotifications'
+            'recentNotifications',
+            'calendarBookings',
+            'guestTypeChart',
+            'bookingStatusChart',
+            'roomStatusOverview',
+            'guestInsights',
+            'checkInOutActivity',
+            'revenueByService'
         ));
     }
 }

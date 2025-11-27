@@ -68,6 +68,10 @@
                 <i class="fas fa-chevron-down text-xs accordion-arrow rotate-0 transition-transform duration-200"></i>
             </button>
             <div id="accordion-inventory" class="accordion-panel mt-1 space-y-0.5">
+                <a href="{{ route('admin.inventory') }}" class="accordion-link">
+                    <i class="fas fa-warehouse"></i>
+                    <span>Inventory</span>
+                </a>
                 <a href="{{ route('admin.room.index') }}" class="accordion-link">
                     <i class="fas fa-bed"></i>
                     <span>Room</span>

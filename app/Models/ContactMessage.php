@@ -13,11 +13,17 @@ class ContactMessage extends Model
         'subject',
         'message',
         'status',
-        'read_at'
+        'read_at',
+        'reply_subject',
+        'reply_content',
+        'replied_at',
+        'archived_at'
     ];
 
     protected $casts = [
         'read_at' => 'datetime',
+        'replied_at' => 'datetime',
+        'archived_at' => 'datetime',
     ];
 
     // Scope for unread messages
@@ -51,5 +57,29 @@ class ContactMessage extends Model
     public function markAsReplied()
     {
         $this->update(['status' => 'replied']);
+    }
+
+    // Scope for archived messages
+    public function scopeArchived($query)
+    {
+        return $query->whereNotNull('archived_at');
+    }
+
+    // Scope for non-archived messages
+    public function scopeNotArchived($query)
+    {
+        return $query->whereNull('archived_at');
+    }
+
+    // Archive message
+    public function archive()
+    {
+        $this->update(['archived_at' => now()]);
+    }
+
+    // Unarchive message
+    public function unarchive()
+    {
+        $this->update(['archived_at' => null]);
     }
 }
