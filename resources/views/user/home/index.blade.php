@@ -4,9 +4,8 @@
     <section class="relative isolate bg-center min-h-[80svh] md:min-h-[85svh] overflow-hidden">
         <div x-data="{
             images: [
-                '{{ asset('images/real.jpg') }}',
-                '{{ asset('images/poster.jpg') }}',
-                '{{ asset('images/bg3.jpg') }}'
+                '{{ asset('images/bg3.jpg') }}',
+                '{{ asset('images/poster.jpg') }}'
             ],
             current: 0,
             next() {
