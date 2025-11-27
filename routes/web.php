@@ -40,4 +40,5 @@ require __DIR__. '/admin/inbox.php';
 require __DIR__. '/admin/pos.php';
 require __DIR__. '/admin/room.php';
 require __DIR__. '/admin/payments.php';
+require __DIR__. '/admin/inventory.php';
 require __DIR__. '/admin/settings.php';
