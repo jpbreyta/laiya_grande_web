@@ -17,11 +17,12 @@ return new class extends Migration {
             $table->unsignedBigInteger('room_id');
             $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
 
-            // Guest details
-            $table->string('firstname');
-            $table->string('lastname');
-            $table->string('email');
-            $table->string('phone_number');
+            // --- NORMALIZATION FIX START ---
+            // Replaced redundant guest details with Foreign Key to the customers table
+            $table->foreignId('customer_id')
+                  ->constrained('customers')
+                  ->onDelete('restrict'); // Assuming a booking must always have a customer
+            // --- NORMALIZATION FIX END ---
 
             // Booking details
             $table->date('check_in');

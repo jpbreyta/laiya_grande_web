@@ -4,71 +4,69 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
-        Schema::create('pos_transactions', function (Blueprint $table) {
+        Schema::create('point_of_sale', function (Blueprint $table) {
             $table->id();
 
             // ============================
-            // MAIN RELATION (POS Transaction belongs to a POS entry)
+            // PRIMARY RELATIONSHIP
             // ============================
-            $table->unsignedBigInteger('point_of_sale_id');
+            // The POS sale belongs to a checked-in guest stay
+            $table->unsignedBigInteger('guest_stay_id');
 
             // ============================
-            // SOURCE RELATION (Optional)
+            // OPTIONAL ORIGIN (SOURCE)
             // ============================
-            // The transaction may come from a booking or a reservation
-            $table->unsignedBigInteger('guest_stay_id')->nullable();
+            // The POS transaction may originate from:
+            // - a booking (walk-in or transition)
+            // - a reservation (future guest)
             $table->unsignedBigInteger('booking_id')->nullable();
             $table->unsignedBigInteger('reservation_id')->nullable();
 
             // ============================
-            // TRANSACTION DATA
+            // TRANSACTION DETAILS
             // ============================
-            $table->json('items'); // Cart items as JSON
+            $table->string('item_name');   // Name of the product/service sold
+            $table->string('item_type');   // 'rental', 'water_sport', 'other'
 
-            $table->decimal('subtotal', 10, 2);
-            $table->decimal('tax', 10, 2)->default(0);
-            $table->decimal('total', 10, 2);
+            $table->integer('quantity')->default(1);
 
-            $table->string('payment_method')->nullable(); // cash, gcash, card
-            $table->string('status')->default('completed'); // completed, canceled, refunded
+            // ============================
+            // FINANCIALS
+            // ============================
+            $table->decimal('price', 10, 2);        // Price per unit
+            $table->decimal('total_amount', 10, 2); // Price * Quantity - Discount
+            $table->decimal('discount', 10, 2)->default(0);
 
             $table->timestamps();
 
             // ============================
             // INDEXES
             // ============================
-            $table->index('point_of_sale_id');
             $table->index('guest_stay_id');
             $table->index('booking_id');
             $table->index('reservation_id');
+            $table->index('item_type');
 
             // ============================
             // FOREIGN KEYS
             // ============================
 
-            // pos_transactions → point_of_sale
-            $table->foreign('point_of_sale_id')
-                  ->references('id')
-                  ->on('point_of_sale')
-                  ->cascadeOnDelete();
-
-            // pos_transactions → guest_stays (optional)
+            // POS → guest_stays
             $table->foreign('guest_stay_id')
                   ->references('id')
                   ->on('guest_stays')
-                  ->nullOnDelete();
+                  ->onDelete('cascade');
 
-            // pos_transactions → bookings (optional)
+            // POS → bookings (optional link)
             $table->foreign('booking_id')
                   ->references('id')
                   ->on('bookings')
                   ->nullOnDelete();
 
-            // pos_transactions → reservations (optional)
+            // POS → reservations (optional link)
             $table->foreign('reservation_id')
                   ->references('id')
                   ->on('reservations')
@@ -78,6 +76,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('pos_transactions');
+        Schema::dropIfExists('point_of_sale');
     }
 };

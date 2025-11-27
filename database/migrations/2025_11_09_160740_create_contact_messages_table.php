@@ -16,7 +16,14 @@ return new class extends Migration
             $table->string('name');
             $table->string('email');
             $table->string('phone')->nullable();
-            $table->string('subject');
+            
+            // FIX: This line replaces the old $table->string('subject');
+            // It creates the foreign key column (contact_subject_id) and links it
+            // to the 'id' column of the 'contact_subjects' table.
+            $table->foreignId('contact_subject_id')
+                  ->constrained('contact_subjects')
+                  ->onDelete('restrict'); 
+            
             $table->text('message');
             $table->enum('status', ['unread', 'read', 'replied'])->default('unread');
             $table->timestamp('read_at')->nullable();
