@@ -8,8 +8,8 @@ use App\Models\Booking;
 use App\Models\Room;
 use App\Models\Payment;
 use App\Models\Notification;
+use App\Models\Customer;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Storage;
 
 class PosBookingController extends Controller
 {
@@ -44,6 +44,7 @@ class PosBookingController extends Controller
             'room_id' => 'required|exists:rooms,id',
             'firstname' => 'required|string|max:255',
             'lastname' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
             'phone_number' => 'required|string|max:20',
             'check_in' => 'required|date',
             'check_out' => 'required|date|after:check_in',
@@ -66,48 +67,53 @@ class PosBookingController extends Controller
         $nights = Carbon::parse($request->check_in)->diffInDays(Carbon::parse($request->check_out));
         $totalPrice = $nights * $room->price;
 
+        // Create or find customer
+        $customer = Customer::firstOrCreate(
+            ['email' => $request->email ?? 'walkin_' . time() . '@pos.local'],
+            [
+                'firstname' => $request->firstname,
+                'lastname' => $request->lastname,
+                'phone_number' => $request->phone_number,
+            ]
+        );
+
         // Create booking
         $booking = Booking::create([
             'reservation_number' => $this->generateReservationNumber(),
             'room_id' => $room->id,
-            'firstname' => $request->firstname,
-            'lastname' => $request->lastname,
-            'email' => $request->email ?? null,
-            'phone_number' => $request->phone_number,
+            'customer_id' => $customer->id,
             'check_in' => $request->check_in,
             'check_out' => $request->check_out,
             'number_of_guests' => $request->number_of_guests,
             'special_request' => $request->special_request ?? null,
             'payment_method' => $request->payment_method ?? 'cash',
-            'payment' => $totalPrice, // payment amount
+            'payment' => 'full',
             'total_price' => $totalPrice,
             'source' => 'pos',
             'status' => 'confirmed',
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
 
         // Reduce room availability
-        $room->availability -= 1;
-        $room->save();
+        $room->decrement('availability');
 
         // Create payment record
         Payment::create([
             'booking_id' => $booking->id,
-            'customer_name' => $booking->firstname . ' ' . $booking->lastname,
-            'contact_number' => $booking->phone_number,
+            'customer_name' => $customer->firstname . ' ' . $customer->lastname,
+            'contact_number' => $customer->phone_number,
             'payment_date' => now(),
-            'amount' => $totalPrice,
-            'status' => 'confirmed',
-            'payment_method' => $booking->payment_method,
-            'notes' => 'POS booking',
+            'amount_paid' => $totalPrice,
+            'payment_stage' => 'full',
+            'status' => 'verified',
+            'payment_method' => $request->payment_method ?? 'cash',
+            'notes' => 'POS walk-in booking',
         ]);
 
         // Optional: notify admin
         Notification::create([
             'type' => 'booking',
             'title' => 'New POS Booking',
-            'message' => "New walk-in booking from {$booking->firstname} {$booking->lastname}",
+            'message' => "New walk-in booking from {$customer->firstname} {$customer->lastname}",
             'data' => ['booking_id' => $booking->id],
             'read' => false,
         ]);
@@ -115,7 +121,7 @@ class PosBookingController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Walk-in booking confirmed!',
-            'booking' => $booking
+            'booking' => $booking->load('customer', 'room')
         ]);
     }
     private function generateReservationNumber(): string

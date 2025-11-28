@@ -27,7 +27,9 @@ class InboxController extends Controller
     public function filterByLabel($label)
     {
         $messages = ContactMessage::notArchived()
-            ->where('subject', $label)
+            ->whereHas('contactSubject', function($query) use ($label) {
+                $query->where('classification', $label);
+            })
             ->latest()
             ->paginate(10);
         $unreadCount = ContactMessage::unread()->count();

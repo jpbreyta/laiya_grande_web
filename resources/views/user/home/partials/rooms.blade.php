@@ -39,6 +39,29 @@
                                         <h3 class="text-xl font-bold text-slate-800 mb-2" x-text="room.name"></h3>
                                         <p class="text-slate-600 text-sm line-clamp-2 leading-relaxed"
                                             x-text="room.short_description"></p>
+
+                                        <!-- Rating Display -->
+                                        <div class="flex items-center gap-2 mt-2">
+                                            <template x-if="room.total_ratings > 0">
+                                                <div class="flex items-center gap-1">
+                                                    <template x-for="i in 5" :key="i">
+                                                        <i :class="i <= Math.floor(room.average_rating) ?
+                                                            'fas fa-star text-yellow-400' :
+                                                            (i - 0.5 <= room.average_rating ?
+                                                                'fas fa-star-half-alt text-yellow-400' :
+                                                                'far fa-star text-gray-300')"
+                                                            class="text-sm"></i>
+                                                    </template>
+                                                    <span class="text-sm font-semibold text-slate-700 ml-1"
+                                                        x-text="room.average_rating"></span>
+                                                    <span class="text-xs text-slate-500"
+                                                        x-text="`(${room.total_ratings} ${room.total_ratings == 1 ? 'review' : 'reviews'})`"></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="!room.total_ratings || room.total_ratings === 0">
+                                                <span class="text-xs text-slate-400">No ratings yet</span>
+                                            </template>
+                                        </div>
                                     </div>
 
                                     <div class="flex flex-wrap gap-2 mb-6">
@@ -64,11 +87,16 @@
                                         </span>
                                     </div>
 
-                                    <div class="mt-auto pt-4 border-t border-slate-100">
+                                    <div class="mt-auto pt-4 border-t border-slate-100 space-y-2">
                                         <button type="button" @click="addToCart(room.id, room.name, room.price)"
                                             class="block w-full text-center bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl transition-colors duration-200">
                                             <span class="mr-2"><i class="fas fa-shopping-cart"></i></span>
                                             Add to Cart
+                                        </button>
+                                        <button type="button" @click="openRatingModal(room.id, room.name)"
+                                            class="block w-full text-center border-2 border-teal-600 text-teal-600 hover:bg-teal-50 font-semibold py-2.5 rounded-xl transition-colors duration-200">
+                                            <span class="mr-2"><i class="fas fa-star"></i></span>
+                                            Rate This Room
                                         </button>
                                     </div>
                                 </div>
@@ -88,7 +116,199 @@
             </div>
         </div>
     </section>
+
+    <!-- Rating Modal -->
+    <div id="ratingModal"
+        class="fixed inset-0 z-[999] hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-slate-800 font-heading">Rate This Room</h3>
+                <button onclick="closeRatingModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form id="ratingForm" onsubmit="submitRating(event)">
+                <input type="hidden" id="rating_room_id" name="room_id">
+
+                <div class="mb-4">
+                    <p class="text-sm text-slate-600 mb-2" id="rating_room_name"></p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Your Rating *</label>
+                    <div class="flex gap-2" id="starRating">
+                        <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors"
+                            data-rating="1"></i>
+                        <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors"
+                            data-rating="2"></i>
+                        <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors"
+                            data-rating="3"></i>
+                        <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors"
+                            data-rating="4"></i>
+                        <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors"
+                            data-rating="5"></i>
+                    </div>
+                    <input type="hidden" id="rating_value" name="rating" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Your Email *</label>
+                    <input type="email" id="guest_email" name="guest_email" required
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        placeholder="your@email.com">
+                    <p class="text-xs text-slate-500 mt-1">We use this to track ratings and prevent duplicates</p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Your Name (Optional)</label>
+                    <input type="text" id="guest_name" name="guest_name"
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        placeholder="John Doe">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Comment (Optional)</label>
+                    <textarea id="rating_comment" name="comment" rows="3"
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        placeholder="Share your experience..."></textarea>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeRatingModal()"
+                        class="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg font-bold hover:bg-teal-700 transition-colors">
+                        Submit Rating
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        let selectedRating = 0;
+
+        function openRatingModal(roomId, roomName) {
+            document.getElementById('rating_room_id').value = roomId;
+            document.getElementById('rating_room_name').textContent = roomName;
+            document.getElementById('ratingModal').classList.remove('hidden');
+            selectedRating = 0;
+            updateStars(0);
+        }
+
+        function closeRatingModal() {
+            document.getElementById('ratingModal').classList.add('hidden');
+            document.getElementById('ratingForm').reset();
+            selectedRating = 0;
+            updateStars(0);
+        }
+
+        // Star rating interaction
+        document.addEventListener('DOMContentLoaded', function() {
+            const stars = document.querySelectorAll('#starRating i');
+
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    selectedRating = parseInt(this.dataset.rating);
+                    document.getElementById('rating_value').value = selectedRating;
+                    updateStars(selectedRating);
+                });
+
+                star.addEventListener('mouseenter', function() {
+                    const hoverRating = parseInt(this.dataset.rating);
+                    updateStars(hoverRating);
+                });
+            });
+
+            document.getElementById('starRating').addEventListener('mouseleave', function() {
+                updateStars(selectedRating);
+            });
+        });
+
+        function updateStars(rating) {
+            const stars = document.querySelectorAll('#starRating i');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.remove('text-gray-300');
+                    star.classList.add('text-yellow-400');
+                } else {
+                    star.classList.remove('text-yellow-400');
+                    star.classList.add('text-gray-300');
+                }
+            });
+        }
+
+        function submitRating(event) {
+            event.preventDefault();
+
+            if (selectedRating === 0) {
+                Swal.fire({
+                    title: 'Rating Required',
+                    text: 'Please select a star rating',
+                    icon: 'warning',
+                    confirmButtonColor: '#0f766e'
+                });
+                return;
+            }
+
+            const formData = {
+                room_id: document.getElementById('rating_room_id').value,
+                guest_email: document.getElementById('guest_email').value,
+                guest_name: document.getElementById('guest_name').value,
+                rating: selectedRating,
+                comment: document.getElementById('rating_comment').value
+            };
+
+            Swal.fire({
+                title: 'Submitting...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch('{{ route('ratings.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Swal.close();
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Thank You!',
+                            text: data.message,
+                            icon: 'success',
+                            confirmButtonColor: '#0f766e'
+                        }).then(() => {
+                            closeRatingModal();
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.message,
+                            icon: 'error',
+                            confirmButtonColor: '#ef4444'
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Something went wrong. Please try again.',
+                        icon: 'error',
+                        confirmButtonColor: '#ef4444'
+                    });
+                });
+        }
+
         function addToCart(roomId, roomName, roomPrice) {
             Swal.fire({
                 title: 'Adding to cart...',

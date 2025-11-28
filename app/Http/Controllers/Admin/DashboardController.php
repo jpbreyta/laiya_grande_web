@@ -34,6 +34,10 @@ class DashboardController extends Controller
         // Current occupancy rate
         $occupancyRate = $this->calculateOccupancyRate();
         
+        // Get initial KPI data for today
+        $dateRange = $this->getDateRange('today');
+        $initialKPI = $this->getKPIData($dateRange, 'today');
+        
         // Recent bookings (last 10, combining bookings and reservations)
         $recentBookings = Booking::with('room')
             ->latest()
@@ -52,6 +56,26 @@ class DashboardController extends Controller
         // Recent activities
         $recentActivities = $this->getRecentActivities();
         
+        // Get ratings statistics
+        $totalRatings = \App\Models\RoomRating::count();
+        $averageRating = \App\Models\RoomRating::avg('rating');
+        $recentRatings = \App\Models\RoomRating::with('room')
+            ->latest()
+            ->take(10)
+            ->get();
+        
+        // Get top rated rooms
+        $topRatedRooms = \App\Models\Room::withCount('ratings')
+            ->with('ratings')
+            ->having('ratings_count', '>', 0)
+            ->get()
+            ->map(function($room) {
+                $room->average_rating = round($room->averageRating(), 1);
+                return $room;
+            })
+            ->sortByDesc('average_rating')
+            ->take(5);
+        
         return view('admin.dashboard.index', compact(
             'totalBookings',
             'totalRooms',
@@ -59,7 +83,12 @@ class DashboardController extends Controller
             'pendingBookings',
             'occupancyRate',
             'recentBookings',
-            'recentActivities'
+            'recentActivities',
+            'initialKPI',
+            'totalRatings',
+            'averageRating',
+            'recentRatings',
+            'topRatedRooms'
         ));
     }
 
@@ -109,6 +138,10 @@ class DashboardController extends Controller
         
         foreach ($bookings as $booking) {
             $color = $this->getStatusColor($booking->status);
+            $checkIn = Carbon::parse($booking->check_in);
+            $checkOut = Carbon::parse($booking->check_out);
+            $duration = $checkIn->diffInDays($checkOut) . ' night(s)';
+            
             $events[] = [
                 'id' => 'booking-' . $booking->id,
                 'title' => $booking->room->name . ' - ' . $booking->firstname . ' ' . $booking->lastname,
@@ -118,11 +151,21 @@ class DashboardController extends Controller
                 'borderColor' => $color,
                 'extendedProps' => [
                     'type' => 'booking',
+                    'booking_id' => $booking->id,
+                    'reservation_number' => $booking->reservation_number ?? 'N/A',
                     'guest' => $booking->firstname . ' ' . $booking->lastname,
+                    'email' => $booking->email ?? 'N/A',
+                    'phone' => $booking->phone ?? 'N/A',
                     'room' => $booking->room->name,
                     'guests' => $booking->number_of_guests,
                     'status' => $booking->status,
-                    'price' => '₱' . number_format($booking->total_price, 2)
+                    'price' => '₱' . number_format($booking->total_price, 2),
+                    'booking_source' => $booking->source === 'pos' ? 'Walk-in (POS)' : 'Website',
+                    'check_in' => $checkIn->format('M d, Y'),
+                    'check_out' => $checkOut->format('M d, Y'),
+                    'duration' => $duration,
+                    'special_requests' => $booking->special_requests ?? null,
+                    'created_at' => $booking->created_at->format('M d, Y h:i A')
                 ]
             ];
         }
@@ -141,6 +184,10 @@ class DashboardController extends Controller
         
         foreach ($reservations as $reservation) {
             $color = $this->getStatusColor($reservation->status);
+            $checkIn = Carbon::parse($reservation->check_in);
+            $checkOut = Carbon::parse($reservation->check_out);
+            $duration = $checkIn->diffInDays($checkOut) . ' night(s)';
+            
             $events[] = [
                 'id' => 'reservation-' . $reservation->id,
                 'title' => $reservation->room->name . ' - ' . $reservation->firstname . ' ' . $reservation->lastname,
@@ -150,16 +197,54 @@ class DashboardController extends Controller
                 'borderColor' => $color,
                 'extendedProps' => [
                     'type' => 'reservation',
+                    'booking_id' => $reservation->id,
+                    'reservation_number' => $reservation->reservation_number ?? 'N/A',
                     'guest' => $reservation->firstname . ' ' . $reservation->lastname,
+                    'email' => $reservation->email ?? 'N/A',
+                    'phone' => $reservation->phone ?? 'N/A',
                     'room' => $reservation->room->name,
                     'guests' => $reservation->number_of_guests,
                     'status' => $reservation->status,
-                    'price' => '₱' . number_format($reservation->total_price, 2)
+                    'price' => '₱' . number_format($reservation->total_price, 2),
+                    'booking_source' => 'Website',
+                    'check_in' => $checkIn->format('M d, Y'),
+                    'check_out' => $checkOut->format('M d, Y'),
+                    'duration' => $duration,
+                    'special_requests' => $reservation->special_requests ?? null,
+                    'created_at' => $reservation->created_at->format('M d, Y h:i A')
                 ]
             ];
         }
         
         return response()->json($events);
+    }
+
+    /**
+     * Auto-cancel bookings/reservations where check-in date has passed but no guest_stay exists
+     */
+    private function autoCancelExpiredBookings()
+    {
+        $now = Carbon::now();
+        
+        // Find bookings that should have checked in but didn't
+        $expiredBookings = Booking::whereIn('status', ['confirmed', 'pending'])
+            ->where('check_in', '<', $now->toDateString())
+            ->whereDoesntHave('guestStay')
+            ->get();
+        
+        foreach ($expiredBookings as $booking) {
+            $booking->update(['status' => 'cancelled']);
+        }
+        
+        // Find reservations that should have checked in but didn't
+        $expiredReservations = Reservation::whereIn('status', ['confirmed', 'paid', 'pending'])
+            ->where('check_in', '<', $now->toDateString())
+            ->whereDoesntHave('guestStay')
+            ->get();
+        
+        foreach ($expiredReservations as $reservation) {
+            $reservation->update(['status' => 'cancelled']);
+        }
     }
 
     /**
@@ -192,33 +277,51 @@ class DashboardController extends Controller
      */
     private function getKPIData($dateRange, $filter)
     {
-        // Revenue calculation
-        $bookingRevenue = Booking::where('status', 'confirmed')
-            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
-            ->sum('total_price');
+        // Auto-cancel expired bookings/reservations without check-ins
+        $this->autoCancelExpiredBookings();
         
-        $reservationRevenue = Reservation::whereIn('status', ['confirmed', 'paid'])
-            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
-            ->sum('total_price');
+        // Revenue calculation - ONLY from checked-in guests
+        $guestStays = GuestStay::whereBetween('check_in_time', [$dateRange['start'], $dateRange['end']])
+            ->get();
         
+        $bookingIds = $guestStays->whereNotNull('booking_id')->pluck('booking_id')->unique();
+        $reservationIds = $guestStays->whereNotNull('reservation_id')->pluck('reservation_id')->unique();
+        
+        $bookingRevenue = $bookingIds->isNotEmpty() 
+            ? Booking::whereIn('id', $bookingIds)->sum('total_price')
+            : 0;
+        
+        $reservationRevenue = $reservationIds->isNotEmpty()
+            ? Reservation::whereIn('id', $reservationIds)->sum('total_price')
+            : 0;
+        
+        // POS revenue (rentals & services)
         $posRevenue = PointOfSale::whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
             ->sum('total_amount');
         
         $totalRevenue = $bookingRevenue + $reservationRevenue + $posRevenue;
         
-        // Guest count
-        $bookingGuests = Booking::whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
-            ->sum('number_of_guests');
+        // Guest count - from actual check-ins only
+        $bookingGuests = GuestStay::whereNotNull('booking_id')
+            ->whereBetween('check_in_time', [$dateRange['start'], $dateRange['end']])
+            ->with('booking')
+            ->get()
+            ->sum(function($stay) {
+                return $stay->booking->number_of_guests ?? 0;
+            });
         
-        $reservationGuests = Reservation::whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
-            ->sum('number_of_guests');
+        $reservationGuests = GuestStay::whereNotNull('reservation_id')
+            ->whereBetween('check_in_time', [$dateRange['start'], $dateRange['end']])
+            ->with('reservation')
+            ->get()
+            ->sum(function($stay) {
+                return $stay->reservation->number_of_guests ?? 0;
+            });
         
         $totalGuests = $bookingGuests + $reservationGuests;
         
-        // Check-ins
-        $checkIns = Booking::whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
-            ->count() + 
-            Reservation::whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
+        // Check-ins - count actual guest_stays records
+        $checkIns = GuestStay::whereBetween('check_in_time', [$dateRange['start'], $dateRange['end']])
             ->count();
         
         // Occupancy rate (current)
@@ -240,9 +343,11 @@ class DashboardController extends Controller
         return [
             'revenue' => $this->getRevenueChartData($dateRange, $filter),
             'status' => $this->getBookingStatusData($dateRange),
-            'guest_type' => $this->getGuestTypeData($dateRange),
             'services' => $this->getServiceRevenueData($dateRange),
-            'peak_hours' => $this->getPeakBookingHours($dateRange)
+            'peak_hours' => $this->getPeakBookingHours($dateRange),
+            'booking_source' => $this->getBookingSourceData($dateRange),
+            'daily_comparison' => $this->getDailyComparison($dateRange, $filter),
+            'most_booked_rooms' => $this->getMostBookedRooms($dateRange)
         ];
     }
 
@@ -326,52 +431,150 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get booking status distribution
+     * Get booking status distribution - based on check-in dates within the period
      */
     private function getBookingStatusData($dateRange)
     {
+        // Count bookings that have check-in dates within the selected period
         $bookingConfirmed = Booking::where('status', 'confirmed')
-            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
+            ->whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
             ->count();
         
         $reservationConfirmed = Reservation::whereIn('status', ['confirmed', 'paid'])
-            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
+            ->whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
             ->count();
         
         $confirmed = $bookingConfirmed + $reservationConfirmed;
         
         $pending = Booking::where('status', 'pending')
-            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
+            ->whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
             ->count() +
             Reservation::where('status', 'pending')
-            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
+            ->whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
             ->count();
         
         $cancelled = Booking::where('status', 'cancelled')
-            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
+            ->whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
             ->count() +
             Reservation::where('status', 'cancelled')
-            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
+            ->whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
             ->count();
         
         return [$confirmed, $pending, $cancelled];
     }
 
     /**
-     * Get guest type distribution
+     * Get booking source distribution (Website vs Walk-in)
      */
-    private function getGuestTypeData($dateRange)
+    private function getBookingSourceData($dateRange)
     {
-        $bookings = Booking::whereBetween('created_at', [$dateRange['start'], $dateRange['end']])->get();
-        $reservations = Reservation::whereBetween('created_at', [$dateRange['start'], $dateRange['end']])->get();
+        // Count online bookings (website)
+        $onlineBookings = Booking::where('source', 'online')
+            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
+            ->count();
         
-        $allBookings = $bookings->merge($reservations);
+        // Count POS bookings (walk-in)
+        $walkInBookings = Booking::where('source', 'pos')
+            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
+            ->count();
         
-        $solo = $allBookings->where('number_of_guests', 1)->count();
-        $couple = $allBookings->where('number_of_guests', 2)->count();
-        $group = $allBookings->where('number_of_guests', '>', 2)->count();
+        // All reservations are considered online/website bookings
+        $reservationCount = Reservation::whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
+            ->count();
         
-        return [$solo, $couple, $group];
+        $totalOnline = $onlineBookings + $reservationCount;
+        $totalWalkIn = $walkInBookings;
+        
+        return [
+            'labels' => ['Website Bookings', 'Walk-in Bookings'],
+            'data' => [$totalOnline, $totalWalkIn],
+            'counts' => [
+                'online' => $totalOnline,
+                'walkin' => $totalWalkIn,
+                'total' => $totalOnline + $totalWalkIn
+            ]
+        ];
+    }
+
+    /**
+     * Get daily comparison data (bookings vs revenue)
+     */
+    private function getDailyComparison($dateRange, $filter)
+    {
+        $labels = [];
+        $bookingsData = [];
+        $revenueData = [];
+        
+        if ($filter === 'today') {
+            // Hourly for today
+            for ($hour = 0; $hour < 24; $hour++) {
+                $hourStart = Carbon::today()->setHour($hour);
+                $hourEnd = $hourStart->copy()->addHour();
+                
+                $labels[] = $hourStart->format('h A');
+                
+                $bookingCount = Booking::whereBetween('created_at', [$hourStart, $hourEnd])->count() +
+                               Reservation::whereBetween('created_at', [$hourStart, $hourEnd])->count();
+                
+                $revenue = Booking::where('status', 'confirmed')
+                    ->whereBetween('created_at', [$hourStart, $hourEnd])
+                    ->sum('total_price') +
+                    Reservation::whereIn('status', ['confirmed', 'paid'])
+                    ->whereBetween('created_at', [$hourStart, $hourEnd])
+                    ->sum('total_price');
+                
+                $bookingsData[] = $bookingCount;
+                $revenueData[] = $revenue;
+            }
+        } elseif ($filter === 'weekly') {
+            // Daily for this week
+            $start = Carbon::now()->startOfWeek();
+            for ($i = 0; $i < 7; $i++) {
+                $date = $start->copy()->addDays($i);
+                $labels[] = $date->format('D');
+                
+                $bookingCount = Booking::whereDate('created_at', $date)->count() +
+                               Reservation::whereDate('created_at', $date)->count();
+                
+                $revenue = Booking::where('status', 'confirmed')
+                    ->whereDate('created_at', $date)
+                    ->sum('total_price') +
+                    Reservation::whereIn('status', ['confirmed', 'paid'])
+                    ->whereDate('created_at', $date)
+                    ->sum('total_price');
+                
+                $bookingsData[] = $bookingCount;
+                $revenueData[] = $revenue;
+            }
+        } else {
+            // Daily for this month
+            $start = Carbon::now()->startOfMonth();
+            $daysInMonth = $start->daysInMonth;
+            
+            for ($i = 1; $i <= $daysInMonth; $i++) {
+                $date = $start->copy()->setDay($i);
+                $labels[] = $date->format('M d');
+                
+                $bookingCount = Booking::whereDate('created_at', $date)->count() +
+                               Reservation::whereDate('created_at', $date)->count();
+                
+                $revenue = Booking::where('status', 'confirmed')
+                    ->whereDate('created_at', $date)
+                    ->sum('total_price') +
+                    Reservation::whereIn('status', ['confirmed', 'paid'])
+                    ->whereDate('created_at', $date)
+                    ->sum('total_price');
+                
+                $bookingsData[] = $bookingCount;
+                $revenueData[] = $revenue;
+            }
+        }
+        
+        return [
+            'labels' => $labels,
+            'bookings' => $bookingsData,
+            'revenue' => $revenueData
+        ];
     }
 
     /**
@@ -434,7 +637,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Calculate current occupancy rate
+     * Calculate current occupancy rate - rooms occupied RIGHT NOW
      */
     private function calculateOccupancyRate()
     {
@@ -444,23 +647,26 @@ class DashboardController extends Controller
             return 0;
         }
         
-        $today = Carbon::today();
+        $now = Carbon::now();
         
-        // Count rooms currently occupied by bookings
-        $occupiedByBookings = Booking::where('status', 'confirmed')
-            ->where('check_in', '<=', $today)
-            ->where('check_out', '>', $today)
-            ->distinct('room_id')
-            ->count('room_id');
+        // Get unique room IDs that are currently occupied
+        $occupiedRoomIds = collect();
         
-        // Count rooms currently occupied by reservations
-        $occupiedByReservations = Reservation::whereIn('status', ['confirmed', 'paid'])
-            ->where('check_in', '<=', $today)
-            ->where('check_out', '>', $today)
-            ->distinct('room_id')
-            ->count('room_id');
+        // Rooms occupied by confirmed bookings (check-in <= now < check-out)
+        $bookingRooms = Booking::where('status', 'confirmed')
+            ->where('check_in', '<=', $now)
+            ->where('check_out', '>', $now)
+            ->pluck('room_id');
         
-        $occupiedRooms = $occupiedByBookings + $occupiedByReservations;
+        // Rooms occupied by confirmed/paid reservations (check-in <= now < check-out)
+        $reservationRooms = Reservation::whereIn('status', ['confirmed', 'paid'])
+            ->where('check_in', '<=', $now)
+            ->where('check_out', '>', $now)
+            ->pluck('room_id');
+        
+        // Merge and get unique room IDs
+        $occupiedRoomIds = $bookingRooms->merge($reservationRooms)->unique();
+        $occupiedRooms = $occupiedRoomIds->count();
         
         return round(($occupiedRooms / $totalRooms) * 100, 1);
     }
@@ -556,5 +762,120 @@ class DashboardController extends Controller
         ];
         
         return $colors[$status] ?? '#2C5F5F';
+    }
+
+    /**
+     * Get most booked rooms by source (Website vs Walk-in)
+     */
+    private function getMostBookedRooms($dateRange)
+    {
+        // Get top 5 rooms booked via website (online bookings + reservations)
+        $onlineBookings = Booking::with('room')
+            ->where('source', 'online')
+            ->whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
+            ->get()
+            ->groupBy('room_id')
+            ->map(function($group) {
+                return [
+                    'room_name' => $group->first()->room->name ?? 'Unknown',
+                    'count' => $group->count()
+                ];
+            })
+            ->sortByDesc('count')
+            ->take(5);
+        
+        $reservations = Reservation::with('room')
+            ->whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
+            ->get()
+            ->groupBy('room_id')
+            ->map(function($group) {
+                return [
+                    'room_name' => $group->first()->room->name ?? 'Unknown',
+                    'count' => $group->count()
+                ];
+            });
+        
+        // Merge online bookings and reservations
+        $websiteBookings = collect();
+        foreach ($onlineBookings as $roomId => $data) {
+            $websiteBookings[$data['room_name']] = $data['count'];
+        }
+        foreach ($reservations as $roomId => $data) {
+            $roomName = $data['room_name'];
+            $websiteBookings[$roomName] = ($websiteBookings[$roomName] ?? 0) + $data['count'];
+        }
+        $websiteBookings = $websiteBookings->sortDesc()->take(5);
+        
+        // Get top 5 rooms booked via walk-in (POS)
+        $walkInBookings = Booking::with('room')
+            ->where('source', 'pos')
+            ->whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
+            ->get()
+            ->groupBy('room_id')
+            ->map(function($group) {
+                return [
+                    'room_name' => $group->first()->room->name ?? 'Unknown',
+                    'count' => $group->count()
+                ];
+            })
+            ->sortByDesc('count')
+            ->take(5);
+        
+        return [
+            'website' => [
+                'labels' => $websiteBookings->keys()->toArray(),
+                'data' => $websiteBookings->values()->toArray()
+            ],
+            'walkin' => [
+                'labels' => $walkInBookings->pluck('room_name')->toArray(),
+                'data' => $walkInBookings->pluck('count')->toArray()
+            ]
+        ];
+    }
+
+    /**
+     * Check if a room is available for booking
+     * Prevents double booking by checking for overlapping confirmed bookings/reservations
+     */
+    public function checkRoomAvailability(Request $request)
+    {
+        $roomId = $request->get('room_id');
+        $checkIn = Carbon::parse($request->get('check_in'));
+        $checkOut = Carbon::parse($request->get('check_out'));
+        
+        // Check for overlapping bookings
+        $overlappingBookings = Booking::where('room_id', $roomId)
+            ->where('status', 'confirmed')
+            ->where(function($query) use ($checkIn, $checkOut) {
+                $query->whereBetween('check_in', [$checkIn, $checkOut])
+                      ->orWhereBetween('check_out', [$checkIn, $checkOut])
+                      ->orWhere(function($q) use ($checkIn, $checkOut) {
+                          $q->where('check_in', '<=', $checkIn)
+                            ->where('check_out', '>=', $checkOut);
+                      });
+            })
+            ->exists();
+        
+        // Check for overlapping reservations
+        $overlappingReservations = Reservation::where('room_id', $roomId)
+            ->whereIn('status', ['confirmed', 'paid'])
+            ->where(function($query) use ($checkIn, $checkOut) {
+                $query->whereBetween('check_in', [$checkIn, $checkOut])
+                      ->orWhereBetween('check_out', [$checkIn, $checkOut])
+                      ->orWhere(function($q) use ($checkIn, $checkOut) {
+                          $q->where('check_in', '<=', $checkIn)
+                            ->where('check_out', '>=', $checkOut);
+                      });
+            })
+            ->exists();
+        
+        $isAvailable = !$overlappingBookings && !$overlappingReservations;
+        
+        return response()->json([
+            'available' => $isAvailable,
+            'message' => $isAvailable 
+                ? 'Room is available for the selected dates' 
+                : 'Room is already booked for the selected dates'
+        ]);
     }
 }

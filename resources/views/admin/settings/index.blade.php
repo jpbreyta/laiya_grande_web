@@ -15,28 +15,6 @@
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button
-                    class="flex items-center justify-center px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
-                    <i class="fas fa-download mr-2"></i>
-                    Export Settings
-                </button>
-                <button
-                    class="flex items-center justify-center px-4 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors">
-                    <i class="fas fa-upload mr-2"></i>
-                    Import Settings
-                </button>
-                <button
-                    class="flex items-center justify-center px-4 py-3 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors">
-                    <i class="fas fa-undo mr-2"></i>
-                    Reset to Defaults
-                </button>
-            </div>
-        </div>
-
         <!-- Recent Activity -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Changes</h3>

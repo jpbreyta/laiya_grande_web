@@ -12,7 +12,8 @@ class PointOfSale extends Model
     protected $table = 'point_of_sale'; // Explicitly define table name
 
     protected $fillable = [
-        'guest_stay_id', 
+        'guest_stay_id',
+        'transaction_id',
         'item_name', 
         'item_type', 
         'quantity', 
@@ -25,5 +26,11 @@ class PointOfSale extends Model
     public function guestStay()
     {
         return $this->belongsTo(GuestStay::class, 'guest_stay_id');
+    }
+
+    // Relationship to transaction
+    public function transaction()
+    {
+        return $this->belongsTo(PosTransaction::class, 'transaction_id');
     }
 }

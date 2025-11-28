@@ -39,7 +39,8 @@
                         @foreach ($allImages as $index => $image)
                             <div
                                 class="carousel-slide {{ $index === 0 ? 'active' : '' }} absolute inset-0 transition-opacity duration-500 {{ $index === 0 ? 'opacity-100' : 'opacity-0' }}">
-                                <img src="{{ asset('storage/' . $image) }}" alt="{{ $room->name ?? 'Room' }} - Image {{ $index + 1 }}"
+                                <img src="{{ Str::startsWith($image, 'images/') ? asset($image) : asset('storage/' . $image) }}"
+                                    alt="{{ $room->name ?? 'Room' }} - Image {{ $index + 1 }}"
                                     class="w-full h-full object-cover">
                             </div>
                         @endforeach
@@ -101,7 +102,8 @@
                             </div>
                             <div>
                                 <p class="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
-                                    {{ $booking->customer->firstname ?? 'Unknown' }} {{ $booking->customer->lastname ?? '' }}
+                                    {{ $booking->customer->firstname ?? 'Unknown' }}
+                                    {{ $booking->customer->lastname ?? '' }}
                                 </p>
                                 <p class="text-sm text-gray-200">{{ $booking->room->name ?? 'Room N/A' }}</p>
                             </div>
@@ -133,20 +135,23 @@
                             <div
                                 class="p-5 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-100 shadow-sm">
                                 <div class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">Guest Name</div>
-                                <div class="text-lg font-semibold text-slate-900">{{ $booking->customer->firstname ?? 'N/A' }}
+                                <div class="text-lg font-semibold text-slate-900">
+                                    {{ $booking->customer->firstname ?? 'N/A' }}
                                     {{ $booking->customer->lastname ?? '' }}</div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
                                 <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Email Address
                                 </div>
-                                <div class="text-sm font-medium text-slate-900">{{ $booking->customer->email ?? 'N/A' }}</div>
+                                <div class="text-sm font-medium text-slate-900">{{ $booking->customer->email ?? 'N/A' }}
+                                </div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
                                 <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Phone Number
                                 </div>
-                                <div class="text-sm font-medium text-slate-900">{{ $booking->customer->phone_number ?? 'N/A' }}</div>
+                                <div class="text-sm font-medium text-slate-900">
+                                    {{ $booking->customer->phone_number ?? 'N/A' }}</div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
@@ -160,13 +165,16 @@
                         <!-- Right Column: Booking Details -->
                         <div class="space-y-4">
                             <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Booking Details</h3>
-                            
-                            <div class="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 shadow-sm">
+
+                            <div
+                                class="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 shadow-sm">
                                 <div class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Booking ID</div>
-                                <div class="text-lg font-semibold text-slate-900 font-mono">{{ $booking->reservation_number }}</div>
+                                <div class="text-lg font-semibold text-slate-900 font-mono">
+                                    {{ $booking->reservation_number }}</div>
                             </div>
-                            
-                            <div class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 shadow-sm">
+
+                            <div
+                                class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 shadow-sm">
                                 <div class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1">Room</div>
                                 <div class="text-lg font-semibold text-slate-900">{{ $booking->room->name ?? 'N/A' }}</div>
                             </div>
@@ -243,7 +251,8 @@
                                         <i class="fas fa-credit-card text-teal-600 text-lg"></i>
                                     </div>
                                     <div>
-                                        <div class="text-xs font-bold text-teal-600 uppercase tracking-wider">Payment Method
+                                        <div class="text-xs font-bold text-teal-600 uppercase tracking-wider">Payment
+                                            Method
                                         </div>
                                         <div class="text-sm font-bold text-slate-900" data-field="payment_method">
                                             {{ $booking->paymentRecord ? ucfirst($booking->paymentRecord->payment_method) : 'N/A' }}
@@ -296,19 +305,26 @@
                                         Verified
                                     </span>
                                 @else
-                                    <span style="display:none" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200 ocr-processed-badge">
+                                    <span style="display:none"
+                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200 ocr-processed-badge">
                                         <i class="fas fa-check-circle mr-1.5"></i>
                                         OCR Processed
                                     </span>
                                 @endif
                             </div>
 
-                            @if ($booking->paymentRecord || $booking->payment)
-                                @if (file_exists(storage_path('app/public/' . $booking->payment)))
+                            @if ($booking->payment)
+                                @php
+                                    $paymentPath = $booking->payment;
+                                    $fileExists =
+                                        $paymentPath && file_exists(storage_path('app/public/' . $paymentPath));
+                                @endphp
+
+                                @if ($fileExists)
                                     <div id="paymentProofSection" class="space-y-4">
                                         <div
                                             class="relative rounded-xl overflow-hidden border-2 border-slate-300 shadow-lg bg-white p-4">
-                                            <img src="{{ asset('storage/' . $booking->payment) }}" alt="Payment Proof"
+                                            <img src="{{ asset('storage/' . $paymentPath) }}" alt="Payment Proof"
                                                 class="w-full h-auto max-h-96 object-contain mx-auto">
                                         </div>
 
@@ -318,9 +334,11 @@
                                                 <i class="fas fa-magic"></i>
                                                 Extract Payment Information
                                             </button>
-                                            
+
                                             <div class="text-xs text-slate-500 flex items-center ml-2">
-                                                <i class="fas fa-info-circle mr-1"></i> Reference ID: <span class="font-bold ml-1" data-field="reference_id">{{ $booking->paymentRecord->reference_id ?? 'Not Extracted' }}</span>
+                                                <i class="fas fa-info-circle mr-1"></i> Reference ID: <span
+                                                    class="font-bold ml-1"
+                                                    data-field="reference_id">{{ $booking->paymentRecord->reference_id ?? 'Not Extracted' }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -331,7 +349,9 @@
                                             <i class="fas fa-exclamation-triangle text-xl"></i>
                                             <div>
                                                 <p class="font-semibold">Payment proof file not found</p>
-                                                <p class="text-xs text-red-600 mt-1">Path: {{ $booking->payment }}</p>
+                                                <p class="text-xs text-red-600 mt-1">Path: {{ $paymentPath }}</p>
+                                                <p class="text-xs text-red-600 mt-1">Full Path:
+                                                    {{ storage_path('app/public/' . $paymentPath) }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -370,6 +390,14 @@
                             </form>
                         @endif
 
+                        @if ($booking->status === 'confirmed')
+                            <button type="button" id="manualCheckinBtn"
+                                class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-2.5 text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                                <i class="fas fa-user-check"></i>
+                                Manual Check-in
+                            </button>
+                        @endif
+
                         <a href="{{ route('admin.booking.index') }}"
                             class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-6 py-2.5 text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                             <i class="fas fa-arrow-left"></i>
@@ -399,7 +427,7 @@
                 </div>
                 <div class="flex items-center justify-center">
                     <div class="bg-white p-4 rounded-xl shadow border">
-                        {!! QrCode::size(200)->margin(1)->generate($booking->reservation_number ?? $booking->id) !!}
+                        {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(200)->margin(1)->generate($qrString ?? ($booking->reservation_number ?? $booking->id)) !!}
                     </div>
                 </div>
                 <p class="text-xs text-slate-500 text-center">Present this at the front desk for quick verification.</p>
@@ -700,7 +728,7 @@
                         if (data.success) {
                             // Update the UI via JS function
                             updatePaymentInfo(data.data);
-                            
+
                             Swal.fire({
                                 icon: 'success',
                                 title: 'OCR Processed!',
@@ -766,5 +794,75 @@
                 ocrBadge.style.display = 'inline-flex';
             }
         }
+
+        // Manual Check-in Handler
+        document.getElementById('manualCheckinBtn')?.addEventListener('click', function() {
+            Swal.fire({
+                title: 'Check-in Guest?',
+                text: 'This will mark the guest as checked-in and generate a voucher.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, Check-in'
+            }).then(result => {
+                if (!result.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Checking in guest...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                fetch('{{ route('admin.qr.scan') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            qr_code: '{{ $booking->reservation_number ?? $booking->id }}'
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        Swal.close();
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Checked-in!',
+                                text: 'Guest has been checked-in successfully',
+                                showCancelButton: true,
+                                confirmButtonText: 'Print Voucher',
+                                cancelButtonText: 'Close',
+                                confirmButtonColor: '#16a34a'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.open(
+                                        '{{ route('admin.qr.preview-pdf', $booking->id) }}',
+                                        '_blank');
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message || 'Failed to check-in guest',
+                                confirmButtonColor: '#d33'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to process check-in request.',
+                            confirmButtonColor: '#d33'
+                        });
+                    });
+            });
+        });
     </script>
 @endsection

@@ -24,8 +24,7 @@
                     class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-semibold">i</span>
                 <div>
                     <p class="font-semibold">Synced from Java POS</p>
-                    <p class="text-sm text-blue-600">Transactions are pulled automatically from the on-site POS
-                        terminal.</p>
+                    <p class="text-sm text-blue-600">Transactions are pulled automatically from the on-site POS terminal.</p>
                 </div>
             </div>
 
@@ -42,53 +41,63 @@
                         <thead>
                             <tr
                                 class="bg-gradient-to-r from-emerald-500 to-emerald-700 text-left text-white uppercase text-xs font-bold tracking-wider">
+                                <th class="py-3 px-4">Receipt #</th>
                                 <th class="py-3 px-4">Date</th>
                                 <th class="py-3 px-4">Guest</th>
                                 <th class="py-3 px-4">Room</th>
-                                <th class="py-3 px-4">Item</th>
-                                <th class="py-3 px-4">Type</th>
-                                <th class="py-3 px-4">Quantity</th>
+                                <th class="py-3 px-4 text-center">Items</th>
+                                <th class="py-3 px-4 text-right">Subtotal</th>
+                                <th class="py-3 px-4 text-right">Discount</th>
                                 <th class="py-3 px-4 text-right">Total</th>
+                                <th class="py-3 px-4 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse ($transactions as $transaction)
                                 <tr
                                     class="hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-indigo-50/20 transition-all duration-200">
+                                    <td class="py-3 px-4 text-gray-900 font-mono text-sm">
+                                        {{ $transaction->receipt_number }}
+                                    </td>
                                     <td class="py-3 px-4 text-gray-700 font-medium">
-                                        {{ $transaction->created_at->format('M d, Y h:i A') }}
+                                        {{ $transaction->transaction_date->format('M d, Y h:i A') }}
                                     </td>
                                     <td class="py-3 px-4 text-gray-900 font-semibold">
-                                        {{ optional($transaction->guestStay)->guest_name ?? 'Guest Checkout/Unknown' }}
+                                        {{ optional($transaction->guestStay)->guest_name ?? 'Unknown' }}
                                     </td>
                                     <td class="py-3 px-4 text-gray-700">
                                         {{ optional(optional($transaction->guestStay)->room)->name ?? '-' }}
                                     </td>
-                                    <td class="py-3 px-4 text-gray-700">
-                                        {{ $transaction->item_name }}
-                                    </td>
-                                    <td class="py-3 px-4">
-                                        @php
-                                            $typeStyles = [
-                                                'rental' => 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200',
-                                                'food' => 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200',
-                                                'service' => 'bg-gradient-to-r from-purple-100 to-fuchsia-100 text-purple-800 border border-purple-200',
-                                            ];
-                                        @endphp
+                                    <td class="py-3 px-4 text-center">
                                         <span
-                                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold shadow-sm {{ $typeStyles[$transaction->item_type] ?? 'bg-gray-100 text-gray-800 border border-gray-200' }}">
-                                            {{ ucfirst($transaction->item_type) }}
+                                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                                            {{ $transaction->items_count }} items
                                         </span>
                                     </td>
-                                    <td class="py-3 px-4 text-gray-700">{{ $transaction->quantity }}</td>
+                                    <td class="py-3 px-4 text-right font-semibold text-gray-700">
+                                        ₱{{ number_format($transaction->subtotal, 2) }}
+                                    </td>
+                                    <td class="py-3 px-4 text-right font-semibold text-red-600">
+                                        @if ($transaction->discount > 0)
+                                            -₱{{ number_format($transaction->discount, 2) }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
                                     <td
                                         class="py-3 px-4 text-right font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
-                                        ₱{{ number_format($transaction->total_amount, 2) }}
+                                        ₱{{ number_format($transaction->total, 2) }}
+                                    </td>
+                                    <td class="py-3 px-4 text-center">
+                                        <a href="{{ route('admin.pos.show', $transaction->id) }}"
+                                            class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all">
+                                            View Receipt
+                                        </a>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="py-6 px-4 text-center text-gray-500">
+                                    <td colspan="9" class="py-6 px-4 text-center text-gray-500">
                                         No transactions found from Java POS yet.
                                     </td>
                                 </tr>

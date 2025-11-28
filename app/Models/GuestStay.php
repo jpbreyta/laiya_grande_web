@@ -31,6 +31,12 @@ class GuestStay extends Model
     {
         return $this->belongsTo(Room::class, 'room_id');
     }
+
+    public function reservation()
+    {
+        return $this->belongsTo(Reservation::class, 'reservation_id');
+    }
+
     protected $casts = [
         'check_in_time' => 'datetime',
         'check_out_time' => 'datetime',

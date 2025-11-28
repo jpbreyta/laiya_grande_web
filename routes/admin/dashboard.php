@@ -14,4 +14,7 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     // Calendar Events Endpoint
     Route::get('/dashboard/calendar-events', [DashboardController::class, 'calendarEvents'])->name('admin.dashboard.calendar-events');
 
+    // Room Availability Check
+    Route::post('/dashboard/check-room-availability', [DashboardController::class, 'checkRoomAvailability'])->name('admin.dashboard.check-room-availability');
+
 });

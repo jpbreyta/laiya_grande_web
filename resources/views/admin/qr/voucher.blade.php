@@ -9,6 +9,24 @@
     <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <style>
+        @media print {
+            @page {
+                size: letter;
+                margin: 0.5in;
+            }
+
+            body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+
     <!-- Google fonts -->
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
@@ -144,13 +162,15 @@
                             <tr class="border-y border-slate-100">
                                 <td class="w-1/3 px-4 py-3 font-semibold text-slate-700 uppercase">GUEST NAME/COMPANY
                                     NAME:</td>
-                                <td class="px-4 py-3 text-[var(--navy)] font-semibold">{{ $booking->firstname }}
-                                    {{ $booking->lastname }}</td>
+                                <td class="px-4 py-3 text-[var(--navy)] font-semibold" contenteditable="true">
+                                    {{ $booking->customer->firstname ?? 'N/A' }}
+                                    {{ $booking->customer->lastname ?? '' }}</td>
                             </tr>
 
                             <tr class="border-b border-slate-100">
                                 <td class="px-4 py-3 font-semibold text-slate-700 uppercase">CONTACT PERSON/NUMBER:</td>
-                                <td class="px-4 py-3 text-[var(--accent)] font-semibold">{{ $booking->phone_number }}
+                                <td class="px-4 py-3 text-[var(--accent)] font-semibold" contenteditable="true">
+                                    {{ $booking->customer->phone_number ?? 'N/A' }}
                                 </td>
                             </tr>
 
@@ -162,7 +182,7 @@
 
                             <tr class="border-b border-slate-100">
                                 <td class="px-4 py-3 font-semibold text-slate-700 uppercase">NUMBER OF GUEST(S):</td>
-                                <td class="px-4 py-3">{{ $booking->number_of_guests }}</td>
+                                <td class="px-4 py-3" contenteditable="true">{{ $booking->number_of_guests }}</td>
                             </tr>
 
                             <tr class="border-b border-slate-100">
@@ -178,18 +198,20 @@
 
                             <tr class="border-b border-slate-100">
                                 <td class="px-4 py-3 font-semibold text-slate-700 uppercase">DEPOSITED AMOUNT:</td>
-                                <td class="px-4 py-3 text-[var(--navy)] font-semibold">PHP
+                                <td class="px-4 py-3 text-[var(--navy)] font-semibold" contenteditable="true">PHP
                                     {{ number_format($deposited_amount, 2) }}</td>
                             </tr>
 
                             <tr class="border-b border-slate-100">
                                 <td class="px-4 py-3 font-semibold text-slate-700 uppercase">REMAINING BALANCE:</td>
-                                <td class="px-4 py-3 font-semibold">PHP {{ number_format($remaining_balance, 2) }}</td>
+                                <td class="px-4 py-3 font-semibold" contenteditable="true">PHP
+                                    {{ number_format($remaining_balance, 2) }}</td>
                             </tr>
 
                             <tr>
                                 <td class="px-4 py-3 font-semibold text-slate-700 uppercase">PREPARED BY:</td>
-                                <td class="px-4 py-3 text-[var(--navy)] font-semibold">{{ $prepared_by }}</td>
+                                <td class="px-4 py-3 text-[var(--navy)] font-semibold" contenteditable="true">
+                                    {{ $prepared_by }}</td>
                             </tr>
 
                         </tbody>
@@ -231,9 +253,19 @@
                 <div class="mt-4 border-t pt-3">
                     <div class="text-sm font-semibold text-[var(--navy)] uppercase mb-2 text-center">QR Code</div>
                     <div class="flex justify-center">
-                        <img src="data:image/png;base64,{{ $qr_code_base64 }}" alt="QR Code" class="w-24 h-24">
+                        <div class="bg-white p-2 rounded border">
+                            {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(100)->generate(
+                                $qrString ?? ($booking->reservation_number ?? $booking->id),
+                            ) !!}
+                        </div>
                     </div>
                     <p class="text-xs text-slate-500 text-center mt-2">Scan for verification</p>
+
+                    <!-- DEBUG: Show QR content -->
+                    <div class="no-print mt-2 p-2 bg-gray-100 text-xs">
+                        <strong>QR Code Contains:</strong><br>
+                        <pre class="whitespace-pre-wrap">{{ $qrString ?? 'NOT SET' }}</pre>
+                    </div>
                 </div>
             </div>
         </div>
@@ -249,9 +281,39 @@
         </div>
     </div>
 
-    <!-- small tailwind helper script to show layout full width on narrow screens nicely (optional) -->
+    <!-- Print Button -->
+    <div class="no-print fixed bottom-8 right-8 flex gap-3">
+        <button onclick="window.print()"
+            class="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white px-6 py-3 rounded-xl shadow-lg font-semibold flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Print Voucher
+        </button>
+        <button onclick="window.close()"
+            class="bg-slate-600 hover:bg-slate-700 text-white px-6 py-3 rounded-xl shadow-lg font-semibold">
+            Close
+        </button>
+    </div>
+
     <script>
-        // no JS required for static layout; kept intentionally empty
+        // Make certain fields editable on double-click
+        document.addEventListener('DOMContentLoaded', function() {
+            const editableFields = document.querySelectorAll('[contenteditable="true"]');
+
+            editableFields.forEach(field => {
+                field.addEventListener('focus', function() {
+                    this.style.outline = '2px solid #0f4a78';
+                    this.style.backgroundColor = '#fffbeb';
+                });
+
+                field.addEventListener('blur', function() {
+                    this.style.outline = 'none';
+                    this.style.backgroundColor = 'transparent';
+                });
+            });
+        });
     </script>
 </body>
 

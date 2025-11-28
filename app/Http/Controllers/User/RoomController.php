@@ -25,6 +25,13 @@ class RoomController extends Controller
         // Get rooms with availability > 0
         $rooms = $query->where('availability', '>', 0)->get();
 
+        // Add rating information to each room
+        $rooms = $rooms->map(function ($room) {
+            $room->average_rating = round($room->averageRating(), 1);
+            $room->total_ratings = $room->totalRatings();
+            return $room;
+        });
+
         // Remove rooms that are already in cart
         $cart = session('cart', []);
         if (!empty($cart)) {
@@ -39,6 +46,9 @@ class RoomController extends Controller
     public function show($id)
     {
         $room = Room::findOrFail($id);
+        $room->average_rating = round($room->averageRating(), 1);
+        $room->total_ratings = $room->totalRatings();
+        $room->ratings = $room->ratings()->latest()->take(10)->get();
         return view('user.rooms.show', compact('room'));
     }
 }

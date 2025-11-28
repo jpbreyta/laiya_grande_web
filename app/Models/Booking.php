@@ -57,6 +57,11 @@ class Booking extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function guestStay()
+    {
+        return $this->hasOne(GuestStay::class);
+    }
+
     // Accessors
     public function getFullNameAttribute()
     {

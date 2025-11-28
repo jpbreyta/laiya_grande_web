@@ -17,18 +17,27 @@ class ContactController extends Controller
             'message' => 'required|string|max:2000',
         ]);
 
+        // Find or create the contact subject
+        $contactSubject = \App\Models\ContactSubject::firstOrCreate(
+            ['classification' => $validated['subject']]
+        );
+
+        // Replace subject with contact_subject_id
+        unset($validated['subject']);
+        $validated['contact_subject_id'] = $contactSubject->id;
+
         $contactMessage = ContactMessage::create(array_merge($validated, ['status' => 'unread']));
 
         // Create notification for admin
         \App\Models\Notification::create([
             'type' => 'contact',
             'title' => 'New Contact Message',
-            'message' => "New message from {$request->name}: {$request->subject}",
+            'message' => "New message from {$request->name}: {$contactSubject->classification}",
             'data' => [
                 'contact_id' => $contactMessage->id,
                 'name' => $request->name,
                 'email' => $request->email,
-                'subject' => $request->subject,
+                'subject' => $contactSubject->classification,
             ],
             'read' => false,
         ]);

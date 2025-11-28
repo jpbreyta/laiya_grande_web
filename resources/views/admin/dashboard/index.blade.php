@@ -99,7 +99,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium opacity-90">Total Guests</h3>
-                        <p class="text-3xl font-bold" id="kpi-guests">0</p>
+                        <p class="text-3xl font-bold" id="kpi-guests">{{ $initialKPI['guests'] ?? '0' }}</p>
                         <p class="text-sm opacity-80">For selected period</p>
                     </div>
                     <i class="fas fa-users text-3xl opacity-80"></i>
@@ -110,7 +110,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium opacity-90">Check-ins</h3>
-                        <p class="text-3xl font-bold" id="kpi-checkins">0</p>
+                        <p class="text-3xl font-bold" id="kpi-checkins">{{ $initialKPI['checkins'] ?? '0' }}</p>
                         <p class="text-sm opacity-80">For selected period</p>
                     </div>
                     <i class="fas fa-sign-in-alt text-3xl opacity-80"></i>
@@ -120,11 +120,11 @@
             <div class="dashboard-card bg-gradient-to-r from-[#add8e6] to-[#3eb489] text-gray-800 p-6 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-sm font-medium">Available Rooms</h3>
-                        <p class="text-3xl font-bold">{{ $totalRooms }}</p>
-                        <p class="text-sm">Total rooms in resort</p>
+                        <h3 class="text-sm font-medium opacity-90">Occupancy Rate</h3>
+                        <p class="text-3xl font-bold" id="kpi-occupancy">{{ $initialKPI['occupancy'] ?? '0' }}%</p>
+                        <p class="text-sm opacity-80">Current occupancy</p>
                     </div>
-                    <i class="fas fa-bed text-3xl"></i>
+                    <i class="fas fa-bed text-3xl opacity-80"></i>
                 </div>
             </div>
 
@@ -132,7 +132,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-medium opacity-90">Revenue (Period)</h3>
-                        <p class="text-3xl font-bold" id="kpi-revenue-period">₱0.00</p>
+                        <p class="text-3xl font-bold" id="kpi-revenue-period">{{ $initialKPI['revenue'] ?? '₱0.00' }}</p>
                         <p class="text-sm opacity-80">For selected period</p>
                     </div>
                     <i class="fas fa-coins text-3xl opacity-80"></i>
@@ -148,7 +148,7 @@
                     <canvas id="revenueChart"></canvas>
                 </div>
             </div>
-            
+
             <div class="bg-white rounded-lg shadow-sm p-6">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Booking Status Breakdown</h2>
                 <div class="h-64">
@@ -179,19 +179,247 @@
             <div id="bookingCalendar"></div>
         </div>
 
+        {{-- Booking Details Modal --}}
+        <div id="bookingModal"
+            class="hidden fixed inset-0 backdrop-blur-sm bg-white/10 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-gray-800">Booking Details</h3>
+                    <button onclick="closeBookingModal()" class="text-gray-400 hover:text-gray-600 transition">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    {{-- Status Badge --}}
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">Reservation Number</p>
+                            <p class="text-lg font-mono font-semibold text-gray-800" id="modal-reservation-number">-</p>
+                        </div>
+                        <span id="modal-status-badge" class="px-4 py-2 rounded-full text-sm font-semibold">-</span>
+                    </div>
+
+                    {{-- Guest Information --}}
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                            <i class="fas fa-user mr-2 text-[#2C5F5F]"></i>
+                            Guest Information
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Name</p>
+                                <p class="text-sm font-medium text-gray-800" id="modal-guest-name">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Email</p>
+                                <p class="text-sm font-medium text-gray-800" id="modal-guest-email">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Phone</p>
+                                <p class="text-sm font-medium text-gray-800" id="modal-guest-phone">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Number of Guests</p>
+                                <p class="text-sm font-medium text-gray-800" id="modal-guests-count">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Booking Information --}}
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                            <i class="fas fa-calendar-check mr-2 text-[#2C5F5F]"></i>
+                            Booking Information
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Room</p>
+                                <p class="text-sm font-medium text-gray-800" id="modal-room-name">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Booking Source</p>
+                                <p class="text-sm font-medium text-gray-800" id="modal-booking-source">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Check-in</p>
+                                <p class="text-sm font-medium text-gray-800" id="modal-check-in">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Check-out</p>
+                                <p class="text-sm font-medium text-gray-800" id="modal-check-out">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Duration</p>
+                                <p class="text-sm font-medium text-gray-800" id="modal-duration">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Created At</p>
+                                <p class="text-sm font-medium text-gray-800" id="modal-created-at">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Payment Information --}}
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                            <i class="fas fa-money-bill-wave mr-2 text-[#2C5F5F]"></i>
+                            Payment Information
+                        </h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Total Price</span>
+                                <span class="text-lg font-bold text-[#2C5F5F]" id="modal-total-price">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Special Requests --}}
+                    <div id="modal-special-requests-section" class="bg-gray-50 rounded-lg p-4 hidden">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-comment-dots mr-2 text-[#2C5F5F]"></i>
+                            Special Requests
+                        </h4>
+                        <p class="text-sm text-gray-700" id="modal-special-requests">-</p>
+                    </div>
+                </div>
+
+                <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+                    <button onclick="closeBookingModal()"
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition">
+                        Close
+                    </button>
+                    <a id="modal-view-full-btn" href="#"
+                        class="px-4 py-2 bg-[#2C5F5F] hover:bg-[#1A4A4A] text-white rounded-lg font-medium transition">
+                        View Full Details
+                    </a>
+                </div>
+            </div>
+        </div>
+
         {{-- Charts Row 2 --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Guest Type Distribution</h2>
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Booking Source Distribution</h2>
+                <p class="text-sm text-gray-600 mb-4">Website bookings vs Walk-in bookings</p>
                 <div class="h-64">
-                    <canvas id="guestTypeChart"></canvas>
+                    <canvas id="bookingSourceChart"></canvas>
                 </div>
             </div>
 
             <div class="bg-white rounded-lg shadow-sm p-6">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Revenue by Service</h2>
+                <p class="text-sm text-gray-600 mb-4">Breakdown of revenue sources</p>
                 <div class="h-64">
                     <canvas id="revenueByServiceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {{-- Room Ratings Section --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Top Rated Rooms -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Top Rated Rooms</h2>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <span class="text-sm font-semibold text-gray-600">{{ $averageRating ?? 0 }} Avg</span>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    @forelse($topRatedRooms ?? [] as $room)
+                        <div
+                            class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800">{{ $room->name }}</h4>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <div class="flex items-center">
+                                        @for ($i = 1; $i <= 5; $i++)
+                                            @if ($i <= floor($room->average_rating))
+                                                <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                            @elseif($i - 0.5 <= $room->average_rating)
+                                                <i class="fas fa-star-half-alt text-yellow-400 text-xs"></i>
+                                            @else
+                                                <i class="far fa-star text-gray-300 text-xs"></i>
+                                            @endif
+                                        @endfor
+                                    </div>
+                                    <span class="text-sm font-semibold text-gray-700">{{ $room->average_rating }}</span>
+                                    <span class="text-xs text-gray-500">({{ $room->ratings_count }} reviews)</span>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center py-8 text-gray-400">
+                            <i class="fas fa-star text-4xl mb-2"></i>
+                            <p class="text-sm">No ratings yet</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+            <!-- Recent Ratings -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Recent Ratings</h2>
+                    <span class="text-sm text-gray-600">{{ $totalRatings ?? 0 }} Total</span>
+                </div>
+                <div class="space-y-3 max-h-96 overflow-y-auto">
+                    @forelse($recentRatings ?? [] as $rating)
+                        <div class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-gray-800 text-sm">
+                                        {{ $rating->room->name ?? 'Unknown Room' }}</h4>
+                                    <p class="text-xs text-gray-500">{{ $rating->guest_name ?? $rating->guest_email }}</p>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        <i
+                                            class="fas fa-star {{ $i <= $rating->rating ? 'text-yellow-400' : 'text-gray-300' }} text-xs"></i>
+                                    @endfor
+                                </div>
+                            </div>
+                            @if ($rating->comment)
+                                <p class="text-xs text-gray-600 line-clamp-2">{{ $rating->comment }}</p>
+                            @endif
+                            <p class="text-xs text-gray-400 mt-1">{{ $rating->created_at->diffForHumans() }}</p>
+                        </div>
+                    @empty
+                        <div class="text-center py-8 text-gray-400">
+                            <i class="fas fa-comments text-4xl mb-2"></i>
+                            <p class="text-sm">No ratings yet</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        {{-- Daily Comparison Chart --}}
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Bookings vs Revenue Comparison</h2>
+            <p class="text-sm text-gray-600 mb-4">Compare booking volume with revenue trends</p>
+            <div class="h-80">
+                <canvas id="dailyComparisonChart"></canvas>
+            </div>
+        </div>
+
+        {{-- Most Booked Rooms Charts --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Top Rooms - Website Bookings</h2>
+                <p class="text-sm text-gray-600 mb-4">Most booked rooms through online platform</p>
+                <div class="h-64">
+                    <canvas id="websiteRoomsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Top Rooms - Walk-in Bookings</h2>
+                <p class="text-sm text-gray-600 mb-4">Most booked rooms through POS system</p>
+                <div class="h-64">
+                    <canvas id="walkinRoomsChart"></canvas>
                 </div>
             </div>
         </div>
@@ -279,16 +507,19 @@
             // Global Chart Instances
             let revenueChart = null;
             let statusChart = null;
-            let guestTypeChart = null;
+            let bookingSourceChart = null;
             let servicesChart = null;
             let peakHoursChart = null;
+            let dailyComparisonChart = null;
+            let websiteRoomsChart = null;
+            let walkinRoomsChart = null;
             let calendar = null;
 
             document.addEventListener('DOMContentLoaded', () => {
                 // Initialize Calendar
                 initCalendar();
-                
-                // Load default (Monthly) data
+
+                // Load default (today) data
                 updateDashboard('today');
             });
 
@@ -303,22 +534,90 @@
                         center: 'title',
                         right: 'dayGridMonth,timeGridWeek,listWeek'
                     },
-                    events: '{{ route("admin.dashboard.calendar-events") }}',
+                    events: '{{ route('admin.dashboard.calendar-events') }}',
                     eventClick: function(info) {
-                        const props = info.event.extendedProps;
-                        alert(
-                            'Guest: ' + props.guest + '\n' +
-                            'Room: ' + props.room + '\n' +
-                            'Guests: ' + props.guests + '\n' +
-                            'Status: ' + props.status + '\n' +
-                            'Price: ' + props.price
-                        );
+                        showBookingModal(info.event);
                     },
                     height: 'auto'
                 });
-                
+
                 calendar.render();
             }
+
+            function showBookingModal(event) {
+                const props = event.extendedProps;
+
+                // Set reservation number
+                document.getElementById('modal-reservation-number').textContent = props.reservation_number || '-';
+
+                // Set status badge
+                const statusBadge = document.getElementById('modal-status-badge');
+                statusBadge.textContent = props.status || '-';
+                statusBadge.className = 'px-4 py-2 rounded-full text-sm font-semibold';
+
+                if (props.status === 'confirmed') {
+                    statusBadge.classList.add('bg-green-100', 'text-green-800');
+                } else if (props.status === 'pending') {
+                    statusBadge.classList.add('bg-yellow-100', 'text-yellow-800');
+                } else if (props.status === 'cancelled') {
+                    statusBadge.classList.add('bg-red-100', 'text-red-800');
+                } else {
+                    statusBadge.classList.add('bg-gray-100', 'text-gray-800');
+                }
+
+                // Set guest information
+                document.getElementById('modal-guest-name').textContent = props.guest || '-';
+                document.getElementById('modal-guest-email').textContent = props.email || '-';
+                document.getElementById('modal-guest-phone').textContent = props.phone || '-';
+                document.getElementById('modal-guests-count').textContent = props.guests || '-';
+
+                // Set booking information
+                document.getElementById('modal-room-name').textContent = props.room || '-';
+                document.getElementById('modal-booking-source').textContent = props.booking_source || '-';
+                document.getElementById('modal-check-in').textContent = props.check_in || '-';
+                document.getElementById('modal-check-out').textContent = props.check_out || '-';
+                document.getElementById('modal-duration').textContent = props.duration || '-';
+                document.getElementById('modal-created-at').textContent = props.created_at || '-';
+
+                // Set payment information
+                document.getElementById('modal-total-price').textContent = props.price || '-';
+
+                // Set special requests
+                const specialRequestsSection = document.getElementById('modal-special-requests-section');
+                if (props.special_requests) {
+                    document.getElementById('modal-special-requests').textContent = props.special_requests;
+                    specialRequestsSection.classList.remove('hidden');
+                } else {
+                    specialRequestsSection.classList.add('hidden');
+                }
+
+                // Set view full details button
+                if (props.booking_id) {
+                    document.getElementById('modal-view-full-btn').href = `/admin/booking/${props.booking_id}`;
+                }
+
+                // Show modal
+                document.getElementById('bookingModal').classList.remove('hidden');
+            }
+
+            function closeBookingModal() {
+                document.getElementById('bookingModal').classList.add('hidden');
+            }
+
+            // Close modal when clicking outside
+            document.addEventListener('click', function(event) {
+                const modal = document.getElementById('bookingModal');
+                if (event.target === modal) {
+                    closeBookingModal();
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    closeBookingModal();
+                }
+            });
 
             function updateDashboard(filter) {
                 // Update button styles
@@ -326,7 +625,7 @@
                     btn.classList.remove('bg-[#2C5F5F]', 'text-white', 'shadow-sm');
                     btn.classList.add('text-gray-600', 'hover:bg-gray-50');
                 });
-                
+
                 const activeBtn = document.getElementById(`btn-${filter}`);
                 if (activeBtn) {
                     activeBtn.classList.remove('text-gray-600', 'hover:bg-gray-50');
@@ -410,23 +709,46 @@
                     });
                 }
 
-                // Guest Type Chart
-                const ctxGuest = document.getElementById('guestTypeChart');
-                if (ctxGuest) {
-                    if (guestTypeChart) guestTypeChart.destroy();
-                    guestTypeChart = new Chart(ctxGuest, {
+                // Booking Source Chart
+                const ctxBookingSource = document.getElementById('bookingSourceChart');
+                if (ctxBookingSource && charts.booking_source) {
+                    if (bookingSourceChart) bookingSourceChart.destroy();
+                    bookingSourceChart = new Chart(ctxBookingSource, {
                         type: 'doughnut',
                         data: {
-                            labels: ['Solo', 'Couple', 'Family/Group'],
+                            labels: charts.booking_source.labels,
                             datasets: [{
-                                data: charts.guest_type,
-                                backgroundColor: ['#3b82f6', '#a855f7', '#f97316'],
-                                borderWidth: 1
+                                data: charts.booking_source.data,
+                                backgroundColor: ['#2C5F5F', '#f97316'],
+                                borderWidth: 3,
+                                borderColor: '#fff'
                             }]
                         },
                         options: {
                             responsive: true,
-                            maintainAspectRatio: false
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        padding: 15,
+                                        font: {
+                                            size: 12
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.parsed || 0;
+                                            const total = charts.booking_source.counts.total;
+                                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                            return label + ': ' + value + ' (' + percentage + '%)';
+                                        }
+                                    }
+                                }
+                            }
                         }
                     });
                 }
@@ -482,6 +804,144 @@
                                     ticks: {
                                         stepSize: 1
                                     }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Daily Comparison Chart
+                const ctxComparison = document.getElementById('dailyComparisonChart');
+                if (ctxComparison && charts.daily_comparison) {
+                    if (dailyComparisonChart) dailyComparisonChart.destroy();
+                    dailyComparisonChart = new Chart(ctxComparison, {
+                        type: 'line',
+                        data: {
+                            labels: charts.daily_comparison.labels,
+                            datasets: [{
+                                    label: 'Number of Bookings',
+                                    data: charts.daily_comparison.bookings,
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    borderWidth: 3,
+                                    fill: true,
+                                    tension: 0.4,
+                                    yAxisID: 'y'
+                                },
+                                {
+                                    label: 'Revenue (₱)',
+                                    data: charts.daily_comparison.revenue,
+                                    borderColor: '#10b981',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                    borderWidth: 3,
+                                    fill: true,
+                                    tension: 0.4,
+                                    yAxisID: 'y1'
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false
+                            },
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Bookings'
+                                    }
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Revenue (₱)'
+                                    },
+                                    grid: {
+                                        drawOnChartArea: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Website Rooms Chart
+                const ctxWebsiteRooms = document.getElementById('websiteRoomsChart');
+                if (ctxWebsiteRooms && charts.most_booked_rooms && charts.most_booked_rooms.website) {
+                    if (websiteRoomsChart) websiteRoomsChart.destroy();
+                    websiteRoomsChart = new Chart(ctxWebsiteRooms, {
+                        type: 'bar',
+                        data: {
+                            labels: charts.most_booked_rooms.website.labels,
+                            datasets: [{
+                                label: 'Number of Bookings',
+                                data: charts.most_booked_rooms.website.data,
+                                backgroundColor: '#2C5F5F',
+                                borderRadius: 5
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Walk-in Rooms Chart
+                const ctxWalkinRooms = document.getElementById('walkinRoomsChart');
+                if (ctxWalkinRooms && charts.most_booked_rooms && charts.most_booked_rooms.walkin) {
+                    if (walkinRoomsChart) walkinRoomsChart.destroy();
+                    walkinRoomsChart = new Chart(ctxWalkinRooms, {
+                        type: 'bar',
+                        data: {
+                            labels: charts.most_booked_rooms.walkin.labels,
+                            datasets: [{
+                                label: 'Number of Bookings',
+                                data: charts.most_booked_rooms.walkin.data,
+                                backgroundColor: '#f97316',
+                                borderRadius: 5
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
                                 }
                             }
                         }

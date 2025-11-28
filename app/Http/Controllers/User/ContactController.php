@@ -18,11 +18,16 @@ class ContactController extends Controller
             'message' => 'required|string|min:10',
         ]);
 
+        // Find or create the contact subject
+        $contactSubject = \App\Models\ContactSubject::firstOrCreate(
+            ['classification' => $request->subject]
+        );
+
         $contactMessage = ContactMessage::create([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
-            'subject' => $request->subject,
+            'contact_subject_id' => $contactSubject->id,
             'message' => $request->message,
             'status' => 'unread',
         ]);

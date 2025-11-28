@@ -56,10 +56,10 @@
                         <!-- Centered Scanner -->
                         <div class="flex justify-center">
                             <div id="scanner-container" class="relative bg-slate-100 rounded-xl overflow-hidden"
-                                style="height: 300px; width:400px;">
+                                style="height: 400px; width: 100%; max-width: 600px;">
 
                                 <video id="qr-video" class="w-full h-full object-cover -scale-x-100" autoplay muted
-                                    playsinline>
+                                    playsinline style="display: block;">
                                 </video>
 
                                 <div id="qr-overlay"
@@ -261,6 +261,7 @@
                 isScanning = true;
                 startScanBtn.disabled = true;
                 stopScanBtn.disabled = false;
+                video.style.display = 'block';
                 try {
                     const deviceId = (await codeReader.listVideoInputDevices())[0]?.deviceId;
                     codeReader.decodeFromVideoDevice(deviceId, video, (result) => {
@@ -278,22 +279,40 @@
                                 .then(res => res.json())
                                 .then(data => {
                                     if (data.success) {
-                                        Swal.fire('Checked-in!',
-                                            'Guest has been checked-in', 'success');
+                                        codeReader.reset();
+                                        isScanning = false;
+                                        startScanBtn.disabled = false;
+                                        stopScanBtn.disabled = true;
+                                        video.style.display = 'none';
+
+                                        // Show success and redirect to voucher
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Checked-in!',
+                                            text: 'Guest has been checked-in successfully',
+                                            showCancelButton: true,
+                                            confirmButtonText: 'Print Voucher',
+                                            cancelButtonText: 'Close'
+                                        }).then((result) => {
+                                            if (result.isConfirmed && data
+                                                .booking_id) {
+                                                window.open(
+                                                    '{{ url('admin/qr-preview') }}/' +
+                                                    data.booking_id, '_blank');
+                                            }
+                                        });
                                     } else {
                                         Swal.fire('Error', data.message ||
                                             'Booking not found', 'error');
                                     }
                                 });
-                            // optionally, redirect to manual route
-                            codeReader.reset();
-                            isScanning = false;
-                            startScanBtn.disabled = false;
-                            stopScanBtn.disabled = true;
                         }
                     });
                 } catch (e) {
                     alert(e.message);
+                    isScanning = false;
+                    startScanBtn.disabled = false;
+                    stopScanBtn.disabled = true;
                 }
             });
 
@@ -303,6 +322,7 @@
                     isScanning = false;
                     startScanBtn.disabled = false;
                     stopScanBtn.disabled = true;
+                    video.style.display = 'none';
                 }
             });
 

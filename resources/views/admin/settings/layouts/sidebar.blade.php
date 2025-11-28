@@ -14,49 +14,16 @@
     <!-- Settings Tabs -->
     <div class="flex flex-col space-y-6 px-6 flex-1 text-white">
 
-        <a href="{{ route('admin.settings.general') }}" class="flex items-center space-x-3 hover:text-yellow-400 transition">
+        <a href="{{ route('admin.settings.general') }}"
+            class="flex items-center space-x-3 hover:text-yellow-400 transition">
             <i class="fas fa-cog text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">General Settings</span>
         </a>
 
-        <a href="{{ route('admin.settings.communication')}}" class="flex items-center space-x-3 hover:text-yellow-400 transition">
+        <a href="{{ route('admin.settings.communication') }}"
+            class="flex items-center space-x-3 hover:text-yellow-400 transition">
             <i class="fas fa-comments text-xl w-6 shrink-0"></i>
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Communication</span>
-        </a>
-
-        <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
-            <i class="fas fa-calendar-alt text-xl w-6 shrink-0"></i>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">Reservation Settings</span>
-        </a>
-
-        <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
-            <i class="fas fa-credit-card text-xl w-6 shrink-0"></i>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">Payment Settings</span>
-        </a>
-
-        <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
-            <i class="fas fa-bed text-xl w-6 shrink-0"></i>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">Room Settings</span>
-        </a>
-
-        <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
-            <i class="fas fa-utensils text-xl w-6 shrink-0"></i>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">Food Settings</span>
-        </a>
-
-        <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
-            <i class="fas fa-tools text-xl w-6 shrink-0"></i>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">System Settings</span>
-        </a>
-
-        <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
-            <i class="fas fa-users-cog text-xl w-6 shrink-0"></i>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">User Management</span>
-        </a>
-
-        <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
-            <i class="fas fa-chart-line text-xl w-6 shrink-0"></i>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">Reports Settings</span>
         </a>
 
     </div>
