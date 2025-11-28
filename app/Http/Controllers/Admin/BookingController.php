@@ -11,42 +11,63 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\Booking;
 use App\Models\Room;
+use App\Models\Customer;
 use App\Models\Payment;
 use App\Mail\BookingConfirmationMail;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Response;
 
 class BookingController extends Controller
 {
-    /**
-     * Display all bookings
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $bookings = Booking::with('room')->latest()->get();
-        return view('admin.booking.index', compact('bookings'));
+        $status = $request->get('status', 'all');
+        $query = Booking::with(['room', 'customer']);
+
+        // Filter Logic
+        switch ($status) {
+            case 'pending':
+                $query->where('status', 'pending');
+                break;
+            case 'confirmed':
+                $query->where('status', 'confirmed');
+                break;
+            case 'cancelled':
+                $query->where('status', 'cancelled');
+                break;
+            case 'rejected':
+                $query->where('status', 'rejected');
+                break;
+            case 'archived':
+                $query->onlyTrashed();
+                break;
+            default:
+                // 'all' shows everything except trashed
+                break;
+        }
+
+        $bookings = $query->latest()->get();
+        return view('admin.booking.index', compact('bookings', 'status'));
     }
 
-    /**
-     * Show single booking details
-     */
     public function show($id)
     {
-        $booking = Booking::with('room', 'paymentRecord')->findOrFail($id);
-
+        $booking = Booking::withTrashed()->with(['room', 'paymentRecord', 'customer'])->findOrFail($id);
         return view('admin.booking.show', compact('booking'));
     }
 
-    /**
-     * Process OCR for a specific booking
-     */
     public function processOCRForBooking($id)
     {
-        $booking = Booking::findOrFail($id);
+        $booking = Booking::with('customer')->findOrFail($id);
 
         if (!$booking->paymentRecord) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No payment proof found for this booking.'
-            ]);
+            // Attempt to find payment record manually or check if image exists in booking table
+            // In your schema, booking has 'payment' string (file path) and relation to Payment model
+            
+            // If strictly using Payment model:
+            // return response()->json(['success' => false, 'message' => 'No payment record found.']);
+            
+            // However, your code implies creating a Payment record FROM the booking's image
         }
 
         try {
@@ -68,15 +89,14 @@ class BookingController extends Controller
                 ]);
             }
 
-            // Create or update payment record with OCR data
             $paymentData = [
                 'reference_id' => $ocrResult['reference_id'],
-                'customer_name' => $booking->firstname . ' ' . $booking->lastname,
-                'contact_number' => $booking->phone_number,
+                'customer_name' => $booking->customer->firstname . ' ' . $booking->customer->lastname,
+                'contact_number' => $booking->customer->phone_number,
                 'payment_date' => $ocrResult['date_time'],
                 'amount_paid' => $ocrResult['total_amount'] ?? null,
                 'status' => 'verified',
-                'payment_method' => 'gcash', // Default to GCash
+                'payment_method' => 'gcash',
                 'verified_at' => now(),
                 'verified_by' => Auth::check() ? Auth::id() : null,
                 'notes' => 'Processed via OCR button'
@@ -106,12 +126,8 @@ class BookingController extends Controller
         }
     }
 
-    /**
-     * Process OCR on image
-     */
     private function processOCR($imagePath)
     {
-        // Ensure the file exists
         if (!file_exists($imagePath)) {
             throw new \Exception('Image file does not exist: ' . $imagePath);
         }
@@ -128,7 +144,6 @@ class BookingController extends Controller
             throw new \Exception('OCR processing failed - no output from command');
         }
 
-        // Remove any non-JSON output like "Active code page: 65001" and "Tesseract version:"
         $lines = explode("\n", trim($result));
         $jsonLines = array_filter($lines, function ($line) {
             $trimmed = trim($line);
@@ -145,9 +160,6 @@ class BookingController extends Controller
         return $data;
     }
 
-    /**
-     * Validate payment data
-     */
     private function validatePaymentData($data)
     {
         $errors = [];
@@ -176,17 +188,14 @@ class BookingController extends Controller
 
     public function edit($id)
     {
-        $booking = Booking::with('room')->findOrFail($id);
+        $booking = Booking::with(['room', 'customer'])->findOrFail($id);
         $rooms = Room::all();
         return view('admin.booking.edit', compact('booking', 'rooms'));
     }
 
-    /**
-     * Update a booking
-     */
     public function update(Request $request, $id)
     {
-        $booking = Booking::findOrFail($id);
+        $booking = Booking::with('customer')->findOrFail($id);
 
         $validated = $request->validate([
             'firstname' => 'required|string|max:255',
@@ -197,141 +206,229 @@ class BookingController extends Controller
             'check_out' => 'required|date|after:check_in',
             'room_id' => 'required|exists:rooms,id',
             'number_of_guests' => 'required|integer|min:1',
-            'status' => 'required|in:pending,confirmed,cancelled',
+            'status' => 'required|in:pending,confirmed,cancelled,rejected',
             'total_price' => 'required|numeric|min:0',
             'special_request' => 'nullable|string',
-            'reservation_number' => 'required|string|unique:bookings,reservation_number,' . $booking->id,
         ]);
 
-        $booking->update($validated);
+        // Update Customer
+        $booking->customer->update([
+            'firstname' => $validated['firstname'],
+            'lastname' => $validated['lastname'],
+            'email' => $validated['email'],
+            'phone_number' => $validated['phone_number'],
+        ]);
+
+        // Update Booking
+        $booking->update([
+            'check_in' => $validated['check_in'],
+            'check_out' => $validated['check_out'],
+            'room_id' => $validated['room_id'],
+            'number_of_guests' => $validated['number_of_guests'],
+            'status' => $validated['status'],
+            'total_price' => $validated['total_price'],
+            'special_request' => $validated['special_request'],
+        ]);
 
         return redirect()->route('admin.booking.show', $booking->id)
             ->with('success', 'Booking updated successfully.');
     }
 
-    /**
-     * Approve booking: update status, send email, send SMS
-     */
-    public function approve($id)
+    // "Archive" functionality (Soft Delete)
+    public function destroy($id)
     {
         $booking = Booking::findOrFail($id);
+        $booking->delete(); // Soft delete
+
+        return redirect()->route('admin.booking.index')
+            ->with('success', 'Booking has been archived successfully.');
+    }
+
+    // Restore archived booking
+    public function restore($id)
+    {
+        $booking = Booking::withTrashed()->findOrFail($id);
+        $booking->restore();
+
+        return redirect()->route('admin.booking.index', ['status' => 'archived'])
+            ->with('success', 'Booking restored successfully.');
+    }
+
+    // Force delete (Permanent)
+    public function forceDelete($id)
+    {
+        $booking = Booking::withTrashed()->findOrFail($id);
+        $booking->forceDelete();
+
+        return redirect()->route('admin.booking.index', ['status' => 'archived'])
+            ->with('success', 'Booking permanently deleted.');
+    }
+
+    public function approve($id)
+    {
+        $booking = Booking::with('customer')->findOrFail($id);
 
         if ($booking->status === 'confirmed') {
-            return response()->json([
-                'success' => false,
-                'message' => 'This booking is already confirmed.'
-            ]);
+            return response()->json(['success' => false, 'message' => 'Already confirmed.']);
         }
 
         $booking->update(['status' => 'confirmed']);
+        $this->sendConfirmationNotifications($booking);
 
-
-        // Send confirmation email
-        try {
-            $bookingDetails = [
-                'guest_name' => $booking->firstname . ' ' . $booking->lastname,
-                'guest_email' => $booking->email,
-                'guest_phone' => $booking->phone_number,
-                'guests' => $booking->number_of_guests,
-            ];
-
-            Mail::to($booking->email)->send(new BookingConfirmationMail($booking, $bookingDetails));
-
-            Log::info('Booking confirmation email sent successfully', [
-                'booking_id' => $booking->id,
-                'email' => $booking->email,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to send booking confirmation email', [
-                'booking_id' => $booking->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-
-        // Send SMS via IPROG
-        try {
-            $apiUrl = env('IPROG_SMS_API_URL', 'https://sms.iprogtech.com/api/v1/sms_messages');
-            $token  = env('IPROG_SMS_API_TOKEN');
-            $phone  = $booking->phone_number;
-
-            // Convert to international format if starts with 0 (Philippines)
-            if (Str::startsWith($phone, '0')) {
-                $phone = '63' . substr($phone, 1);
-            }
-
-            $message = "Hi {$booking->firstname}, your booking is confirmed! Check your email for details and QR code.";
-
-            $payload = [
-                'api_token'    => $token,
-                'phone_number' => $phone,
-                'message'      => $message,
-                'sender_id'    => 'LaiyaGrande',
-            ];
-
-            $response = Http::post($apiUrl, $payload);
-
-            Log::info('IPROG SMS response', [
-                'booking_id' => $booking->id,
-                'response'   => $response->body(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to send SMS via IPROG', [
-                'booking_id' => $booking->id,
-                'error'      => $e->getMessage(),
-            ]);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Booking confirmed – we’ve sent the email and text message.',
-        ]);
+        return response()->json(['success' => true, 'message' => 'Booking confirmed.']);
     }
 
-
-    /**
-     * Reject / Cancel booking
-     */
     public function reject($id)
     {
         $booking = Booking::findOrFail($id);
-
-        if ($booking->status === 'cancelled') {
-            return response()->json([
-                'success' => false,
-                'message' => 'This booking is already cancelled.'
-            ]);
-        }
-
-        $booking->update(['status' => 'cancelled']);
+        
+        // You requested "Rejected" status specifically
+        $booking->update(['status' => 'rejected']);
+        
+        // Logic to free up room if needed
         $room = Room::find($booking->room_id);
         if ($room) {
             $room->availability += 1;
             $room->save();
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Booking has been cancelled successfully.'
-        ]);
+        return response()->json(['success' => true, 'message' => 'Booking marked as rejected.']);
     }
 
-    public function comparePayments()
-    {
-        $bookings = Booking::with('paymentRecord')->get();
-        $discrepancies = [];
+    // --- Export Functions ---
 
-        foreach ($bookings as $booking) {
-            if ($booking->paymentRecord) {
-                if (floatval($booking->total_price) !== floatval($booking->paymentRecord->amount_paid)) {
-                    $discrepancies[] = [
-                        'booking_id' => $booking->id,
-                        'expected_amount' => $booking->total_price,
-                        'paid_amount' => $booking->paymentRecord->amount_paid,
-                    ];
-                }
+    public function exportCsv(Request $request)
+    {
+        $status = $request->get('status', 'all');
+        $filename = "bookings_{$status}_" . date('Y-m-d') . ".csv";
+
+        $bookings = Booking::with(['customer', 'room']);
+        if($status != 'all') {
+            if($status == 'archived') $bookings->onlyTrashed();
+            else $bookings->where('status', $status);
+        }
+        $bookings = $bookings->get();
+
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function() use($bookings) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['ID', 'Reservation #', 'Customer Name', 'Email', 'Phone', 'Room', 'Check In', 'Check Out', 'Total Price', 'Status', 'Date Booked']);
+
+            foreach ($bookings as $booking) {
+                fputcsv($file, [
+                    $booking->id,
+                    $booking->reservation_number,
+                    $booking->full_name, // Uses accessor
+                    $booking->email,
+                    $booking->phone_number,
+                    $booking->room->name ?? 'N/A',
+                    $booking->check_in->format('Y-m-d'),
+                    $booking->check_out->format('Y-m-d'),
+                    $booking->total_price,
+                    ucfirst($booking->status),
+                    $booking->created_at->format('Y-m-d H:i')
+                ]);
             }
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        // For a full PDF, usually 'dompdf' or 'barryvdh/laravel-dompdf' is used.
+        // Assuming you might not have it, we can trigger a print view or just return the view to print.
+        // If you want strict PDF download, you need the package. 
+        // Here I will return a clean print-friendly view.
+        $status = $request->get('status', 'all');
+        $bookings = Booking::with(['customer', 'room']);
+        if($status != 'all' && $status != 'archived') $bookings->where('status', $status);
+        if($status == 'archived') $bookings->onlyTrashed();
+        $bookings = $bookings->get();
+
+        return view('admin.booking.print', compact('bookings', 'status'));
+    }
+
+    // --- Import Function ---
+    public function importCsv(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|mimes:csv,txt'
+        ]);
+
+        $file = $request->file('csv_file');
+        $fileContents = file($file->getPathname());
+
+        foreach ($fileContents as $key => $line) {
+            if ($key === 0) continue; // Skip header row
+            
+            $data = str_getcsv($line);
+            // Expected CSV format: [Firstname, Lastname, Email, Phone, Room ID, CheckIn, CheckOut, Guests, Total, Status]
+            // This is basic; in production, validate indices exist
+            if(count($data) < 5) continue; 
+
+            // Create/Find Customer
+            $customer = Customer::firstOrCreate(
+                ['email' => $data[2]], 
+                ['firstname' => $data[0], 'lastname' => $data[1], 'phone_number' => $data[3]]
+            );
+
+            Booking::create([
+                'reservation_number' => Booking::generateReservationNumber(),
+                'customer_id' => $customer->id,
+                'room_id' => $data[4], // Assumes ID is known
+                'check_in' => Carbon::parse($data[5]),
+                'check_out' => Carbon::parse($data[6]),
+                'number_of_guests' => $data[7] ?? 1,
+                'total_price' => $data[8] ?? 0,
+                'status' => strtolower($data[9] ?? 'pending'),
+                'source' => 'pos' // Imported data usually manual
+            ]);
         }
 
-        return view('admin.booking.discrepancies', compact('discrepancies'));
+        return redirect()->back()->with('success', 'Bookings imported successfully.');
+    }
+
+    // --- Helpers ---
+
+    private function sendConfirmationNotifications($booking)
+    {
+        // Email
+        try {
+            $bookingDetails = [
+                'guest_name' => $booking->full_name,
+                'guest_email' => $booking->email,
+                'guest_phone' => $booking->phone_number,
+                'guests' => $booking->number_of_guests,
+            ];
+            Mail::to($booking->email)->send(new BookingConfirmationMail($booking, $bookingDetails));
+        } catch (\Exception $e) {
+            Log::error('Email failed: ' . $e->getMessage());
+        }
+
+        // SMS
+        try {
+            $apiUrl = env('IPROG_SMS_API_URL', 'https://sms.iprogtech.com/api/v1/sms_messages');
+            $token  = env('IPROG_SMS_API_TOKEN');
+            $phone  = $booking->phone_number;
+            if (Str::startsWith($phone, '0')) $phone = '63' . substr($phone, 1);
+
+            Http::post($apiUrl, [
+                'api_token'    => $token,
+                'phone_number' => $phone,
+                'message'      => "Hi {$booking->firstname}, your booking is confirmed!",
+                'sender_id'    => 'LaiyaGrande',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('SMS failed: ' . $e->getMessage());
+        }
     }
 }

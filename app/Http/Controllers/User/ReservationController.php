@@ -5,33 +5,23 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Reservation;
+use App\Models\Customer;
 use App\Models\Room;
 use Carbon\Carbon;
 
 class ReservationController extends Controller
 {
-    /**
-     * Display user reservations lookup page.
-     */
     public function index()
     {
         return view('user.reserve.reservation');
     }
 
-
-
-    /**
-     * Show form to create new reservation.
-     */
     public function create()
     {
         $rooms = Room::all();
         return view('user.reservation.create', compact('rooms'));
     }
 
-    /**
-     * Store a new reservation.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -59,7 +49,15 @@ class ReservationController extends Controller
             ]);
         }
 
-        // Validate guest capacity against room capacities
+        $customer = Customer::firstOrCreate(
+            ['email' => $validated['email']],
+            [
+                'firstname' => $validated['first_name'],
+                'lastname' => $validated['last_name'],
+                'phone_number' => $validated['phone'],
+            ]
+        );
+
         $totalGuests = $validated['guests'];
         $totalCapacity = 0;
         foreach ($cart as $item) {
@@ -75,7 +73,6 @@ class ReservationController extends Controller
             ]);
         }
 
-        // Check capacity limits before proceeding
         foreach ($cart as $item) {
             $room = Room::find($item['room_id']);
             if (!$room) continue;
@@ -97,10 +94,7 @@ class ReservationController extends Controller
 
             $reservation = Reservation::create([
                 'room_id' => $room->id,
-                'firstname' => $validated['first_name'],
-                'lastname' => $validated['last_name'],
-                'email' => $validated['email'],
-                'phone_number' => $validated['phone'],
+                'customer_id' => $customer->id,
                 'check_in' => $validated['check_in'],
                 'check_out' => $validated['check_out'],
                 'number_of_guests' => $validated['guests'],
@@ -115,21 +109,19 @@ class ReservationController extends Controller
 
             $reservations->push($reservation);
 
-            // Reduce room availability
             $room->availability -= $item['quantity'];
             $room->save();
         }
 
-        // Create notification for admin
         \App\Models\Notification::create([
             'type' => 'reservation',
             'title' => 'New Reservation Request',
-            'message' => "New reservation from {$validated['first_name']} {$validated['last_name']} for {$reservations->count()} room(s)",
+            'message' => "New reservation from {$customer->firstname} {$customer->lastname} for {$reservations->count()} room(s)",
             'data' => [
                 'reservation_id' => $reservations->first()->id,
-                'name' => $validated['first_name'] . ' ' . $validated['last_name'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
+                'name' => $customer->firstname . ' ' . $customer->lastname,
+                'email' => $customer->email,
+                'phone' => $customer->phone_number,
                 'check_in' => $validated['check_in'],
                 'check_out' => $validated['check_out'],
                 'guests' => $validated['guests'],
@@ -137,7 +129,6 @@ class ReservationController extends Controller
             'read' => false,
         ]);
 
-        // Clear cart
         session()->forget('cart');
 
         return response()->json([
@@ -146,18 +137,12 @@ class ReservationController extends Controller
         ]);
     }
 
-    /**
-     * Show a specific reservation.
-     */
     public function show($id)
     {
         $reservation = Reservation::with('room')->findOrFail($id);
         return view('user.reservation.show', compact('reservation'));
     }
 
-    /**
-     * Show edit form.
-     */
     public function edit($id)
     {
         $reservation = Reservation::findOrFail($id);
@@ -165,25 +150,29 @@ class ReservationController extends Controller
         return view('user.reservation.edit', compact('reservation', 'rooms'));
     }
 
-    /**
-     * Update reservation data.
-     */
     public function update(Request $request, $id)
     {
+        $customer = Customer::updateOrCreate(
+            ['email' => $request->email],
+            [
+                'firstname' => $request->first_name,
+                'lastname' => $request->last_name,
+                'phone_number' => $request->phone
+            ]
+        );
+
         $reservation = Reservation::findOrFail($id);
 
         $validated = $request->validate([
             'room_id' => 'required|exists:rooms,id',
-            'firstname' => 'required|string|max:100',
-            'lastname' => 'required|string|max:100',
-            'email' => 'required|email',
-            'phone_number' => 'required|string|max:15',
             'check_in' => 'required|date',
             'check_out' => 'required|date|after:check_in',
             'number_of_guests' => 'required|integer|min:1',
             'special_request' => 'nullable|string',
             'payment' => 'nullable|image|max:2048',
         ]);
+
+        $validated['customer_id'] = $customer->id;
 
         if ($request->hasFile('payment')) {
             $validated['payment'] = $request->file('payment')->store('payments', 'public');
@@ -198,9 +187,6 @@ class ReservationController extends Controller
         return redirect()->route('user.reservation.index')->with('success', 'Reservation updated successfully!');
     }
 
-    /**
-     * Delete a reservation.
-     */
     public function destroy($id)
     {
         $reservation = Reservation::findOrFail($id);
@@ -209,9 +195,6 @@ class ReservationController extends Controller
         return redirect()->route('user.reservation.index')->with('success', 'Reservation deleted successfully!');
     }
 
-    /**
-     * Continue payment for pending reservation.
-     */
     public function continuePaying(Request $request, $id)
     {
         $reservation = Reservation::with('room')->findOrFail($id);
@@ -226,7 +209,6 @@ class ReservationController extends Controller
                 return back()->withErrors(['Invalid credentials to access this reservation.']);
             }
 
-            // Store verification in session
             session(['reservation_verified_' . $id => true]);
             return redirect()->route('user.reservation.continue', $id);
         }
@@ -234,9 +216,6 @@ class ReservationController extends Controller
         return view('user.search.continue', compact('reservation'));
     }
 
-    /**
-     * Update payment for reservation.
-     */
     public function updatePayment(Request $request, $id)
     {
         $reservation = Reservation::findOrFail($id);
@@ -253,7 +232,6 @@ class ReservationController extends Controller
         $validated['status'] = 'paid';
         $reservation->update($validated);
 
-        // Clear the verification session
         session()->forget('reservation_verified_' . $id);
 
         return response()->json([

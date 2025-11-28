@@ -2,119 +2,152 @@
 
 @php
     $pageTitle = 'Bookings Management';
+    $currentStatus = request('status', 'all');
 @endphp
 
 @section('content')
-    <section class="p-2 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <section class="p-4 bg-gray-50 min-h-screen">
         <div class="max-w-7xl mx-auto">
-
-            @include('admin.components.table-controls', [
-                'more' => [
-                    ['label' => 'Export as CSV', 'route' => '#'],
-                    ['label' => 'Export as Excel', 'route' => '#'],
-                    ['label' => 'Export as PDF', 'route' => '#'],
-                ],
-                'title' => $pageTitle,
-                'search' => true,
-                'entries' => true,
-                'button' => [
-                    'type' => 'deleted',
-                    'text' => 'Deleted Bookings',
-                    'route' => 'admin.booking.deleted',
-                    'color' => 'bg-gradient-to-r from-red-500 to to-red-700',
-                ],
+            
+            <!-- Header & Controls -->
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <h1 class="text-2xl font-bold text-gray-800">{{ $pageTitle }}</h1>
                 
-            ])
+                <div class="flex gap-2">
+                    <!-- Import Button -->
+                    <button onclick="document.getElementById('importModal').classList.remove('hidden')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow flex items-center gap-2">
+                        <i class="fas fa-file-import"></i> Import CSV
+                    </button>
 
+                    <!-- Export Dropdown -->
+                    <div class="relative group">
+                        <button class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-50 flex items-center gap-2">
+                            <i class="fas fa-download"></i> Export <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden group-hover:block z-50 border border-gray-100">
+                            <a href="{{ route('admin.booking.export-csv', ['status' => $currentStatus]) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">CSV</a>
+                            <a href="{{ route('admin.booking.export-csv', ['status' => $currentStatus]) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Excel (csv)</a>
+                            <a href="{{ route('admin.booking.export-pdf', ['status' => $currentStatus]) }}" target="_blank" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Print / PDF</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Tabs -->
+            <div class="mb-6 overflow-x-auto">
+                <nav class="flex space-x-2 bg-white p-1 rounded-xl shadow-sm border border-gray-200">
+                    @php
+                        $tabs = [
+                            'all' => 'All',
+                            'pending' => 'Pending',
+                            'confirmed' => 'Confirmed',
+                            'cancelled' => 'Cancelled',
+                            'rejected' => 'Rejected',
+                            'archived' => 'Archived'
+                        ];
+                    @endphp
+                    @foreach($tabs as $key => $label)
+                        <a href="{{ route('admin.booking.index', ['status' => $key]) }}" 
+                           class="px-4 py-2 rounded-lg text-sm font-medium transition-all {{ $currentStatus === $key ? 'bg-teal-600 text-white shadow' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900' }}">
+                           {{ $label }}
+                        </a>
+                    @endforeach
+                </nav>
+            </div>
 
             @if (session('success'))
-                <div
-                    class="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 text-green-700 px-4 py-3 rounded-lg shadow-sm mb-6">
-                    {{ session('success') }}
+                <div class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 px-4 py-3 rounded-lg shadow-sm mb-6 flex justify-between items-center">
+                    <span>{{ session('success') }}</span>
+                    <button onclick="this.parentElement.remove()" class="text-emerald-700">&times;</button>
                 </div>
             @endif
 
+            <!-- Table -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
-                            <tr
-                                class="bg-gradient-to-r from-emerald-500 to-emerald-700 text-left text-white  uppercase text-xs font-bold tracking-wider">
-                                <th class="py-3 px-4">
-                                    <input type="checkbox"
-                                        class="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                </th>
+                            <tr class="bg-gray-50 text-left text-gray-600 uppercase text-xs font-bold tracking-wider">
+                                <th class="py-3 px-4">Ref #</th>
                                 <th class="py-3 px-4">Guest Name</th>
-                                <th class="py-3 px-4">Booking ID</th>
                                 <th class="py-3 px-4">Room</th>
-                                <th class="py-3 px-4">Check-in</th>
-                                <th class="py-3 px-4">Check-out</th>
-                                <th class="py-3 px-4">Total Price</th>
+                                <th class="py-3 px-4">Dates</th>
+                                <th class="py-3 px-4">Total</th>
                                 <th class="py-3 px-4">Status</th>
                                 <th class="py-3 px-4 text-center">Action</th>
                             </tr>
                         </thead>
-
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse ($bookings as $booking)
-                                <tr class="hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-indigo-50/20 transition-all duration-200"
-                                    style="cursor: pointer;"
-                                    onclick="window.location.href='{{ route('admin.booking.show', $booking->id) }}'">
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4 text-xs font-mono text-gray-500">{{ $booking->reservation_number }}</td>
+                                    
+                                    {{-- FIXED: Uses relationship to get Name --}}
                                     <td class="py-3 px-4">
-                                        <input type="checkbox"
-                                            class="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded"
-                                            onclick="event.stopPropagation();">
+                                        <div class="text-sm font-bold text-gray-900">{{ $booking->customer->firstname ?? 'Unknown' }} {{ $booking->customer->lastname ?? '' }}</div>
+                                        <div class="text-xs text-gray-500">{{ $booking->customer->email ?? 'No email' }}</div>
                                     </td>
-                                    <td class="py-3 px-4 font-medium text-gray-900">{{ $booking->firstname }}
-                                        {{ $booking->lastname }}</td>
-                                    <td class="py-3 px-4 text-gray-700 font-medium">{{ $booking->reservation_number }}</td>
-                                    <td class="py-3 px-4 text-gray-700">{{ $booking->room->name ?? 'N/A' }}</td>
-                                    <td class="py-3 px-4 text-gray-700">
-                                        {{ \Carbon\Carbon::parse($booking->check_in)->format('M d, Y') }}</td>
-                                    <td class="py-3 px-4 text-gray-700">
-                                        {{ \Carbon\Carbon::parse($booking->check_out)->format('M d, Y') }}</td>
-                                    <td
-                                        class="py-3 px-4 font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
-                                        ₱{{ number_format($booking->total_price, 2) }}</td>
-
+                                    
+                                    <td class="py-3 px-4 text-sm text-gray-700">{{ $booking->room->name ?? 'N/A' }}</td>
+                                    <td class="py-3 px-4 text-sm text-gray-700">
+                                        <div>In: {{ $booking->check_in->format('M d') }}</div>
+                                        <div>Out: {{ $booking->check_out->format('M d') }}</div>
+                                    </td>
+                                    <td class="py-3 px-4 font-bold text-emerald-600">₱{{ number_format($booking->total_price, 2) }}</td>
+                                    
                                     <td class="py-3 px-4">
                                         @php
-                                            $statusStyles = [
-                                                'pending' =>
-                                                    'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200',
-                                                'confirmed' =>
-                                                    'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200',
-                                                'cancelled' =>
-                                                    'bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200',
+                                            $colors = [
+                                                'pending' => 'bg-yellow-100 text-yellow-800',
+                                                'confirmed' => 'bg-green-100 text-green-800',
+                                                'cancelled' => 'bg-red-100 text-red-800',
+                                                'rejected' => 'bg-gray-100 text-gray-800',
                                             ];
+                                            $color = $colors[$booking->status] ?? 'bg-gray-100 text-gray-800';
                                         @endphp
-                                        <span
-                                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold shadow-sm {{ $statusStyles[$booking->status] ?? 'bg-gray-100 text-gray-800' }}">
-                                            <span
-                                                class="w-1.5 h-1.5 rounded-full mr-1.5 {{ $booking->status === 'confirmed' ? 'bg-green-500' : ($booking->status === 'pending' ? 'bg-amber-500' : 'bg-red-500') }}"></span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $color }}">
                                             {{ ucfirst($booking->status) }}
                                         </span>
                                     </td>
 
                                     <td class="py-3 px-4 text-center">
                                         <div class="flex items-center justify-center gap-2">
-                                            <a href="{{ route('admin.booking.show', $booking->id) }}"
-                                                class="bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md hover:shadow-lg hover:from-blue-600 hover:to-cyan-700 transform hover:scale-105 transition-all duration-200"
-                                                onclick="event.stopPropagation();">
-                                                View
-                                            </a>
-                                            <a href="{{ route('admin.booking.edit', $booking->id) }}"
-                                                class="bg-gradient-to-r from-emerald-500 to-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md hover:shadow-lg hover:from-emerald-600 hover:to-green-700 transform hover:scale-105 transition-all duration-200"
-                                                onclick="event.stopPropagation();">
-                                                Edit
-                                            </a>
+                                            @if($currentStatus === 'archived')
+                                                <form action="{{ route('admin.booking.restore', $booking->id) }}" method="POST">
+                                                    @csrf @method('POST')
+                                                    <button type="submit" class="text-emerald-600 hover:text-emerald-900 text-xs font-bold uppercase" title="Restore">Restore</button>
+                                                </form>
+                                                <form action="{{ route('admin.booking.force-delete', $booking->id) }}" method="POST" onsubmit="return confirm('Permanently delete?');">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-900 text-xs font-bold uppercase ml-2" title="Delete Forever">Delete</button>
+                                                </form>
+                                            @else
+                                                <a href="{{ route('admin.booking.show', $booking->id) }}" class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition" title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ route('admin.booking.edit', $booking->id) }}" class="text-emerald-600 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 p-2 rounded-lg transition" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                
+                                                {{-- Archive / Delete Button --}}
+                                                <form action="{{ route('admin.booking.destroy', $booking->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to archive this booking?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition" title="Archive">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="py-6 px-4 text-center text-gray-500">
-                                        No bookings found.
+                                    <td colspan="7" class="py-8 text-center text-gray-500">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <i class="fas fa-folder-open text-4xl mb-3 text-gray-300"></i>
+                                            <p>No {{ $currentStatus == 'all' ? '' : $currentStatus }} bookings found.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse
@@ -124,4 +157,23 @@
             </div>
         </div>
     </section>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 flex">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Import Bookings</h3>
+            <form action="{{ route('admin.booking.import-csv') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Upload CSV File</label>
+                    <input type="file" name="csv_file" accept=".csv" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-gray-300 rounded-lg cursor-pointer">
+                    <p class="text-xs text-gray-500 mt-2">Format: Firstname, Lastname, Email, Phone, RoomID, CheckIn, CheckOut, Guests, Total, Status</p>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">Upload & Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection

@@ -4,49 +4,61 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Payment; // <--- FIXED NAMESPACE (Was App\Models\Http\Payment)
 use App\Models\Reservation;
 use App\Models\Room;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
+use App\Models\Booking;
+use App\Models\Customer;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReservationController extends Controller
 {
-    /**
-     * Display all reservations
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $reservations = Reservation::with('room')->latest()->paginate(10);
-        return view('admin.reservation.index', compact('reservations'));
+        $status = $request->get('status', 'all');
+        $query = Reservation::with(['room', 'customer']);
+
+        switch ($status) {
+            case 'pending':
+                $query->where('status', 'pending');
+                break;
+            case 'confirmed':
+                $query->where('status', 'confirmed');
+                break;
+            case 'paid':
+                $query->where('status', 'paid');
+                break;
+            case 'cancelled':
+                $query->where('status', 'cancelled');
+                break;
+            case 'archived':
+                $query->onlyTrashed();
+                break;
+        }
+
+        $reservations = $query->latest()->paginate(10);
+        return view('admin.reservation.index', compact('reservations', 'status'));
     }
 
-    /**
-     * Show single reservation details
-     */
     public function show($id)
     {
-        $reservation = Reservation::with('room', 'payments')->findOrFail($id);
+        $reservation = Reservation::withTrashed()->with(['room', 'payments', 'customer'])->findOrFail($id);
         return view('admin.reservation.show', compact('reservation'));
     }
 
-    /**
-     * Show the form for editing a reservation
-     */
     public function edit($id)
     {
-        $reservation = Reservation::with('room')->findOrFail($id);
+        $reservation = Reservation::with(['room', 'customer'])->findOrFail($id);
         $rooms = Room::all();
         return view('admin.reservation.edit', compact('reservation', 'rooms'));
     }
 
-    /**
-     * Update a reservation
-     */
     public function update(Request $request, $id)
     {
-        $reservation = Reservation::findOrFail($id);
+        $reservation = Reservation::with('customer')->findOrFail($id);
 
         $validated = $request->validate([
             'firstname' => 'required|string|max:255',
@@ -62,235 +74,162 @@ class ReservationController extends Controller
             'special_request' => 'nullable|string',
         ]);
 
-        $reservation->update($validated);
+        // 1. Update Customer Data (Normalized)
+        $reservation->customer->update([
+            'firstname' => $validated['firstname'],
+            'lastname' => $validated['lastname'],
+            'email' => $validated['email'],
+            'phone_number' => $validated['phone_number'],
+        ]);
+
+        // 2. Update Reservation Data
+        $reservation->update([
+            'check_in' => $validated['check_in'],
+            'check_out' => $validated['check_out'],
+            'room_id' => $validated['room_id'],
+            'number_of_guests' => $validated['number_of_guests'],
+            'status' => $validated['status'],
+            'total_price' => $validated['total_price'],
+            'special_request' => $validated['special_request'],
+        ]);
 
         return redirect()->route('admin.reservation.show', $reservation->id)
             ->with('success', 'Reservation updated successfully.');
     }
 
-    /**
-     * Approve reservation
-     */
     public function approve($id)
     {
-        $reservation = Reservation::findOrFail($id);
+        $reservation = Reservation::with('customer')->findOrFail($id);
 
-        if ($reservation->status === 'confirmed') {
-            return response()->json([
-                'success' => false,
-                'message' => 'This reservation is already confirmed.'
-            ]);
+        if ($reservation->status === 'confirmed' || $reservation->status === 'paid') {
+            return response()->json(['success' => false, 'message' => 'Already confirmed/paid.']);
         }
 
-        // Convert reservation to booking
-        $booking = \App\Models\Booking::create([
+        // Create Booking (Normalized)
+        Booking::create([
+            'reservation_number' => $reservation->reservation_number,
             'room_id' => $reservation->room_id,
-            'firstname' => $reservation->firstname,
-            'lastname' => $reservation->lastname,
-            'email' => $reservation->email,
-            'phone_number' => $reservation->phone_number,
+            'customer_id' => $reservation->customer_id,
             'check_in' => $reservation->check_in,
             'check_out' => $reservation->check_out,
             'number_of_guests' => $reservation->number_of_guests,
             'special_request' => $reservation->special_request,
             'payment_method' => $reservation->payment_method,
-            'payment' => $reservation->second_payment, // Use the final payment proof
+            'payment' => $reservation->second_payment ?? $reservation->first_payment,
             'total_price' => $reservation->total_price,
-            'status' => 'pending', // Start as pending in booking
-            'reservation_number' => $reservation->reservation_number,
+            'status' => 'confirmed',
+            'source' => 'online'
         ]);
 
-        // Update reservation status to paid
         $reservation->update(['status' => 'paid']);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Reservation confirmed and moved to booking page successfully.'
-        ]);
+        return response()->json(['success' => true, 'message' => 'Reservation confirmed and converted to Booking.']);
     }
 
-    /**
-     * Cancel reservation
-     */
     public function cancel($id)
     {
         $reservation = Reservation::findOrFail($id);
-
         if ($reservation->status === 'cancelled') {
-            return response()->json([
-                'success' => false,
-                'message' => 'This reservation is already cancelled.'
-            ]);
+            return response()->json(['success' => false, 'message' => 'Already cancelled.']);
         }
-
         $reservation->update(['status' => 'cancelled']);
 
-        // Restore room availability
         if ($reservation->room) {
-            $reservation->room->availability += 1;
-            $reservation->room->save();
+            $reservation->room->increment('availability');
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Reservation has been cancelled successfully.'
-        ]);
+        return response()->json(['success' => true, 'message' => 'Reservation cancelled.']);
     }
 
     /**
-     * Process OCR for first payment of a reservation
+     * Process OCR for payment (first or second).
+     *
+     * @param int $id Reservation ID
+     * @param string $stage 'partial' for first payment, 'final' for second payment
+     * @return \Illuminate\Http\JsonResponse
      */
+    private function processPaymentOCR($id, $stage)
+    {
+        $reservation = Reservation::withTrashed()->with('customer')->findOrFail($id);
+
+        $paymentField = $stage === 'partial' ? 'first_payment' : 'second_payment';
+        $paymentFile = $reservation->$paymentField;
+
+        if (!$paymentFile || !file_exists(storage_path('app/public/' . $paymentFile))) {
+            return response()->json([
+                'success' => false,
+                'message' => ucfirst($stage) . " payment proof file not found."
+            ]);
+        }
+
+        try {
+            $paymentPath = storage_path('app/public/' . $paymentFile);
+            $ocrResult = $this->processOCR($paymentPath);
+
+            $validation = $this->validatePaymentData($ocrResult);
+            if (!$validation['valid']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'OCR validation failed: ' . implode(', ', $validation['errors'])
+                ]);
+            }
+
+            $customerName = trim($reservation->customer->firstname . ' ' . $reservation->customer->lastname);
+            $customerName = empty($customerName) ? 'Unknown Customer' : $customerName;
+
+            $contactNumber = $reservation->customer->phone_number ?? 'N/A';
+
+            $paymentData = [
+                'reservation_id' => $reservation->id,
+                'booking_id' => null,
+                'reference_id' => $ocrResult['reference_id'],
+                'customer_name' => $customerName,
+                'contact_number' => $contactNumber,
+                'payment_date' => $ocrResult['date_time'],
+                'amount_paid' => $ocrResult['total_amount'] ?? 0,
+                'payment_stage' => $stage,
+                'status' => 'verified',
+                'payment_method' => 'gcash',
+                'verified_at' => now(),
+                'verified_by' => Auth::id(),
+                'notes' => "Processed via OCR button for {$stage} payment"
+            ];
+
+            $payment = Payment::updateOrCreate(
+                ['reservation_id' => $reservation->id, 'payment_stage' => $stage],
+                $paymentData
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => ucfirst($stage) . ' payment verified successfully!',
+                'data' => [
+                    'reference_id' => $payment->reference_id,
+                    'amount_paid' => $payment->amount_paid
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error(ucfirst($stage) . " Payment OCR Error ID {$id}: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'OCR Error: ' . $e->getMessage()]);
+        }
+    }
+
+    // Public methods to trigger first and second payment OCR
     public function processFirstPaymentOCR($id)
     {
-        $reservation = Reservation::findOrFail($id);
-
-        if (!$reservation->first_payment) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No first payment proof found for this reservation.'
-            ]);
-        }
-
-        try {
-            $paymentPath = storage_path('app/public/' . $reservation->first_payment);
-            if (!file_exists($paymentPath)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'First payment proof file not found.'
-                ]);
-            }
-
-            $ocrResult = $this->processOCR($paymentPath);
-            $validation = $this->validatePaymentData($ocrResult);
-
-            if (!$validation['valid']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'OCR validation failed: ' . implode(', ', $validation['errors'])
-                ]);
-            }
-
-            // Create or update payment record with OCR data
-            $paymentData = [
-                'reservation_id' => $reservation->id,
-                'reference_id' => $ocrResult['reference_id'],
-                'customer_name' => $reservation->firstname . ' ' . $reservation->lastname,
-                'contact_number' => $reservation->phone_number,
-                'payment_date' => $ocrResult['date_time'],
-                'amount_paid' => $ocrResult['total_amount'] ?? null,
-                'payment_stage' => 'partial',
-                'status' => 'verified',
-                'payment_method' => 'gcash',
-                'verified_at' => now(),
-                'verified_by' => Auth::check() ? Auth::id() : null,
-                'notes' => 'Processed via OCR button for first payment'
-            ];
-
-            $payment = $reservation->payments()->updateOrCreate(
-                ['reservation_id' => $reservation->id, 'payment_stage' => 'partial'],
-                $paymentData
-            );
-
-            return response()->json([
-                'success' => true,
-                'message' => 'First payment OCR processed successfully!',
-                'data' => [
-                    'reference_id' => $payment->reference_id,
-                    'payment_date' => $payment->payment_date,
-                    'payment_method' => $payment->payment_method,
-                    'amount_paid' => $payment->amount_paid
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('OCR processing failed for reservation first payment ' . $id . ': ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'OCR processing failed: ' . $e->getMessage()
-            ]);
-        }
+        return $this->processPaymentOCR($id, 'partial');
     }
 
-    /**
-     * Process OCR for second payment of a reservation
-     */
     public function processSecondPaymentOCR($id)
     {
-        $reservation = Reservation::findOrFail($id);
-
-        if (!$reservation->second_payment) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No second payment proof found for this reservation.'
-            ]);
-        }
-
-        try {
-            $paymentPath = storage_path('app/public/' . $reservation->second_payment);
-            if (!file_exists($paymentPath)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Second payment proof file not found.'
-                ]);
-            }
-
-            $ocrResult = $this->processOCR($paymentPath);
-            $validation = $this->validatePaymentData($ocrResult);
-
-            if (!$validation['valid']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'OCR validation failed: ' . implode(', ', $validation['errors'])
-                ]);
-            }
-
-            // Create or update payment record with OCR data
-            $paymentData = [
-                'reservation_id' => $reservation->id,
-                'reference_id' => $ocrResult['reference_id'],
-                'customer_name' => $reservation->firstname . ' ' . $reservation->lastname,
-                'contact_number' => $reservation->phone_number,
-                'payment_date' => $ocrResult['date_time'],
-                'amount_paid' => $ocrResult['total_amount'] ?? null,
-                'payment_stage' => 'final',
-                'status' => 'verified',
-                'payment_method' => 'gcash',
-                'verified_at' => now(),
-                'verified_by' => Auth::check() ? Auth::id() : null,
-                'notes' => 'Processed via OCR button for second payment'
-            ];
-
-            $payment = $reservation->payments()->updateOrCreate(
-                ['reservation_id' => $reservation->id, 'payment_stage' => 'final'],
-                $paymentData
-            );
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Second payment OCR processed successfully!',
-                'data' => [
-                    'reference_id' => $payment->reference_id,
-                    'payment_date' => $payment->payment_date,
-                    'payment_method' => $payment->payment_method,
-                    'amount_paid' => $payment->amount_paid
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('OCR processing failed for reservation second payment ' . $id . ': ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'OCR processing failed: ' . $e->getMessage()
-            ]);
-        }
+        return $this->processPaymentOCR($id, 'final');
     }
 
     /**
-     * Process OCR on image
+     * Execute OCR via Python script and return parsed JSON.
      */
     private function processOCR($imagePath)
     {
-        // Ensure the file exists
         if (!file_exists($imagePath)) {
             throw new \Exception('Image file does not exist: ' . $imagePath);
         }
@@ -304,52 +243,163 @@ class ReservationController extends Controller
         $result = shell_exec(implode(' ', array_map('escapeshellarg', $command)));
 
         if (!$result) {
-            throw new \Exception('OCR processing failed - no output from command');
+            throw new \Exception('OCR processing failed - no output.');
         }
 
-        // Remove any non-JSON output like "Active code page: 65001" and "Tesseract version:"
-        $lines = explode("\n", trim($result));
-        $jsonLines = array_filter($lines, function($line) {
-            $trimmed = trim($line);
-            return !preg_match('/^(Active code page|Tesseract version):/', $trimmed) && !empty($trimmed);
-        });
-        $cleanResult = implode("\n", $jsonLines);
+        preg_match('/\{.*\}/s', $result, $matches);
 
-        $data = json_decode($cleanResult, true);
+        if (empty($matches)) {
+            Log::error("OCR Extraction Failed. Raw Output: " . $result);
+            throw new \Exception('OCR script did not return valid JSON. Check logs.');
+        }
+
+        $data = json_decode($matches[0], true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception('Invalid OCR output: ' . $cleanResult . ' | Full result: ' . $result);
+            Log::error("OCR JSON Decode Error: " . json_last_error_msg() . " | String: " . $matches[0]);
+            throw new \Exception('Failed to decode OCR JSON.');
         }
 
         return $data;
     }
 
     /**
-     * Validate payment data
+     * Validate required OCR fields.
      */
     private function validatePaymentData($data)
     {
         $errors = [];
 
         if (isset($data['error'])) {
-            return ['valid'=>false,'errors'=>[$data['error']]];
+            return ['valid' => false, 'errors' => [$data['error']]];
         }
 
-        $required_fields = ['reference_id','date_time'];
+        $required_fields = ['reference_id', 'date_time', 'total_amount'];
         foreach ($required_fields as $field) {
             if (!isset($data[$field]) || empty($data[$field])) {
-                $errors[] = "Missing or empty field: {$field}";
+                $errors[] = "Missing field: {$field}";
             }
         }
 
-        if (!empty($data['reference_id']) && (!ctype_digit($data['reference_id']) || strlen($data['reference_id']) < 10 || strlen($data['reference_id']) > 13)) {
-            $errors[] = "Reference ID should be 10-13 digits";
+        return ['valid' => empty($errors), 'errors' => $errors];
+    }
+
+    // --- Import / Export / Soft Delete ---
+
+    public function importCsv(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|mimes:csv,txt'
+        ]);
+
+        $file = $request->file('csv_file');
+        $fileContents = file($file->getPathname());
+
+        foreach ($fileContents as $key => $line) {
+            if ($key === 0) continue; // Skip header row
+
+            $data = str_getcsv($line);
+            // Expected CSV: [Firstname, Lastname, Email, Phone, Room ID, CheckIn, CheckOut, Guests, Total, Status]
+            if (count($data) < 5) continue;
+
+            $customer = Customer::firstOrCreate(
+                ['email' => $data[2]],
+                ['firstname' => $data[0], 'lastname' => $data[1], 'phone_number' => $data[3] ?? '']
+            );
+
+            Reservation::create([
+                'reservation_number' => Reservation::generateReservationNumber(),
+                'customer_id' => $customer->id,
+                'room_id' => $data[4],
+                'check_in' => \Carbon\Carbon::parse($data[5]),
+                'check_out' => \Carbon\Carbon::parse($data[6]),
+                'number_of_guests' => $data[7] ?? 1,
+                'total_price' => $data[8] ?? 0,
+                'status' => strtolower($data[9] ?? 'pending'),
+                'source' => 'pos'
+            ]);
         }
 
-        if (!empty($data['date_time']) && !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/',$data['date_time'])) {
-            $errors[] = "Date/time should be in YYYY-MM-DD HH:MM:SS format";
-        }
+        return redirect()->back()->with('success', 'Reservations imported successfully.');
+    }
 
-        return ['valid'=>empty($errors),'errors'=>$errors];
+    public function exportCsv(Request $request)
+    {
+        $status = $request->get('status', 'all');
+        $filename = "reservations_{$status}_" . date('Y-m-d') . ".csv";
+
+        $reservations = Reservation::with(['customer', 'room']);
+        if ($status != 'all') {
+            if ($status == 'archived') $reservations->onlyTrashed();
+            else $reservations->where('status', $status);
+        }
+        $reservations = $reservations->get();
+
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function () use ($reservations) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['ID', 'Reservation #', 'Customer Name', 'Email', 'Phone', 'Room', 'Check In', 'Check Out', 'Total Price', 'Status', 'Date Booked']);
+
+            foreach ($reservations as $reservation) {
+                fputcsv($file, [
+                    $reservation->id,
+                    $reservation->reservation_number,
+                    $reservation->customer->firstname . ' ' . $reservation->customer->lastname,
+                    $reservation->customer->email,
+                    $reservation->customer->phone_number,
+                    $reservation->room->name ?? 'N/A',
+                    $reservation->check_in->format('Y-m-d'),
+                    $reservation->check_out->format('Y-m-d'),
+                    $reservation->total_price,
+                    ucfirst($reservation->status),
+                    $reservation->created_at->format('Y-m-d H:i')
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $status = $request->get('status', 'all');
+        $reservations = Reservation::with(['customer', 'room']);
+        if ($status != 'all' && $status != 'archived') $reservations->where('status', $status);
+        if ($status == 'archived') $reservations->onlyTrashed();
+        $reservations = $reservations->get();
+
+        return view('admin.reservation.print', compact('reservations', 'status'));
+    }
+
+    public function destroy($id)
+    {
+        $reservation = Reservation::findOrFail($id);
+        $reservation->delete(); // Soft delete
+        return redirect()->route('admin.reservation.index')
+            ->with('success', 'Reservation has been archived successfully.');
+    }
+
+    public function restore($id)
+    {
+        $reservation = Reservation::withTrashed()->findOrFail($id);
+        $reservation->restore();
+        return redirect()->route('admin.reservation.index', ['status' => 'archived'])
+            ->with('success', 'Reservation restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $reservation = Reservation::withTrashed()->findOrFail($id);
+        $reservation->forceDelete();
+        return redirect()->route('admin.reservation.index', ['status' => 'archived'])
+            ->with('success', 'Reservation permanently deleted.');
     }
 }
