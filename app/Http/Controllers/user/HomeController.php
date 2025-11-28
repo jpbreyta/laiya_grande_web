@@ -21,12 +21,16 @@ class HomeController extends Controller
             ]);
         }
 
-        // Fetch active rooms and prepare full image URL
         $rooms = Room::where('status', 'available')->get()->map(function ($room) {
             $room->image_url = $room->image ? asset($room->image) : asset('images/user/luxury-ocean-view-suite-hotel-room.jpg');
             return $room;
         });
 
         return view('user.home.index', compact('settings', 'rooms'));
+    }
+
+    function cart()
+    {
+        return view('user.cart.index');
     }
 }

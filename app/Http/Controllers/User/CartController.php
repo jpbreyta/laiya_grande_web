@@ -14,6 +14,9 @@ class CartController extends Controller
 
         $cart = session()->get('cart', []);
 
+        // 1. Prepare the image URL just like you did in HomeController
+        $roomImage = $room->image ? asset($room->image) : asset('images/user/luxury-ocean-view-suite-hotel-room.jpg');
+
         if (isset($cart[$room->id])) {
 
             if ($cart[$room->id]['quantity'] + 1 > $room->availability) {
@@ -24,6 +27,8 @@ class CartController extends Controller
             }
 
             $cart[$room->id]['quantity'] += 1;
+            // Update image in case it changed
+            $cart[$room->id]['room_image'] = $roomImage;
 
             session()->put('cart', $cart);
 
@@ -33,11 +38,13 @@ class CartController extends Controller
             ]);
         }
 
+        // 2. Add 'room_image' to the session array here
         $cart[$room->id] = [
-            'room_id'     => $room->id,
-            'room_name'   => $room->name,
-            'room_price'  => $room->price,
-            'quantity'    => 1,
+            'room_id'      => $room->id,
+            'room_name'    => $room->name,
+            'room_price'   => $room->price,
+            'room_image'   => $roomImage, // <--- CRITICAL FIX HERE
+            'quantity'     => 1,
             'availability' => $room->availability,
         ];
 
@@ -66,10 +73,7 @@ class CartController extends Controller
 
         return redirect()->back()->with('success', 'Room removed from cart.');
     }
-    public function getImagesAttribute($value)
-    {
-        return $value ? explode(',', $value) : [];
-    }
+
     public function increment(Request $request)
     {
         $cart = session()->get('cart', []);
@@ -94,5 +98,25 @@ class CartController extends Controller
         }
 
         return response()->json(['success' => true, 'quantity' => $cart[$roomId]['quantity']]);
+    }
+
+    public function getCartDetails()
+    {
+        $cart = session()->get('cart', []);
+
+        $totalQuantity = 0;
+        $totalPrice = 0;
+
+        foreach ($cart as $id => $details) {
+            $totalQuantity += $details['quantity'];
+            $totalPrice += $details['room_price'] * $details['quantity'];
+        }
+
+        return response()->json([
+            'cart' => $cart,
+            'total_count' => $totalQuantity,
+            'total_price' => $totalPrice,
+            'count' => count($cart)
+        ]);
     }
 }

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\ContactController;
+use App\Http\Controllers\User\CartController;
 
 // ==========================
 // USER ROUTES
@@ -42,3 +43,11 @@ Route::prefix('admin')->group(function () {
         return view('admin.dashboard.index');
     })->name('admin.dashboard');
 });
+
+Route::get('/cart/details', [CartController::class, 'getCartDetails'])->name('cart.details');
+
+Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
+Route::post('/cart/increment', [CartController::class, 'increment'])->name('cart.increment');
+Route::post('/cart/decrement', [CartController::class, 'decrement'])->name('cart.decrement');

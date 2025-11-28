@@ -13,7 +13,7 @@
                 prev() { if (this.current > 0) this.current-- }
             }" class="relative group/carousel">
 
-                <div class="flex -mx-4 overflow-hidden">
+                <div class="flex -mx-4 overflow-hidden pb-4">
                     <template x-for="(room, index) in rooms" :key="index">
                         <div x-show="index >= current && index < current + 3"
                             x-transition:enter="transition ease-out duration-300"
@@ -65,10 +65,11 @@
                                     </div>
 
                                     <div class="mt-auto pt-4 border-t border-slate-100">
-                                        <a :href="'/rooms/' + room.id"
+                                        <button type="button" @click="addToCart(room.id, room.name, room.price)"
                                             class="block w-full text-center bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl transition-colors duration-200">
-                                            Book Now
-                                        </a>
+                                            <span class="mr-2"><i class="fas fa-shopping-cart"></i></span>
+                                            Add to Cart
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -87,4 +88,66 @@
             </div>
         </div>
     </section>
+    <script>
+        function addToCart(roomId, roomName, roomPrice) {
+            Swal.fire({
+                title: 'Adding to cart...',
+                html: 'Please wait a moment',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch('{{ route('cart.add') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        room_id: roomId,
+                        room_name: roomName,
+                        room_price: roomPrice,
+                        quantity: 1
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    Swal.close();
+                    if (data.success) {
+                        window.dispatchEvent(new CustomEvent('cart-updated'));
+                        Swal.fire({
+                            title: "Added to Selection",
+                            html: `<div style="font-family:'Inter',sans-serif; font-size:15px; color:#475569; margin-top:8px;"><strong>${roomName}</strong> is now in your cart.</div>`,
+                            icon: "success",
+                            confirmButtonColor: "#0f766e",
+                            confirmButtonText: "Continue Browsing",
+                            showCancelButton: true,
+                            cancelButtonText: "Go to Checkout",
+                            cancelButtonColor: "#334155"
+                        }).then((result) => {
+                            if (result.dismiss === Swal.DismissReason.cancel) {
+                                window.location.href = '{{ route('cart.index') }}';
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: data.message || "Something went wrong.",
+                            icon: "error",
+                            confirmButtonColor: "#ef4444"
+                        });
+                    }
+                })
+                .catch(err => {
+                    Swal.close();
+                    console.error(err);
+                    Swal.fire({
+                        title: "Connection Error",
+                        text: "Please check your internet connection.",
+                        icon: "error",
+                        confirmButtonColor: "#ef4444"
+                    });
+                });
+        }
+    </script>
 @endif
