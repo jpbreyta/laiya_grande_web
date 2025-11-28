@@ -93,97 +93,50 @@
             </button>
         </div>
 
-        {{-- Statistic Cards --}}
+        {{-- Dynamic KPI Cards --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="dashboard-card bg-gradient-to-r from-[#add8e6] to-[#99e6b3] text-gray-800 p-6 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-sm font-medium opacity-90">Total Bookings</h3>
-                        <p class="text-3xl font-bold">{{ $totalBookings ?? 0 }}</p>
-                        <p class="text-sm opacity-80">All time</p>
+                        <h3 class="text-sm font-medium opacity-90">Total Guests</h3>
+                        <p class="text-3xl font-bold" id="kpi-guests">0</p>
+                        <p class="text-sm opacity-80">For selected period</p>
                     </div>
-                    <i class="fas fa-calendar-check text-3xl opacity-80"></i>
+                    <i class="fas fa-users text-3xl opacity-80"></i>
                 </div>
             </div>
 
             <div class="dashboard-card bg-gradient-to-r from-[#add8e6] to-[#00ced1] text-gray-800 p-6 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-sm font-medium opacity-90">Total Revenue</h3>
-                        <p class="text-3xl font-bold" id="kpi-revenue">₱{{ number_format($totalRevenue ?? 0, 2, '.', ',') }}</p>
-                        <p class="text-sm opacity-80">All sources</p>
+                        <h3 class="text-sm font-medium opacity-90">Check-ins</h3>
+                        <p class="text-3xl font-bold" id="kpi-checkins">0</p>
+                        <p class="text-sm opacity-80">For selected period</p>
                     </div>
-                    <i class="fas fa-dollar-sign text-3xl opacity-80"></i>
+                    <i class="fas fa-sign-in-alt text-3xl opacity-80"></i>
                 </div>
             </div>
 
             <div class="dashboard-card bg-gradient-to-r from-[#add8e6] to-[#3eb489] text-gray-800 p-6 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-sm font-medium">Occupancy Rate</h3>
-                        <p class="text-3xl font-bold" id="kpi-occupancy">{{ $occupancyRate ?? 0 }}%</p>
-                        <p class="text-sm">Current occupancy</p>
+                        <h3 class="text-sm font-medium">Available Rooms</h3>
+                        <p class="text-3xl font-bold">{{ $totalRooms }}</p>
+                        <p class="text-sm">Total rooms in resort</p>
                     </div>
-                    <i class="fas fa-chart-pie text-3xl"></i>
+                    <i class="fas fa-bed text-3xl"></i>
                 </div>
             </div>
 
             <div class="dashboard-card bg-gradient-to-r from-[#add8e6] to-[#00fa9a] text-gray-800 p-6 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-sm font-medium opacity-90">Pending</h3>
-                        <p class="text-3xl font-bold">{{ $pendingBookings ?? 0 }}</p>
-                        <p class="text-sm opacity-80">Requires attention</p>
+                        <h3 class="text-sm font-medium opacity-90">Revenue (Period)</h3>
+                        <p class="text-3xl font-bold" id="kpi-revenue-period">₱0.00</p>
+                        <p class="text-sm opacity-80">For selected period</p>
                     </div>
-                    <i class="fas fa-clock text-3xl opacity-80"></i>
+                    <i class="fas fa-coins text-3xl opacity-80"></i>
                 </div>
-            </div>
-        </div>
-
-        {{-- Dynamic KPI Cards --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="dashboard-card bg-white border border-gray-100 rounded-lg p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <div>
-                        <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Total Guests</p>
-                        <p class="text-2xl font-bold text-gray-800" id="kpi-guests">0</p>
-                    </div>
-                    <i class="fas fa-users text-2xl text-[#2C5F5F]"></i>
-                </div>
-                <p class="text-xs text-gray-500">For selected period</p>
-            </div>
-
-            <div class="dashboard-card bg-white border border-gray-100 rounded-lg p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <div>
-                        <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Check-ins</p>
-                        <p class="text-2xl font-bold text-gray-800" id="kpi-checkins">0</p>
-                    </div>
-                    <i class="fas fa-sign-in-alt text-2xl text-[#2C5F5F]"></i>
-                </div>
-                <p class="text-xs text-gray-500">For selected period</p>
-            </div>
-
-            <div class="dashboard-card bg-white border border-gray-100 rounded-lg p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <div>
-                        <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Available Rooms</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ $totalRooms }}</p>
-                    </div>
-                    <i class="fas fa-bed text-2xl text-[#2C5F5F]"></i>
-                </div>
-                <p class="text-xs text-gray-500">Total rooms in resort</p>
-            </div>
-
-            <div class="dashboard-card bg-white border border-gray-100 rounded-lg p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <div>
-                        <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Revenue (Period)</p>
-                        <p class="text-2xl font-bold text-gray-800" id="kpi-revenue-period">₱0.00</p>
-                    </div>
-                    <i class="fas fa-coins text-2xl text-[#2C5F5F]"></i>
-                </div>
-                <p class="text-xs text-gray-500">For selected period</p>
             </div>
         </div>
 
