@@ -11,11 +11,13 @@ class Payment extends Model
 
     protected $fillable = [
         'booking_id',
+        'reservation_id',
         'reference_id',
         'customer_name',
         'contact_number',
         'payment_date',
         'amount_paid',
+        'payment_stage',
         'status',
         'payment_method',
         'verified_at',
@@ -33,6 +35,11 @@ class Payment extends Model
     public function booking()
     {
         return $this->belongsTo(Booking::class);
+    }
+
+    public function reservation()
+    {
+        return $this->belongsTo(Reservation::class);
     }
 
     public function verifier()

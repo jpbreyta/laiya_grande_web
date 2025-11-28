@@ -4,18 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 
 class Booking extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'room_id',
-        'firstname',
-        'lastname',
-        'email',
-        'phone_number',
+        'customer_id',
         'check_in',
         'check_out',
         'number_of_guests',
@@ -44,9 +42,9 @@ class Booking extends Model
         return $this->belongsTo(Room::class);
     }
 
-    public function payment()
+    public function customer()
     {
-        return $this->hasOne(Payment::class);
+        return $this->belongsTo(Customer::class);
     }
 
     public function paymentRecord()
@@ -62,10 +60,32 @@ class Booking extends Model
     // Accessors
     public function getFullNameAttribute()
     {
-        return "{$this->firstname} {$this->lastname}";
+        return $this->customer 
+            ? "{$this->customer->firstname} {$this->customer->lastname}" 
+            : 'Walk-in / Unknown';
     }
 
-    // Auto-format reservation number (optional utility)
+    public function getFirstnameAttribute()
+    {
+        return $this->customer ? $this->customer->firstname : '';
+    }
+
+    public function getLastnameAttribute()
+    {
+        return $this->customer ? $this->customer->lastname : '';
+    }
+
+    public function getEmailAttribute()
+    {
+        return $this->customer ? $this->customer->email : '';
+    }
+
+    public function getPhoneNumberAttribute()
+    {
+        return $this->customer ? $this->customer->phone_number : '';
+    }
+
+    // Auto-format reservation number
     public static function generateReservationNumber(): string
     {
         $date = Carbon::now()->format('YmdHis');

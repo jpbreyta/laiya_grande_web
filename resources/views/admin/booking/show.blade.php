@@ -39,7 +39,7 @@
                         @foreach ($allImages as $index => $image)
                             <div
                                 class="carousel-slide {{ $index === 0 ? 'active' : '' }} absolute inset-0 transition-opacity duration-500 {{ $index === 0 ? 'opacity-100' : 'opacity-0' }}">
-                                <img src="{{ asset($image) }}" alt="{{ $room->name ?? 'Room' }} - Image {{ $index + 1 }}"
+                                <img src="{{ asset('storage/' . $image) }}" alt="{{ $room->name ?? 'Room' }} - Image {{ $index + 1 }}"
                                     class="w-full h-full object-cover">
                             </div>
                         @endforeach
@@ -97,11 +97,11 @@
                         <div class="flex items-center gap-3">
                             <div
                                 class="h-14 w-14 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold text-lg shadow-lg ring-2 ring-white/20">
-                                {{ strtoupper(substr($booking->firstname, 0, 1) . substr($booking->lastname, 0, 1)) }}
+                                {{ strtoupper(substr($booking->customer->firstname ?? 'G', 0, 1) . substr($booking->customer->lastname ?? 'U', 0, 1)) }}
                             </div>
                             <div>
                                 <p class="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
-                                    {{ $booking->firstname }} {{ $booking->lastname }}
+                                    {{ $booking->customer->firstname ?? 'Unknown' }} {{ $booking->customer->lastname ?? '' }}
                                 </p>
                                 <p class="text-sm text-gray-200">{{ $booking->room->name ?? 'Room N/A' }}</p>
                             </div>
@@ -133,20 +133,20 @@
                             <div
                                 class="p-5 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-100 shadow-sm">
                                 <div class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">Guest Name</div>
-                                <div class="text-lg font-semibold text-slate-900">{{ $booking->firstname }}
-                                    {{ $booking->lastname }}</div>
+                                <div class="text-lg font-semibold text-slate-900">{{ $booking->customer->firstname ?? 'N/A' }}
+                                    {{ $booking->customer->lastname ?? '' }}</div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
                                 <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Email Address
                                 </div>
-                                <div class="text-sm font-medium text-slate-900">{{ $booking->email }}</div>
+                                <div class="text-sm font-medium text-slate-900">{{ $booking->customer->email ?? 'N/A' }}</div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
                                 <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Phone Number
                                 </div>
-                                <div class="text-sm font-medium text-slate-900">{{ $booking->phone_number }}</div>
+                                <div class="text-sm font-medium text-slate-900">{{ $booking->customer->phone_number ?? 'N/A' }}</div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
@@ -198,7 +198,7 @@
 
                         <div class="p-6 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
                             <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Status</div>
-                            <span
+                            <span id="statusBadge"
                                 class="inline-flex items-center px-4 py-2 rounded-full text-xs font-bold shadow-sm
                                 @if ($booking->status === 'pending') bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200
                                 @elseif($booking->status === 'confirmed') bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200
@@ -245,7 +245,7 @@
                                     <div>
                                         <div class="text-xs font-bold text-teal-600 uppercase tracking-wider">Payment Method
                                         </div>
-                                        <div class="text-sm font-bold text-slate-900">
+                                        <div class="text-sm font-bold text-slate-900" data-field="payment_method">
                                             {{ $booking->paymentRecord ? ucfirst($booking->paymentRecord->payment_method) : 'N/A' }}
                                         </div>
                                     </div>
@@ -259,7 +259,7 @@
                                     <div>
                                         <div class="text-xs font-bold text-cyan-600 uppercase tracking-wider">Booking
                                             Date</div>
-                                        <div class="text-sm font-bold text-slate-900">
+                                        <div class="text-sm font-bold text-slate-900" data-field="payment_date">
                                             {{ $booking->created_at->format('M d, Y H:i') }}
                                         </div>
                                     </div>
@@ -273,7 +273,7 @@
                                     <div>
                                         <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Total
                                             Amount</div>
-                                        <div class="text-lg font-black text-emerald-700">
+                                        <div class="text-lg font-black text-emerald-700" data-field="amount_paid">
                                             ₱{{ number_format($booking->total_price, 2) }}
                                         </div>
                                     </div>
@@ -291,14 +291,19 @@
                                 </h4>
                                 @if ($booking->paymentRecord && $booking->paymentRecord->reference_id)
                                     <span
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200 ocr-processed-badge">
                                         <i class="fas fa-check-circle mr-1.5"></i>
                                         Verified
+                                    </span>
+                                @else
+                                    <span style="display:none" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200 ocr-processed-badge">
+                                        <i class="fas fa-check-circle mr-1.5"></i>
+                                        OCR Processed
                                     </span>
                                 @endif
                             </div>
 
-                            @if ($booking->paymentRecord)
+                            @if ($booking->paymentRecord || $booking->payment)
                                 @if (file_exists(storage_path('app/public/' . $booking->payment)))
                                     <div id="paymentProofSection" class="space-y-4">
                                         <div
@@ -313,14 +318,10 @@
                                                 <i class="fas fa-magic"></i>
                                                 Extract Payment Information
                                             </button>
-
-                                            @if ($booking->paymentRecord->reference_id)
-                                                <span
-                                                    class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                                                    <i class="fas fa-check-circle mr-1.5"></i>
-                                                    OCR Processed
-                                                </span>
-                                            @endif
+                                            
+                                            <div class="text-xs text-slate-500 flex items-center ml-2">
+                                                <i class="fas fa-info-circle mr-1"></i> Reference ID: <span class="font-bold ml-1" data-field="reference_id">{{ $booking->paymentRecord->reference_id ?? 'Not Extracted' }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 @else
@@ -697,13 +698,14 @@
                     .then(data => {
                         Swal.close();
                         if (data.success) {
+                            // Update the UI via JS function
+                            updatePaymentInfo(data.data);
+                            
                             Swal.fire({
                                 icon: 'success',
                                 title: 'OCR Processed!',
                                 text: data.message,
                                 confirmButtonColor: '#16a34a'
-                            }).then(() => {
-                                location.reload();
                             });
                         } else {
                             Swal.fire({

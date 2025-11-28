@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\Room;
 use App\Models\Booking;
+use App\Models\Customer;
 use App\Mail\BookingConfirmationMail;
 use Carbon\Carbon;
 
@@ -235,25 +236,31 @@ class BookingController extends Controller
                 $paymentPath = $newPath;
             }
         }
+        $customer = Customer::updateOrCreate(
+            ['email' => $request->email],
+            [
+                'firstname' => $request->first_name,
+                'lastname' => $request->last_name,
+                'phone_number' => $request->phone
+            ]
+        );
 
         foreach ($cart as $item) {
 
             $booking = Booking::create([
                 'room_id' => $item['room_id'],
-                'firstname' => $request->first_name,
-                'lastname' => $request->last_name,
-                'email' => $request->email,
-                'phone_number' => $request->phone,
+                'customer_id' => $customer->id,
                 'check_in' => $request->check_in,
                 'check_out' => $request->check_out,
                 'number_of_guests' => $request->guests,
                 'special_request' => $request->special_request ?? null,
                 'payment_method' => $request->payment_method ?? null,
-                'payment' => $paymentPath, // now always defined
+                'payment' => $paymentPath,
                 'total_price' => $item['room_price'] * $item['quantity'],
                 'status' => 'pending',
                 'reservation_number' => $this->generateReservationNumber(),
             ]);
+
 
             // Create payment record - now required since payment proof is mandatory
             \App\Models\Payment::create([
