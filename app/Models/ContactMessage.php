@@ -6,11 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class ContactMessage extends Model
 {
+    protected $with = ['contactSubject'];
+
     protected $fillable = [
         'name',
         'email',
         'phone',
-        'subject',
+        'contact_subject_id',
         'message',
         'status',
         'read_at',
@@ -25,6 +27,18 @@ class ContactMessage extends Model
         'replied_at' => 'datetime',
         'archived_at' => 'datetime',
     ];
+
+    // Relationship with ContactSubject
+    public function contactSubject()
+    {
+        return $this->belongsTo(ContactSubject::class);
+    }
+
+    // Accessor for subject (for backward compatibility with views)
+    public function getSubjectAttribute()
+    {
+        return $this->contactSubject?->classification;
+    }
 
     // Scope for unread messages
     public function scopeUnread($query)

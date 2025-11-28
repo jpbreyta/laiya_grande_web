@@ -8,14 +8,48 @@ use App\Models\GuestStay;
 
 class GuestStayController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Get all guest stays, optionally paginate
-        $guestStays = GuestStay::with('booking', 'room')
-            ->orderBy('check_in_time', 'desc')
-            ->paginate(10);
+        $status = $request->get('status', 'all');
+        $search = $request->get('search', '');
+        $perPage = $request->get('per_page', 10);
 
-        return view('admin.guest-stays.index', compact('guestStays'));
+        $query = GuestStay::with('booking', 'room');
+
+        // Filter by status
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        // Search functionality
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('guest_name', 'like', "%{$search}%")
+                  ->orWhereHas('booking', function($q2) use ($search) {
+                      $q2->where('reservation_number', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('room', function($q3) use ($search) {
+                      $q3->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Handle "all" entries
+        if ($perPage === 'all') {
+            $guestStays = $query->orderBy('check_in_time', 'desc')->get();
+            // Create a mock paginator for consistency
+            $guestStays = new \Illuminate\Pagination\LengthAwarePaginator(
+                $guestStays,
+                $guestStays->count(),
+                $guestStays->count(),
+                1,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            $guestStays = $query->orderBy('check_in_time', 'desc')->paginate($perPage);
+        }
+
+        return view('admin.guest-stays.index', compact('guestStays', 'status'));
     }
 
     public function show($id)

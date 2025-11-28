@@ -18,6 +18,7 @@ require __DIR__ . '/user/search/search.php';
 require __DIR__ . '/user/room/room.php';
 require __DIR__ . '/user/contact/contact.php';
 require __DIR__ . '/user/cart.php';
+require __DIR__ . '/user/rating.php';
 
 
 

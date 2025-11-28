@@ -31,7 +31,7 @@
                 // --- 2. Payment Computation Logic ---
                 // We use the 'payments' relationship which stores the OCR verified data
                 $verifiedPayments = $reservation->payments ?? collect([]);
-                
+
                 // Calculate Totals based on verified payments
                 $totalPaid = $verifiedPayments->sum('amount_paid');
                 $remainingBalance = $reservation->total_price - $totalPaid;
@@ -48,7 +48,8 @@
                         @foreach ($allImages as $index => $image)
                             <div
                                 class="carousel-slide {{ $index === 0 ? 'active' : '' }} absolute inset-0 transition-opacity duration-500 {{ $index === 0 ? 'opacity-100' : 'opacity-0' }}">
-                                <img src="{{ asset($image) }}" alt="{{ $room->name ?? 'Room' }} - Image {{ $index + 1 }}"
+                                <img src="{{ Str::startsWith($image, 'images/') ? asset($image) : asset('storage/' . $image) }}"
+                                    alt="{{ $room->name ?? 'Room' }} - Image {{ $index + 1 }}"
                                     class="w-full h-full object-cover">
                             </div>
                         @endforeach
@@ -112,7 +113,8 @@
                             <div>
                                 <p class="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
                                     {{-- Normalized: Access Customer --}}
-                                    {{ $reservation->customer->firstname ?? 'Unknown' }} {{ $reservation->customer->lastname ?? 'Guest' }}
+                                    {{ $reservation->customer->firstname ?? 'Unknown' }}
+                                    {{ $reservation->customer->lastname ?? 'Guest' }}
                                 </p>
                                 <p class="text-sm text-gray-200">{{ $reservation->room->name ?? 'Room N/A' }}</p>
                             </div>
@@ -142,16 +144,19 @@
                             <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Guest Information
                             </h3>
 
-                            <div class="p-5 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-100 shadow-sm">
+                            <div
+                                class="p-5 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-100 shadow-sm">
                                 <div class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">Guest Name</div>
                                 <div class="text-lg font-semibold text-slate-900">
                                     {{-- Normalized --}}
-                                    {{ $reservation->customer->firstname ?? 'N/A' }} {{ $reservation->customer->lastname ?? '' }}
+                                    {{ $reservation->customer->firstname ?? 'N/A' }}
+                                    {{ $reservation->customer->lastname ?? '' }}
                                 </div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Email Address</div>
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Email Address
+                                </div>
                                 <div class="text-sm font-medium text-slate-900">
                                     {{-- Normalized --}}
                                     {{ $reservation->customer->email ?? 'N/A' }}
@@ -159,7 +164,8 @@
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Phone Number</div>
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Phone Number
+                                </div>
                                 <div class="text-sm font-medium text-slate-900">
                                     {{-- Normalized --}}
                                     {{ $reservation->customer->phone_number ?? 'N/A' }}
@@ -167,8 +173,10 @@
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Number of Guests</div>
-                                <div class="text-sm font-medium text-slate-900">{{ $reservation->number_of_guests }} guests</div>
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Number of Guests
+                                </div>
+                                <div class="text-sm font-medium text-slate-900">{{ $reservation->number_of_guests }} guests
+                                </div>
                             </div>
                         </div>
 
@@ -177,26 +185,32 @@
                             <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Reservation Details
                             </h3>
 
-                            <div class="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 shadow-sm">
-                                <div class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Reservation ID</div>
-                                <div class="text-lg font-semibold text-slate-900 font-mono">{{ $reservation->reservation_number ?? $reservation->id }}</div>
+                            <div
+                                class="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 shadow-sm">
+                                <div class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Reservation ID
+                                </div>
+                                <div class="text-lg font-semibold text-slate-900 font-mono">
+                                    {{ $reservation->reservation_number ?? $reservation->id }}</div>
                             </div>
 
-                            <div class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 shadow-sm">
+                            <div
+                                class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 shadow-sm">
                                 <div class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1">Room</div>
                                 <div class="text-lg font-semibold text-slate-900">{{ $reservation->room->name ?? 'N/A' }}
                                 </div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Check-in Date</div>
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Check-in Date
+                                </div>
                                 <div class="text-sm font-medium text-slate-900">
                                     {{ \Carbon\Carbon::parse($reservation->check_in)->format('M d, Y') }}
                                 </div>
                             </div>
 
                             <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Check-out Date</div>
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Check-out Date
+                                </div>
                                 <div class="text-sm font-medium text-slate-900">
                                     {{ \Carbon\Carbon::parse($reservation->check_out)->format('M d, Y') }}
                                 </div>
@@ -223,21 +237,26 @@
                         </div>
 
                         {{-- Balance Due --}}
-                        <div class="p-6 bg-white border-2 {{ $remainingBalance > 0 ? 'border-red-200' : 'border-green-200' }} rounded-xl shadow-sm">
-                            <div class="text-xs font-bold uppercase tracking-wider mb-2 {{ $remainingBalance > 0 ? 'text-red-600' : 'text-green-600' }}">
+                        <div
+                            class="p-6 bg-white border-2 {{ $remainingBalance > 0 ? 'border-red-200' : 'border-green-200' }} rounded-xl shadow-sm">
+                            <div
+                                class="text-xs font-bold uppercase tracking-wider mb-2 {{ $remainingBalance > 0 ? 'text-red-600' : 'text-green-600' }}">
                                 {{ $remainingBalance > 0 ? 'Balance Due' : 'Fully Paid' }}
                             </div>
-                            <div class="text-3xl font-black {{ $remainingBalance > 0 ? 'text-red-700' : 'text-green-700' }}">
+                            <div
+                                class="text-3xl font-black {{ $remainingBalance > 0 ? 'text-red-700' : 'text-green-700' }}">
                                 ₱{{ number_format(max(0, $remainingBalance), 2) }}
                             </div>
                         </div>
                     </div>
 
                     <!-- Reservation Code Section -->
-                    <div class="p-6 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-200 shadow-sm mb-8">
+                    <div
+                        class="p-6 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-200 shadow-sm mb-8">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div>
-                                <div class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">Reservation Code</div>
+                                <div class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">Reservation Code
+                                </div>
                                 <div class="text-2xl font-black text-slate-900 font-mono tracking-wide">
                                     {{ $reservation->reservation_number ?? $reservation->id }}
                                 </div>
@@ -255,14 +274,17 @@
                         <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Payment Information</h3>
 
                         <!-- Payment Summary Card -->
-                        <div class="p-6 bg-gradient-to-r from-teal-50 via-emerald-50 to-cyan-50 rounded-2xl border-2 border-teal-200 shadow-lg mb-6">
+                        <div
+                            class="p-6 bg-gradient-to-r from-teal-50 via-emerald-50 to-cyan-50 rounded-2xl border-2 border-teal-200 shadow-lg mb-6">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
+                                    <div
+                                        class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
                                         <i class="fas fa-credit-card text-teal-600 text-lg"></i>
                                     </div>
                                     <div>
-                                        <div class="text-xs font-bold text-teal-600 uppercase tracking-wider">Payment Method</div>
+                                        <div class="text-xs font-bold text-teal-600 uppercase tracking-wider">Payment
+                                            Method</div>
                                         <div class="text-sm font-bold text-slate-900">
                                             {{ ucfirst($reservation->payment_method ?? 'N/A') }}
                                         </div>
@@ -270,11 +292,13 @@
                                 </div>
 
                                 <div class="flex items-center gap-3">
-                                    <div class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
+                                    <div
+                                        class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
                                         <i class="fas fa-calendar-alt text-cyan-600 text-lg"></i>
                                     </div>
                                     <div>
-                                        <div class="text-xs font-bold text-cyan-600 uppercase tracking-wider">Reservation Date</div>
+                                        <div class="text-xs font-bold text-cyan-600 uppercase tracking-wider">Reservation
+                                            Date</div>
                                         <div class="text-sm font-bold text-slate-900">
                                             {{ $reservation->created_at->format('M d, Y H:i') }}
                                         </div>
@@ -282,11 +306,13 @@
                                 </div>
 
                                 <div class="flex items-center gap-3">
-                                    <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md">
+                                    <div
+                                        class="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md">
                                         <i class="fas fa-money-bill-wave text-white text-lg"></i>
                                     </div>
                                     <div>
-                                        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Total Amount</div>
+                                        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Total
+                                            Amount</div>
                                         <div class="text-lg font-black text-emerald-700">
                                             ₱{{ number_format($reservation->total_price, 2) }}
                                         </div>
@@ -298,11 +324,13 @@
                         <!-- First Payment Section -->
                         <div class="bg-slate-50 rounded-2xl border border-slate-200 p-6 mb-6">
                             <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                                <h4
+                                    class="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
                                     <i class="fas fa-receipt text-teal-600"></i>
                                     First Payment
-                                    @if($firstPaymentData)
-                                        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                    @if ($firstPaymentData)
+                                        <span
+                                            class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                                             Verified: ₱{{ number_format($firstPaymentData->amount_paid, 2) }}
                                         </span>
                                     @endif
@@ -324,17 +352,20 @@
                             </div>
 
                             @if ($reservation->first_payment && file_exists(storage_path('app/public/' . $reservation->first_payment)))
-                                <div class="relative rounded-xl overflow-hidden border-2 border-slate-300 shadow-lg bg-white p-4">
+                                <div
+                                    class="relative rounded-xl overflow-hidden border-2 border-slate-300 shadow-lg bg-white p-4">
                                     <img src="{{ asset('storage/' . $reservation->first_payment) }}"
                                         alt="First Payment Proof" class="w-full h-auto max-h-96 object-contain mx-auto">
                                 </div>
                             @elseif($reservation->first_payment)
-                                <div class="p-6 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border-2 border-red-200">
+                                <div
+                                    class="p-6 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border-2 border-red-200">
                                     <div class="flex items-center gap-3 text-red-700">
                                         <i class="fas fa-exclamation-triangle text-xl"></i>
                                         <div>
                                             <p class="font-semibold">Payment proof file not found</p>
-                                            <p class="text-xs text-red-600 mt-1">Path: {{ $reservation->first_payment }}</p>
+                                            <p class="text-xs text-red-600 mt-1">Path: {{ $reservation->first_payment }}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -350,11 +381,13 @@
                         <!-- Second Payment Section -->
                         <div class="bg-slate-50 rounded-2xl border border-slate-200 p-6">
                             <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                                <h4
+                                    class="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
                                     <i class="fas fa-receipt text-teal-600"></i>
                                     Second Payment
-                                    @if($secondPaymentData)
-                                        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                    @if ($secondPaymentData)
+                                        <span
+                                            class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                                             Verified: ₱{{ number_format($secondPaymentData->amount_paid, 2) }}
                                         </span>
                                     @endif
@@ -376,17 +409,20 @@
                             </div>
 
                             @if ($reservation->second_payment && file_exists(storage_path('app/public/' . $reservation->second_payment)))
-                                <div class="relative rounded-xl overflow-hidden border-2 border-slate-300 shadow-lg bg-white p-4">
+                                <div
+                                    class="relative rounded-xl overflow-hidden border-2 border-slate-300 shadow-lg bg-white p-4">
                                     <img src="{{ asset('storage/' . $reservation->second_payment) }}"
                                         alt="Second Payment Proof" class="w-full h-auto max-h-96 object-contain mx-auto">
                                 </div>
                             @elseif($reservation->second_payment)
-                                <div class="p-6 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border-2 border-red-200">
+                                <div
+                                    class="p-6 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border-2 border-red-200">
                                     <div class="flex items-center gap-3 text-red-700">
                                         <i class="fas fa-exclamation-triangle text-xl"></i>
                                         <div>
                                             <p class="font-semibold">Payment proof file not found</p>
-                                            <p class="text-xs text-red-600 mt-1">Path: {{ $reservation->second_payment }}</p>
+                                            <p class="text-xs text-red-600 mt-1">Path: {{ $reservation->second_payment }}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>

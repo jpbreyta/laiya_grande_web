@@ -22,6 +22,9 @@ class BookingController extends Controller
     public function index(Request $request)
     {
         $status = $request->get('status', 'all');
+        $search = $request->get('search', '');
+        $perPage = $request->get('per_page', 10);
+
         $query = Booking::with(['room', 'customer']);
 
         // Filter Logic
@@ -46,14 +49,59 @@ class BookingController extends Controller
                 break;
         }
 
-        $bookings = $query->latest()->get();
+        // Search functionality
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('reservation_number', 'like', "%{$search}%")
+                  ->orWhereHas('customer', function($q2) use ($search) {
+                      $q2->where('firstname', 'like', "%{$search}%")
+                         ->orWhere('lastname', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('room', function($q3) use ($search) {
+                      $q3->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Handle "all" entries
+        if ($perPage === 'all') {
+            $bookings = $query->latest()->get();
+            // Create a mock paginator for consistency
+            $bookings = new \Illuminate\Pagination\LengthAwarePaginator(
+                $bookings,
+                $bookings->count(),
+                $bookings->count(),
+                1,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            $bookings = $query->latest()->paginate($perPage);
+        }
+
         return view('admin.booking.index', compact('bookings', 'status'));
     }
 
     public function show($id)
     {
         $booking = Booking::withTrashed()->with(['room', 'paymentRecord', 'customer'])->findOrFail($id);
-        return view('admin.booking.show', compact('booking'));
+        
+        // Generate QR string with same format as email
+        $guestName = $booking->customer 
+            ? $booking->customer->firstname . ' ' . $booking->customer->lastname
+            : 'Guest';
+        
+        $qrString =
+            "LAIYA GRANDE BOOKING\n" .
+            "Booking ID: {$booking->id}\n" .
+            "Reservation Code: " . ($booking->reservation_number ?? 'N/A') . "\n" .
+            "Guest: {$guestName}\n" .
+            "Check-in: {$booking->check_in}\n" .
+            "Check-out: {$booking->check_out}\n" .
+            "Room ID: {$booking->room_id}\n" .
+            "Total: PHP " . number_format($booking->total_price, 2, '.', '');
+        
+        return view('admin.booking.show', compact('booking', 'qrString'));
     }
 
     public function processOCRForBooking($id)

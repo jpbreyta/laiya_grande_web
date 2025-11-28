@@ -1,7 +1,9 @@
 @extends('admin.settings.layouts.app')
 
 @section('content')
-    <div class="space-y-6">
+    <form action="{{ route('admin.settings.communication.update') }}" method="POST" class="space-y-6">
+        @csrf
+
         <!-- Page Header -->
         <div class="flex items-center justify-between">
             <div>
@@ -13,11 +15,43 @@
                     class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                     <i class="fas fa-arrow-left mr-2"></i>Back to Settings
                 </a>
-                <button class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
+                <button type="submit"
+                    class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
                     <i class="fas fa-save mr-2"></i>Save Changes
                 </button>
             </div>
         </div>
+
+        @if (session('success'))
+            <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-check-circle text-green-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-green-700">{{ session('success') }}</p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-red-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">There were errors with your submission:</h3>
+                        <ul class="mt-2 text-sm text-red-700 list-disc pl-5">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <!-- Email Configuration -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -34,42 +68,52 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">SMTP Host</label>
-                    <input type="text"
+                    <input type="text" name="smtp_host" value="{{ old('smtp_host', $settings->smtp_host) }}"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="smtp.gmail.com">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">SMTP Port</label>
-                    <input type="number"
+                    <input type="number" name="smtp_port" value="{{ old('smtp_port', $settings->smtp_port) }}"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="587">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
-                    <input type="email"
+                    <input type="text" name="smtp_username" value="{{ old('smtp_username', $settings->smtp_username) }}"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="your-email@gmail.com">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                    <input type="password"
+                    <input type="password" name="smtp_password" value="{{ old('smtp_password', $settings->smtp_password) }}"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="••••••••">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Encryption</label>
-                    <select
+                    <select name="smtp_encryption"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="tls">TLS</option>
-                        <option value="ssl">SSL</option>
-                        <option value="none">None</option>
+                        <option value="tls"
+                            {{ old('smtp_encryption', $settings->smtp_encryption) == 'tls' ? 'selected' : '' }}>TLS</option>
+                        <option value="ssl"
+                            {{ old('smtp_encryption', $settings->smtp_encryption) == 'ssl' ? 'selected' : '' }}>SSL</option>
+                        <option value="none"
+                            {{ old('smtp_encryption', $settings->smtp_encryption) == 'none' ? 'selected' : '' }}>None
+                        </option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">From Email</label>
-                    <input type="email"
+                    <input type="email" name="from_address" value="{{ old('from_address', $settings->from_address) }}"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="noreply@laiyagrande.com">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">From Name</label>
+                    <input type="text" name="from_name" value="{{ old('from_name', $settings->from_name) }}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Laiya Grande Resort">
                 </div>
             </div>
         </div>
@@ -89,258 +133,222 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">SMS Provider</label>
-                    <select
+                    <select name="sms_provider"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                         <option value="">Select Provider</option>
-                        <option value="twilio">Twilio</option>
-                        <option value="nexmo">Nexmo</option>
-                        <option value="aws">AWS SNS</option>
-                        <option value="semaphore">Semaphore</option>
+                        <option value="twilio"
+                            {{ old('sms_provider', $settings->sms_provider) == 'twilio' ? 'selected' : '' }}>Twilio
+                        </option>
+                        <option value="nexmo"
+                            {{ old('sms_provider', $settings->sms_provider) == 'nexmo' ? 'selected' : '' }}>Nexmo</option>
+                        <option value="aws"
+                            {{ old('sms_provider', $settings->sms_provider) == 'aws' ? 'selected' : '' }}>AWS SNS</option>
+                        <option value="semaphore"
+                            {{ old('sms_provider', $settings->sms_provider) == 'semaphore' ? 'selected' : '' }}>Semaphore
+                        </option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
-                    <input type="text"
+                    <input type="text" name="sms_api_key" value="{{ old('sms_api_key', $settings->sms_api_key) }}"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         placeholder="Your API Key">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">API Secret</label>
-                    <input type="password"
+                    <input type="password" name="sms_api_secret"
+                        value="{{ old('sms_api_secret', $settings->sms_api_secret) }}"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         placeholder="Your API Secret">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Sender ID</label>
-                    <input type="text"
+                    <input type="text" name="sms_sender_id"
+                        value="{{ old('sms_sender_id', $settings->sms_sender_id) }}"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         placeholder="LaiyaGrande">
                 </div>
             </div>
         </div>
 
-        <!-- Notification Settings -->
+        <!-- Email Notification Toggles -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-center mb-6">
                 <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center mr-3">
-                    <i class="fas fa-bell text-purple-600"></i>
+                    <i class="fas fa-envelope-open-text text-purple-600"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg font-semibold text-gray-800">Notification Settings</h3>
-                    <p class="text-sm text-gray-600">Configure when and how notifications are sent</p>
-                </div>
-            </div>
-
-            <div class="space-y-6">
-                <!-- Booking Notifications -->
-                <div>
-                    <h4 class="text-md font-semibold text-gray-800 mb-4">Booking Notifications</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                            <div>
-                                <p class="font-medium text-gray-800">Booking Confirmation</p>
-                                <p class="text-sm text-gray-600">Send when booking is confirmed</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                <label class="flex items-center">
-                                    <input type="checkbox"
-                                        class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                                    <span class="ml-2 text-sm">Email</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox"
-                                        class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                                    <span class="ml-2 text-sm">SMS</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                            <div>
-                                <p class="font-medium text-gray-800">Payment Reminder</p>
-                                <p class="text-sm text-gray-600">Send payment due reminders</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                <label class="flex items-center">
-                                    <input type="checkbox"
-                                        class="rounded border-gray-300 text-purple-600 focus:ring-purple-500" checked>
-                                    <span class="ml-2 text-sm">Email</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox"
-                                        class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                                    <span class="ml-2 text-sm">SMS</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                            <div>
-                                <p class="font-medium text-gray-800">Check-in Reminder</p>
-                                <p class="text-sm text-gray-600">Send day before check-in</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                <label class="flex items-center">
-                                    <input type="checkbox"
-                                        class="rounded border-gray-300 text-purple-600 focus:ring-purple-500" checked>
-                                    <span class="ml-2 text-sm">Email</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox"
-                                        class="rounded border-gray-300 text-purple-600 focus:ring-purple-500" checked>
-                                    <span class="ml-2 text-sm">SMS</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                            <div>
-                                <p class="font-medium text-gray-800">Cancellation Notice</p>
-                                <p class="text-sm text-gray-600">Send when booking is cancelled</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                <label class="flex items-center">
-                                    <input type="checkbox"
-                                        class="rounded border-gray-300 text-purple-600 focus:ring-purple-500" checked>
-                                    <span class="ml-2 text-sm">Email</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox"
-                                        class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                                    <span class="ml-2 text-sm">SMS</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Admin Notifications -->
-                <div>
-                    <h4 class="text-md font-semibold text-gray-800 mb-4">Admin Notifications</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                            <div>
-                                <p class="font-medium text-gray-800">New Booking</p>
-                                <p class="text-sm text-gray-600">Alert when new booking is made</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                <label class="flex items-center">
-                                    <input type="checkbox"
-                                        class="rounded border-gray-300 text-purple-600 focus:ring-purple-500" checked>
-                                    <span class="ml-2 text-sm">Email</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox"
-                                        class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                                    <span class="ml-2 text-sm">SMS</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                            <div>
-                                <p class="font-medium text-gray-800">Payment Verification</p>
-                                <p class="text-sm text-gray-600">Alert when payment needs verification</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                <label class="flex items-center">
-                                    <input type="checkbox"
-                                        class="rounded border-gray-300 text-purple-600 focus:ring-purple-500" checked>
-                                    <span class="ml-2 text-sm">Email</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox"
-                                        class="rounded border-gray-300 text-purple-600 focus:ring-purple-500" checked>
-                                    <span class="ml-2 text-sm">SMS</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Language & Localization -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center mb-6">
-                <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center mr-3">
-                    <i class="fas fa-language text-indigo-600"></i>
-                </div>
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-800">Language & Localization</h3>
-                    <p class="text-sm text-gray-600">Configure language and regional settings</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Default Language</label>
-                    <select
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                        <option value="en">English</option>
-                        <option value="tl">Filipino (Tagalog)</option>
-                        <option value="es">Spanish</option>
-                        <option value="zh">Chinese</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
-                    <select
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                        <option value="Asia/Manila">Asia/Manila (GMT+8)</option>
-                        <option value="UTC">UTC</option>
-                        <option value="America/New_York">America/New_York (GMT-5)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Date Format</label>
-                    <select
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                        <option value="m/d/Y">MM/DD/YYYY</option>
-                        <option value="d/m/Y">DD/MM/YYYY</option>
-                        <option value="Y-m-d">YYYY-MM-DD</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Email Templates -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center mb-6">
-                <div class="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center mr-3">
-                    <i class="fas fa-file-alt text-yellow-600"></i>
-                </div>
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-800">Email Templates</h3>
-                    <p class="text-sm text-gray-600">Customize email templates for different notifications</p>
+                    <h3 class="text-lg font-semibold text-gray-800">Email Notifications</h3>
+                    <p class="text-sm text-gray-600">Enable or disable email notifications for different events</p>
                 </div>
             </div>
 
             <div class="space-y-4">
                 <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div>
-                        <p class="font-medium text-gray-800">Booking Confirmation Template</p>
-                        <p class="text-sm text-gray-600">Template sent when booking is confirmed</p>
+                        <p class="font-medium text-gray-800">OTP Verification</p>
+                        <p class="text-sm text-gray-600">Send OTP codes via email for authentication</p>
                     </div>
-                    <button class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
-                        <i class="fas fa-edit mr-2"></i>Edit Template
-                    </button>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="email_otp_enabled" value="1"
+                            {{ old('email_otp_enabled', $settings->email_otp_enabled) ? 'checked' : '' }}
+                            class="sr-only peer">
+                        <div
+                            class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600">
+                        </div>
+                    </label>
                 </div>
+
                 <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div>
-                        <p class="font-medium text-gray-800">Payment Reminder Template</p>
-                        <p class="text-sm text-gray-600">Template for payment due reminders</p>
+                        <p class="font-medium text-gray-800">Booking Confirmation</p>
+                        <p class="text-sm text-gray-600">Send email when booking is confirmed</p>
                     </div>
-                    <button class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
-                        <i class="fas fa-edit mr-2"></i>Edit Template
-                    </button>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="email_booking_confirmation_enabled" value="1"
+                            {{ old('email_booking_confirmation_enabled', $settings->email_booking_confirmation_enabled) ? 'checked' : '' }}
+                            class="sr-only peer">
+                        <div
+                            class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600">
+                        </div>
+                    </label>
                 </div>
+
                 <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div>
-                        <p class="font-medium text-gray-800">Check-in Reminder Template</p>
-                        <p class="text-sm text-gray-600">Template sent before check-in date</p>
+                        <p class="font-medium text-gray-800">Payment Reminder</p>
+                        <p class="text-sm text-gray-600">Send payment due reminders via email</p>
                     </div>
-                    <button class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
-                        <i class="fas fa-edit mr-2"></i>Edit Template
-                    </button>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="email_payment_reminder_enabled" value="1"
+                            {{ old('email_payment_reminder_enabled', $settings->email_payment_reminder_enabled) ? 'checked' : '' }}
+                            class="sr-only peer">
+                        <div
+                            class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600">
+                        </div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div>
+                        <p class="font-medium text-gray-800">Check-in Reminder</p>
+                        <p class="text-sm text-gray-600">Send reminder email before check-in date</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="email_checkin_reminder_enabled" value="1"
+                            {{ old('email_checkin_reminder_enabled', $settings->email_checkin_reminder_enabled) ? 'checked' : '' }}
+                            class="sr-only peer">
+                        <div
+                            class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600">
+                        </div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div>
+                        <p class="font-medium text-gray-800">Cancellation Notice</p>
+                        <p class="text-sm text-gray-600">Send email when booking is cancelled</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="email_cancellation_enabled" value="1"
+                            {{ old('email_cancellation_enabled', $settings->email_cancellation_enabled) ? 'checked' : '' }}
+                            class="sr-only peer">
+                        <div
+                            class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600">
+                        </div>
+                    </label>
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- SMS Notification Toggles -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center mr-3">
+                    <i class="fas fa-comment-dots text-green-600"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800">SMS Notifications</h3>
+                    <p class="text-sm text-gray-600">Enable or disable SMS notifications for different events</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div>
+                        <p class="font-medium text-gray-800">OTP Verification</p>
+                        <p class="text-sm text-gray-600">Send OTP codes via SMS for authentication</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="sms_otp_enabled" value="1"
+                            {{ old('sms_otp_enabled', $settings->sms_otp_enabled) ? 'checked' : '' }}
+                            class="sr-only peer">
+                        <div
+                            class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600">
+                        </div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div>
+                        <p class="font-medium text-gray-800">Booking Confirmation</p>
+                        <p class="text-sm text-gray-600">Send SMS when booking is confirmed</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="sms_booking_confirmation_enabled" value="1"
+                            {{ old('sms_booking_confirmation_enabled', $settings->sms_booking_confirmation_enabled) ? 'checked' : '' }}
+                            class="sr-only peer">
+                        <div
+                            class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600">
+                        </div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div>
+                        <p class="font-medium text-gray-800">Payment Reminder</p>
+                        <p class="text-sm text-gray-600">Send payment due reminders via SMS</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="sms_payment_reminder_enabled" value="1"
+                            {{ old('sms_payment_reminder_enabled', $settings->sms_payment_reminder_enabled) ? 'checked' : '' }}
+                            class="sr-only peer">
+                        <div
+                            class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600">
+                        </div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div>
+                        <p class="font-medium text-gray-800">Check-in Reminder</p>
+                        <p class="text-sm text-gray-600">Send reminder SMS before check-in date</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="sms_checkin_reminder_enabled" value="1"
+                            {{ old('sms_checkin_reminder_enabled', $settings->sms_checkin_reminder_enabled) ? 'checked' : '' }}
+                            class="sr-only peer">
+                        <div
+                            class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600">
+                        </div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div>
+                        <p class="font-medium text-gray-800">Cancellation Notice</p>
+                        <p class="text-sm text-gray-600">Send SMS when booking is cancelled</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="sms_cancellation_enabled" value="1"
+                            {{ old('sms_cancellation_enabled', $settings->sms_cancellation_enabled) ? 'checked' : '' }}
+                            class="sr-only peer">
+                        <div
+                            class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600">
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </form>
 @endsection

@@ -19,6 +19,9 @@ class ReservationController extends Controller
     public function index(Request $request)
     {
         $status = $request->get('status', 'all');
+        $search = $request->get('search', '');
+        $perPage = $request->get('per_page', 10);
+
         $query = Reservation::with(['room', 'customer']);
 
         switch ($status) {
@@ -39,7 +42,36 @@ class ReservationController extends Controller
                 break;
         }
 
-        $reservations = $query->latest()->paginate(10);
+        // Search functionality
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('reservation_number', 'like', "%{$search}%")
+                  ->orWhereHas('customer', function($q2) use ($search) {
+                      $q2->where('firstname', 'like', "%{$search}%")
+                         ->orWhere('lastname', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('room', function($q3) use ($search) {
+                      $q3->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Handle "all" entries
+        if ($perPage === 'all') {
+            $reservations = $query->latest()->get();
+            // Create a mock paginator for consistency
+            $reservations = new \Illuminate\Pagination\LengthAwarePaginator(
+                $reservations,
+                $reservations->count(),
+                $reservations->count(),
+                1,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            $reservations = $query->latest()->paginate($perPage);
+        }
+
         return view('admin.reservation.index', compact('reservations', 'status'));
     }
 
@@ -355,8 +387,8 @@ class ReservationController extends Controller
                     $reservation->customer->email,
                     $reservation->customer->phone_number,
                     $reservation->room->name ?? 'N/A',
-                    $reservation->check_in->format('Y-m-d'),
-                    $reservation->check_out->format('Y-m-d'),
+                    \Carbon\Carbon::parse($reservation->check_in)->format('Y-m-d'),
+                    \Carbon\Carbon::parse($reservation->check_out)->format('Y-m-d'),
                     $reservation->total_price,
                     ucfirst($reservation->status),
                     $reservation->created_at->format('Y-m-d H:i')

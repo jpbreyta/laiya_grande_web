@@ -62,16 +62,16 @@ class CartController extends Controller
         return view('user.cart.index', compact('cart'));
     }
 
-    public function remove($id)
+    public function remove($roomId)
     {
         $cart = session()->get('cart', []);
 
-        if (isset($cart[$id])) {
-            unset($cart[$id]);
+        if (isset($cart[$roomId])) {
+            unset($cart[$roomId]);
             session()->put('cart', $cart);
         }
 
-        return redirect()->back()->with('success', 'Room removed from cart.');
+        return response()->json(['success' => true, 'message' => 'Room removed from cart.']);
     }
 
     public function increment(Request $request)
@@ -107,7 +107,7 @@ class CartController extends Controller
         $totalQuantity = 0;
         $totalPrice = 0;
 
-        foreach ($cart as $id => $details) {
+        foreach ($cart as $details) {
             $totalQuantity += $details['quantity'];
             $totalPrice += $details['room_price'] * $details['quantity'];
         }
@@ -116,7 +116,7 @@ class CartController extends Controller
             'cart' => $cart,
             'total_count' => $totalQuantity,
             'total_price' => $totalPrice,
-            'count' => count($cart)
+            'count' => \count($cart)
         ]);
     }
 }

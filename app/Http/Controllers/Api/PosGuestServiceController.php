@@ -8,7 +8,9 @@ use App\Models\GuestStay;
 use App\Models\RentalItem;
 use App\Models\WaterSport;
 use App\Models\PointOfSale as POS;
+use App\Models\PosTransaction;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PosGuestServiceController extends Controller
 {
@@ -16,6 +18,7 @@ class PosGuestServiceController extends Controller
     public function activeGuests()
     {
         $guests = GuestStay::where('status', 'checked-in')
+            ->with('room:id,name')
             ->get(['id', 'guest_name as name', 'room_id']);
         return response()->json($guests);
     }
@@ -24,9 +27,11 @@ class PosGuestServiceController extends Controller
     public function items()
     {
         $rentalItems = RentalItem::where('is_available', true)
-            ->get(['id', 'name', 'price', DB::raw("'RENTAL' as type")]);
+            ->select('id', 'name', 'price', DB::raw("'rental' as type"))
+            ->get();
 
-        $waterSports = WaterSport::all(['id', 'name', DB::raw('0 as price'), DB::raw("'WATER_SPORT' as type")]);
+        $waterSports = WaterSport::select('id', 'name', 'price_details as price', DB::raw("'water_sport' as type"))
+            ->get();
 
         $allItems = $rentalItems->concat($waterSports);
 
@@ -52,36 +57,81 @@ class PosGuestServiceController extends Controller
         try {
             $guestId = $request->guest_stay_id;
             $totalDiscount = $request->total_discount ?? 0;
-
+            
+            // Generate unique transaction/receipt number
+            $receiptNumber = 'RCP-' . date('YmdHis') . '-' . strtoupper(Str::random(4));
+            
+            // Calculate totals
+            $subtotal = 0;
+            $itemsData = [];
+            
+            // Create transaction record first
+            $transaction = PosTransaction::create([
+                'receipt_number' => $receiptNumber,
+                'guest_stay_id' => $guestId,
+                'subtotal' => 0, // Will update after
+                'discount' => $totalDiscount,
+                'total' => 0, // Will update after
+                'items_count' => count($request->items),
+                'transaction_date' => now(),
+            ]);
+            
             foreach ($request->items as $item) {
+                $itemTotal = ($item['price'] * $item['qty']) - $item['discount'];
+                $subtotal += $itemTotal;
+                
                 POS::create([
                     'guest_stay_id' => $guestId,
+                    'transaction_id' => $transaction->id,
                     'item_name' => $item['name'],
                     'item_type' => $item['type'],
                     'quantity' => $item['qty'],
                     'price' => $item['price'],
-                    'total_amount' => ($item['price'] * $item['qty']) - $item['discount'],
+                    'total_amount' => $itemTotal,
                     'discount' => $item['discount'],
                 ]);
+                
+                $itemsData[] = [
+                    'name' => $item['name'],
+                    'type' => $item['type'],
+                    'qty' => $item['qty'],
+                    'price' => $item['price'],
+                    'discount' => $item['discount'],
+                    'total' => $itemTotal
+                ];
             }
 
-            if ($totalDiscount > 0) {
-                POS::create([
-                    'guest_stay_id' => $guestId,
-                    'item_name' => 'TOTAL DISCOUNT',
-                    'item_type' => 'DISCOUNT',
-                    'quantity' => 1,
-                    'price' => -$totalDiscount,
-                    'total_amount' => -$totalDiscount,
-                    'discount' => $totalDiscount,
-                ]);
-            }
+            $grandTotal = $subtotal - $totalDiscount;
+            
+            // Update transaction totals
+            $transaction->update([
+                'subtotal' => $subtotal,
+                'total' => $grandTotal,
+            ]);
 
             DB::commit();
-            return response()->json(['message' => 'Cart successfully charged!']);
+            
+            // Return receipt data
+            $guest = GuestStay::with('room')->find($guestId);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Cart successfully charged!',
+                'receipt' => [
+                    'receipt_number' => $receiptNumber,
+                    'transaction_id' => $transaction->id,
+                    'guest_name' => $guest->guest_name,
+                    'room' => $guest->room->name ?? 'N/A',
+                    'date' => now()->format('M d, Y h:i A'),
+                    'items' => $itemsData,
+                    'subtotal' => $subtotal,
+                    'discount' => $totalDiscount,
+                    'total' => $grandTotal
+                ]
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Error processing cart.', 'error' => $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Error processing cart.', 'error' => $e->getMessage()], 500);
         }
     }
 }

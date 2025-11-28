@@ -8,23 +8,30 @@
 @section('content')
     <section class="p-4 bg-gray-50 min-h-screen">
         <div class="max-w-7xl mx-auto">
-            
+
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h1 class="text-2xl font-bold text-gray-800">{{ $pageTitle }}</h1>
-                
+
                 <div class="flex gap-2">
-                    <button onclick="document.getElementById('importModal').classList.remove('hidden')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow flex items-center gap-2">
+                    <button onclick="document.getElementById('importModal').classList.remove('hidden')"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow flex items-center gap-2">
                         <i class="fas fa-file-import"></i> Import CSV
                     </button>
 
                     <div class="relative group">
-                        <button class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-50 flex items-center gap-2">
+                        <button
+                            class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-50 flex items-center gap-2">
                             <i class="fas fa-download"></i> Export <i class="fas fa-chevron-down text-xs"></i>
                         </button>
-                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden group-hover:block z-50 border border-gray-100">
-                            <a href="{{ route('admin.reservation.export-csv', ['status' => $currentStatus]) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">CSV</a>
-                            <a href="{{ route('admin.reservation.export-csv', ['status' => $currentStatus]) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Excel (csv)</a>
-                            <a href="{{ route('admin.reservation.export-pdf', ['status' => $currentStatus]) }}" target="_blank" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Print / PDF</a>
+                        <div
+                            class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden group-hover:block z-50 border border-gray-100">
+                            <a href="{{ route('admin.reservation.export-csv', ['status' => $currentStatus]) }}"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">CSV</a>
+                            <a href="{{ route('admin.reservation.export-csv', ['status' => $currentStatus]) }}"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Excel (csv)</a>
+                            <a href="{{ route('admin.reservation.export-pdf', ['status' => $currentStatus]) }}"
+                                target="_blank" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Print /
+                                PDF</a>
                         </div>
                     </div>
                 </div>
@@ -39,27 +46,50 @@
                             'confirmed' => 'Confirmed',
                             'paid' => 'Paid',
                             'cancelled' => 'Cancelled',
-                            'archived' => 'Archived'
+                            'archived' => 'Archived',
                         ];
                     @endphp
-                    @foreach($tabs as $key => $label)
-                        <a href="{{ route('admin.reservation.index', ['status' => $key]) }}" 
-                           class="px-4 py-2 rounded-lg text-sm font-medium transition-all {{ $currentStatus === $key ? 'bg-teal-600 text-white shadow' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900' }}">
-                           {{ $label }}
+                    @foreach ($tabs as $key => $label)
+                        <a href="{{ route('admin.reservation.index', ['status' => $key]) }}"
+                            class="px-4 py-2 rounded-lg text-sm font-medium transition-all {{ $currentStatus === $key ? 'bg-teal-600 text-white shadow' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900' }}">
+                            {{ $label }}
                         </a>
                     @endforeach
                 </nav>
             </div>
 
+            <div class="mb-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-600">Show</label>
+                    <select id="entriesSelect"
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                        <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+                    </select>
+                    <label class="text-sm text-gray-600">entries</label>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-600">Search:</label>
+                    <input type="text" id="searchInput" value="{{ request('search') }}" placeholder="Search..."
+                        class="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                </div>
+            </div>
+
             @if (session('success'))
-                <div class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 px-4 py-3 rounded-lg shadow-sm mb-6 flex justify-between items-center">
+                <div
+                    class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 px-4 py-3 rounded-lg shadow-sm mb-6 flex justify-between items-center">
                     <span>{{ session('success') }}</span>
                     <button onclick="this.parentElement.remove()" class="text-emerald-700">&times;</button>
                 </div>
             @endif
 
             @if (session('error'))
-                <div class="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg shadow-sm mb-6 flex justify-between items-center">
+                <div
+                    class="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg shadow-sm mb-6 flex justify-between items-center">
                     <span>{{ session('error') }}</span>
                     <button onclick="this.parentElement.remove()" class="text-red-700">&times;</button>
                 </div>
@@ -81,24 +111,23 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse ($reservations as $reservation)
-                                <tr class="hover:bg-gray-50 transition-colors" 
-                                    style="cursor: pointer;"
+                                <tr class="hover:bg-gray-50 transition-colors" style="cursor: pointer;"
                                     onclick="window.location.href='{{ route('admin.reservation.show', $reservation->id) }}'">
-                                    
+
                                     <td class="py-3 px-4 text-xs font-mono text-gray-500">
                                         {{ $reservation->reservation_number ?? $reservation->id }}
                                     </td>
-                                    
+
                                     <td class="py-3 px-4">
-                                        {{-- Normalization: Accessing Customer relationship --}}
                                         <div class="text-sm font-bold text-gray-900">
-                                            {{ $reservation->customer->firstname ?? 'Unknown' }} {{ $reservation->customer->lastname ?? '' }}
+                                            {{ $reservation->customer->firstname ?? 'Unknown' }}
+                                            {{ $reservation->customer->lastname ?? '' }}
                                         </div>
                                         <div class="text-xs text-gray-500">
                                             {{ $reservation->customer->email ?? 'No email' }}
                                         </div>
                                     </td>
-                                    
+
                                     <td class="py-3 px-4 text-sm text-gray-700">
                                         {{ $reservation->room->name ?? 'N/A' }}
                                     </td>
@@ -111,49 +140,49 @@
                                     <td class="py-3 px-4 font-bold text-emerald-600">
                                         ₱{{ number_format($reservation->total_price, 2) }}
                                     </td>
-                                    
+
                                     <td class="py-3 px-4">
                                         @php
                                             $colors = [
-                                                'pending'   => 'bg-amber-100 text-amber-800 border border-amber-200',
+                                                'pending' => 'bg-amber-100 text-amber-800 border border-amber-200',
                                                 'confirmed' => 'bg-green-100 text-green-800 border border-green-200',
-                                                'paid'      => 'bg-blue-100 text-blue-800 border border-blue-200',
+                                                'paid' => 'bg-blue-100 text-blue-800 border border-blue-200',
                                                 'cancelled' => 'bg-red-100 text-red-800 border border-red-200',
                                             ];
                                             $color = $colors[$reservation->status] ?? 'bg-gray-100 text-gray-800';
                                         @endphp
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $color }}">
+                                        <span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $color }}">
                                             {{ ucfirst($reservation->status) }}
                                         </span>
                                     </td>
 
                                     <td class="py-3 px-4 text-center" onclick="event.stopPropagation();">
                                         <div class="flex items-center justify-center gap-2">
-                                            @if($currentStatus === 'archived')
-                                                <form action="{{ route('admin.reservation.restore', $reservation->id) }}" method="POST">
-                                                    @csrf @method('POST')
-                                                    <button type="submit" class="text-emerald-600 hover:text-emerald-900 text-xs font-bold uppercase" title="Restore">Restore</button>
-                                                </form>
-                                                <form action="{{ route('admin.reservation.force-delete', $reservation->id) }}" method="POST" onsubmit="return confirm('Permanently delete?');">
-                                                    @csrf @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-900 text-xs font-bold uppercase ml-2" title="Delete Forever">Delete</button>
-                                                </form>
+                                            @if ($currentStatus === 'archived')
+                                                <button onclick="restoreReservation({{ $reservation->id }})"
+                                                    class="text-emerald-600 hover:text-emerald-900 text-xs font-bold uppercase"
+                                                    title="Restore">Restore</button>
+                                                <button onclick="forceDeleteReservation({{ $reservation->id }})"
+                                                    class="text-red-600 hover:text-red-900 text-xs font-bold uppercase ml-2"
+                                                    title="Delete Forever">Delete</button>
                                             @else
-                                                <a href="{{ route('admin.reservation.show', $reservation->id) }}" class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition" title="View">
+                                                <a href="{{ route('admin.reservation.show', $reservation->id) }}"
+                                                    class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition"
+                                                    title="View">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="{{ route('admin.reservation.edit', $reservation->id) }}" class="text-emerald-600 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 p-2 rounded-lg transition" title="Edit">
+                                                <a href="{{ route('admin.reservation.edit', $reservation->id) }}"
+                                                    class="text-emerald-600 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 p-2 rounded-lg transition"
+                                                    title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                
-                                                {{-- Archive Button --}}
-                                                <form action="{{ route('admin.reservation.destroy', $reservation->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to archive this reservation?');" class="inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition" title="Archive">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                    </button>
-                                                </form>
+
+                                                <button onclick="archiveReservation({{ $reservation->id }})"
+                                                    class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition"
+                                                    title="Archive">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
                                             @endif
                                         </div>
                                     </td>
@@ -163,16 +192,18 @@
                                     <td colspan="7" class="py-8 text-center text-gray-500">
                                         <div class="flex flex-col items-center justify-center">
                                             <i class="fas fa-folder-open text-4xl mb-3 text-gray-300"></i>
-                                            <p>No {{ $currentStatus == 'all' ? '' : $currentStatus }} reservations found.</p>
+                                            <p>No {{ $currentStatus == 'all' ? '' : $currentStatus }} reservations found.
+                                            </p>
                                         </div>
                                     </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
-                    <div class="p-4 border-t border-gray-100">
-                        {{ $reservations->appends(['status' => $currentStatus])->links() }}
-                    </div>
+                </div>
+
+                <div class="mt-4 px-4 pb-4">
+                    {{ $reservations->appends(['status' => $currentStatus, 'search' => request('search'), 'per_page' => request('per_page', 10)])->links() }}
                 </div>
             </div>
         </div>
@@ -185,14 +216,148 @@
                 @csrf
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Upload CSV File</label>
-                    <input type="file" name="csv_file" accept=".csv" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-gray-300 rounded-lg cursor-pointer">
-                    <p class="text-xs text-gray-500 mt-2">Format: Firstname, Lastname, Email, Phone, RoomID, CheckIn, CheckOut, Guests, Total, Status</p>
+                    <input type="file" name="csv_file" accept=".csv" required
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-gray-300 rounded-lg cursor-pointer">
+                    <p class="text-xs text-gray-500 mt-2">Format: Firstname, Lastname, Email, Phone, RoomID, CheckIn,
+                        CheckOut, Guests, Total, Status</p>
                 </div>
                 <div class="flex justify-end gap-3">
-                    <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">Upload & Import</button>
+                    <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')"
+                        class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">Upload &
+                        Import</button>
                 </div>
             </form>
         </div>
     </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const entriesSelect = document.getElementById('entriesSelect');
+
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                updateUrl();
+            }, 500);
+        });
+
+        entriesSelect.addEventListener('change', function() {
+            updateUrl();
+        });
+
+        function updateUrl() {
+            const url = new URL(window.location.href);
+            const search = searchInput.value;
+            const perPage = entriesSelect.value;
+
+            if (search) {
+                url.searchParams.set('search', search);
+            } else {
+                url.searchParams.delete('search');
+            }
+
+            url.searchParams.set('per_page', perPage);
+            url.searchParams.set('page', 1);
+
+            window.location.href = url.toString();
+        }
+
+        function archiveReservation(reservationId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This reservation will be archived!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, archive it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `{{ url('admin/reservation') }}/${reservationId}`;
+
+                    const csrfToken = document.createElement('input');
+                    csrfToken.type = 'hidden';
+                    csrfToken.name = '_token';
+                    csrfToken.value = '{{ csrf_token() }}';
+
+                    const methodField = document.createElement('input');
+                    methodField.type = 'hidden';
+                    methodField.name = '_method';
+                    methodField.value = 'DELETE';
+
+                    form.appendChild(csrfToken);
+                    form.appendChild(methodField);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+
+        function restoreReservation(reservationId) {
+            Swal.fire({
+                title: 'Restore Reservation?',
+                text: "This reservation will be restored!",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, restore it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `{{ url('admin/reservation') }}/${reservationId}/restore`;
+
+                    const csrfToken = document.createElement('input');
+                    csrfToken.type = 'hidden';
+                    csrfToken.name = '_token';
+                    csrfToken.value = '{{ csrf_token() }}';
+
+                    form.appendChild(csrfToken);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+
+        function forceDeleteReservation(reservationId) {
+            Swal.fire({
+                title: 'Permanently Delete?',
+                text: "This action cannot be undone!",
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, delete permanently!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `{{ url('admin/reservation') }}/${reservationId}/force-delete`;
+
+                    const csrfToken = document.createElement('input');
+                    csrfToken.type = 'hidden';
+                    csrfToken.name = '_token';
+                    csrfToken.value = '{{ csrf_token() }}';
+
+                    const methodField = document.createElement('input');
+                    methodField.type = 'hidden';
+                    methodField.name = '_method';
+                    methodField.value = 'DELETE';
+
+                    form.appendChild(csrfToken);
+                    form.appendChild(methodField);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+    </script>
 @endsection

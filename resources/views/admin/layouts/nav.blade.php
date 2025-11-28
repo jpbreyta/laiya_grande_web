@@ -54,6 +54,10 @@
                     <i class="fas fa-user-check"></i>
                     <span>Guest & Booking</span>
                 </a>
+                <a href="{{ route('admin.qr.scanner') }}" class="accordion-link">
+                    <i class="fas fa-qrcode"></i>
+                    <span>QR Scanner</span>
+                </a>
             </div>
         </div>
 

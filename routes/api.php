@@ -9,3 +9,4 @@ Route::get('/user', function (Request $request) {
 
 require __DIR__. '/api/PosBooking.php';
 require __DIR__. '/api/PosGuestService.php';
+require __DIR__. '/api/PosInventory.php';
