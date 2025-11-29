@@ -1,30 +1,39 @@
 @extends('admin.layouts.app')
 
-@php
-    $pageTitle = 'Inventory Management';
-@endphp
-
 @section('content')
-    <section class="p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-        <div class="max-w-7xl mx-auto">
-
-            @include('admin.components.table-controls', [
-                'more' => [
-                    ['label' => 'Export as CSV', 'route' => '#'],
-                    ['label' => 'Export as Excel', 'route' => '#'],
-                    ['label' => 'Export as PDF', 'route' => '#'],
-                ],
-                'title' => $pageTitle,
-                'search' => true,
-                'entries' => true,
-                'button' => [
-                    'type' => 'add',
-                    'text' => 'Add New Item',
-                    'route' => 'admin.inventory',
-                    'color' => 'bg-gradient-to-r from-emerald-500 to-green-600',
-                    'icon' => 'fa-plus',
-                ],
-            ])
+    <section class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <!-- Top Action Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Inventory Management</h1>
+                    <p class="text-sm text-slate-500 mt-1">Manage your inventory items and stock levels</p>
+                </div>
+                <div class="flex gap-2">
+                    <div class="relative">
+                        <button id="exportDropdownBtn" type="button"
+                            class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow flex items-center gap-2">
+                            <i class="fas fa-download"></i> Export <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div id="exportDropdown"
+                            class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden z-50 border border-gray-100">
+                            <a href="#"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md">
+                                <i class="fas fa-file-csv mr-2"></i>Export CSV
+                            </a>
+                            <a href="#"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-md">
+                                <i class="fas fa-file-pdf mr-2"></i>Export PDF
+                            </a>
+                        </div>
+                    </div>
+                    <a href="#"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white px-6 py-3 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 whitespace-nowrap">
+                        <i class="fas fa-plus"></i>
+                        Add New Item
+                    </a>
+                </div>
+            </div>
 
             @if (session('success'))
                 <div
@@ -40,24 +49,26 @@
                 </div>
             @endif
 
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+            <div class="rounded-2xl bg-white shadow-xl ring-1 ring-slate-200 overflow-hidden">
+                <div class="border-b border-slate-100 px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-900">Inventory Overview</h2>
+                        <p class="text-sm text-slate-500">All inventory items with stock levels and values.</p>
+                    </div>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
-                            <tr
-                                class="bg-gradient-to-r from-emerald-500 to-emerald-700 text-left text-white uppercase text-xs font-bold tracking-wider">
-                                <th class="py-3 px-4">
-                                    <input type="checkbox"
-                                        class="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                </th>
+                            <tr class="bg-gray-50 text-left text-gray-600 uppercase text-xs font-bold tracking-wider">
+                                <th class="py-3 px-4">ID</th>
                                 <th class="py-3 px-4">Item Name</th>
                                 <th class="py-3 px-4">Category</th>
                                 <th class="py-3 px-4">Quantity</th>
-                                <th class="py-3 px-4">Unit</th>
                                 <th class="py-3 px-4">Unit Price</th>
                                 <th class="py-3 px-4">Total Value</th>
                                 <th class="py-3 px-4">Status</th>
                                 <th class="py-3 px-4">Last Updated</th>
+                                <th class="py-3 px-4 text-center">Action</th>
                             </tr>
                         </thead>
 
@@ -128,53 +139,58 @@
                             @endphp
 
                             @forelse ($inventoryItems as $item)
-                                <tr class="hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-indigo-50/20 transition-all duration-200"
-                                    style="cursor: pointer;">
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4 text-xs font-semibold text-gray-700">{{ $item['id'] }}</td>
+                                    
                                     <td class="py-3 px-4">
-                                        <input type="checkbox"
-                                            class="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded"
-                                            onclick="event.stopPropagation();">
+                                        <div class="text-sm font-bold text-gray-900">{{ $item['name'] }}</div>
+                                        <div class="text-xs text-gray-500">{{ $item['unit'] }}</div>
                                     </td>
-                                    <td class="py-3 px-4 font-medium text-gray-900">{{ $item['name'] }}</td>
-                                    <td class="py-3 px-4 text-gray-700">{{ $item['category'] }}</td>
-                                    <td class="py-3 px-4 text-gray-700 font-semibold">{{ $item['quantity'] }}</td>
-                                    <td class="py-3 px-4 text-gray-700">{{ $item['unit'] }}</td>
-                                    <td class="py-3 px-4 text-gray-700">₱{{ number_format($item['unit_price'], 2) }}</td>
-                                    <td
-                                        class="py-3 px-4 font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
+
+                                    <td class="py-3 px-4 text-sm text-gray-700">{{ $item['category'] }}</td>
+                                    <td class="py-3 px-4 text-sm font-semibold text-gray-700">{{ $item['quantity'] }} {{ $item['unit'] }}</td>
+                                    <td class="py-3 px-4 text-sm text-gray-700">₱{{ number_format($item['unit_price'], 2) }}</td>
+                                    <td class="py-3 px-4 font-bold text-emerald-600">
                                         ₱{{ number_format($item['quantity'] * $item['unit_price'], 2) }}</td>
 
                                     <td class="py-3 px-4">
                                         @php
-                                            $statusStyles = [
-                                                'in-stock' =>
-                                                    'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200',
-                                                'low-stock' =>
-                                                    'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200',
-                                                'out-of-stock' =>
-                                                    'bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200',
+                                            $colors = [
+                                                'in-stock' => 'bg-green-100 text-green-800',
+                                                'low-stock' => 'bg-yellow-100 text-yellow-800',
+                                                'out-of-stock' => 'bg-red-100 text-red-800',
                                             ];
-                                            $statusDots = [
-                                                'in-stock' => 'bg-green-500',
-                                                'low-stock' => 'bg-amber-500',
-                                                'out-of-stock' => 'bg-red-500',
-                                            ];
+                                            $color = $colors[$item['status']] ?? 'bg-gray-100 text-gray-800';
                                         @endphp
-                                        <span
-                                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold shadow-sm {{ $statusStyles[$item['status']] ?? 'bg-gray-100 text-gray-800' }}">
-                                            <span
-                                                class="w-1.5 h-1.5 rounded-full mr-1.5 {{ $statusDots[$item['status']] ?? 'bg-gray-500' }}"></span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $color }}">
                                             {{ ucfirst(str_replace('-', ' ', $item['status'])) }}
                                         </span>
                                     </td>
 
-                                    <td class="py-3 px-4 text-gray-700">
+                                    <td class="py-3 px-4 text-sm text-gray-700">
                                         {{ \Carbon\Carbon::parse($item['updated_at'])->format('M d, Y') }}</td>
+
+                                    <td class="py-3 px-4 text-center">
+                                        <div class="flex items-center justify-center gap-2">
+                                            <button class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="text-amber-600 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 p-2 rounded-lg transition" title="Edit">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition" title="Delete">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="py-6 px-4 text-center text-gray-500">
-                                        No inventory items found.
+                                    <td colspan="9" class="py-8 text-center text-gray-500">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <i class="fas fa-folder-open text-4xl mb-3 text-gray-300"></i>
+                                            <p>No inventory items found.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse
@@ -184,4 +200,22 @@
             </div>
         </div>
     </section>
+
+    <script>
+        const exportDropdownBtn = document.getElementById('exportDropdownBtn');
+        const exportDropdown = document.getElementById('exportDropdown');
+
+        if (exportDropdownBtn && exportDropdown) {
+            exportDropdownBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                exportDropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!exportDropdown.contains(e.target) && e.target !== exportDropdownBtn) {
+                    exportDropdown.classList.add('hidden');
+                }
+            });
+        }
+    </script>
 @endsection
