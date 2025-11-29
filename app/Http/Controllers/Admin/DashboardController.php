@@ -11,6 +11,7 @@ use App\Models\PointOfSale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DashboardController extends Controller
 {
@@ -34,9 +35,9 @@ class DashboardController extends Controller
         // Current occupancy rate
         $occupancyRate = $this->calculateOccupancyRate();
         
-        // Get initial KPI data for today
-        $dateRange = $this->getDateRange('today');
-        $initialKPI = $this->getKPIData($dateRange, 'today');
+        // Get initial KPI data for monthly (default view)
+        $dateRange = $this->getDateRange('monthly');
+        $initialKPI = $this->getKPIData($dateRange, 'monthly');
         
         // Recent bookings (last 10, combining bookings and reservations)
         $recentBookings = Booking::with('room')
@@ -344,7 +345,7 @@ class DashboardController extends Controller
             'revenue' => $this->getRevenueChartData($dateRange, $filter),
             'status' => $this->getBookingStatusData($dateRange),
             'services' => $this->getServiceRevenueData($dateRange),
-            'peak_hours' => $this->getPeakBookingHours($dateRange),
+            'peak_months' => $this->getPeakBookingMonths(),
             'booking_source' => $this->getBookingSourceData($dateRange),
             'daily_comparison' => $this->getDailyComparison($dateRange, $filter),
             'most_booked_rooms' => $this->getMostBookedRooms($dateRange)
@@ -602,31 +603,37 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get peak booking hours
+     * Get peak booking months
      */
-    private function getPeakBookingHours($dateRange)
+    private function getPeakBookingMonths()
     {
-        $hourlyData = DB::table('bookings')
-            ->selectRaw('HOUR(created_at) as hour, COUNT(*) as count')
-            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
-            ->groupBy('hour')
-            ->get()
-            ->keyBy('hour');
+        // Get data for the entire current year
+        $currentYear = Carbon::now()->year;
+        $yearStart = Carbon::create($currentYear, 1, 1)->startOfDay();
+        $yearEnd = Carbon::create($currentYear, 12, 31)->endOfDay();
         
-        $reservationHourly = DB::table('reservations')
-            ->selectRaw('HOUR(created_at) as hour, COUNT(*) as count')
-            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
-            ->groupBy('hour')
+        $monthlyData = DB::table('bookings')
+            ->selectRaw('MONTH(created_at) as month, COUNT(*) as count')
+            ->whereBetween('created_at', [$yearStart, $yearEnd])
+            ->groupBy('month')
             ->get()
-            ->keyBy('hour');
+            ->keyBy('month');
+        
+        $reservationMonthly = DB::table('reservations')
+            ->selectRaw('MONTH(created_at) as month, COUNT(*) as count')
+            ->whereBetween('created_at', [$yearStart, $yearEnd])
+            ->groupBy('month')
+            ->get()
+            ->keyBy('month');
         
         $labels = [];
         $data = [];
         
-        for ($hour = 0; $hour < 24; $hour++) {
-            $labels[] = sprintf('%02d:00', $hour);
-            $bookingCount = $hourlyData[$hour]->count ?? 0;
-            $reservationCount = $reservationHourly[$hour]->count ?? 0;
+        // Generate data for all 12 months
+        for ($month = 1; $month <= 12; $month++) {
+            $labels[] = Carbon::create($currentYear, $month, 1)->format('M');
+            $bookingCount = $monthlyData[$month]->count ?? 0;
+            $reservationCount = $reservationMonthly[$month]->count ?? 0;
             $data[] = $bookingCount + $reservationCount;
         }
         
@@ -765,71 +772,63 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get most booked rooms by source (Website vs Walk-in)
+     * Get most booked rooms by source (Website vs Walk-in) - Combined
      */
     private function getMostBookedRooms($dateRange)
     {
-        // Get top 5 rooms booked via website (online bookings + reservations)
+        // Get all rooms with their booking counts by source
+        $roomData = collect();
+        
+        // Get online bookings
         $onlineBookings = Booking::with('room')
             ->where('source', 'online')
             ->whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
             ->get()
-            ->groupBy('room_id')
-            ->map(function($group) {
-                return [
-                    'room_name' => $group->first()->room->name ?? 'Unknown',
-                    'count' => $group->count()
-                ];
-            })
-            ->sortByDesc('count')
-            ->take(5);
+            ->groupBy('room_id');
         
+        // Get reservations (count as website bookings)
         $reservations = Reservation::with('room')
             ->whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
             ->get()
-            ->groupBy('room_id')
-            ->map(function($group) {
-                return [
-                    'room_name' => $group->first()->room->name ?? 'Unknown',
-                    'count' => $group->count()
-                ];
-            });
+            ->groupBy('room_id');
         
-        // Merge online bookings and reservations
-        $websiteBookings = collect();
-        foreach ($onlineBookings as $roomId => $data) {
-            $websiteBookings[$data['room_name']] = $data['count'];
-        }
-        foreach ($reservations as $roomId => $data) {
-            $roomName = $data['room_name'];
-            $websiteBookings[$roomName] = ($websiteBookings[$roomName] ?? 0) + $data['count'];
-        }
-        $websiteBookings = $websiteBookings->sortDesc()->take(5);
-        
-        // Get top 5 rooms booked via walk-in (POS)
-        $walkInBookings = Booking::with('room')
+        // Get walk-in bookings
+        $walkinBookings = Booking::with('room')
             ->where('source', 'pos')
             ->whereBetween('check_in', [$dateRange['start'], $dateRange['end']])
             ->get()
-            ->groupBy('room_id')
-            ->map(function($group) {
-                return [
-                    'room_name' => $group->first()->room->name ?? 'Unknown',
-                    'count' => $group->count()
-                ];
-            })
-            ->sortByDesc('count')
-            ->take(5);
+            ->groupBy('room_id');
+        
+        // Combine data by room
+        $allRoomIds = collect()
+            ->merge($onlineBookings->keys())
+            ->merge($reservations->keys())
+            ->merge($walkinBookings->keys())
+            ->unique();
+        
+        foreach ($allRoomIds as $roomId) {
+            $room = Room::find($roomId);
+            if (!$room) continue;
+            
+            $websiteCount = ($onlineBookings[$roomId] ?? collect())->count() + 
+                           ($reservations[$roomId] ?? collect())->count();
+            $walkinCount = ($walkinBookings[$roomId] ?? collect())->count();
+            $totalCount = $websiteCount + $walkinCount;
+            
+            $roomData[$room->name] = [
+                'website' => $websiteCount,
+                'walkin' => $walkinCount,
+                'total' => $totalCount
+            ];
+        }
+        
+        // Sort by total bookings and take top 5
+        $topRooms = $roomData->sortByDesc('total')->take(5);
         
         return [
-            'website' => [
-                'labels' => $websiteBookings->keys()->toArray(),
-                'data' => $websiteBookings->values()->toArray()
-            ],
-            'walkin' => [
-                'labels' => $walkInBookings->pluck('room_name')->toArray(),
-                'data' => $walkInBookings->pluck('count')->toArray()
-            ]
+            'labels' => $topRooms->keys()->toArray(),
+            'website' => $topRooms->pluck('website')->toArray(),
+            'walkin' => $topRooms->pluck('walkin')->toArray()
         ];
     }
 
@@ -877,5 +876,127 @@ class DashboardController extends Controller
                 ? 'Room is available for the selected dates' 
                 : 'Room is already booked for the selected dates'
         ]);
+    }
+
+    /**
+     * Export dashboard data to CSV
+     */
+    public function exportCsv()
+    {
+        try {
+            $dateRange = $this->getDateRange('monthly');
+            $kpiData = $this->getKPIData($dateRange, 'monthly');
+        
+        // Get bookings and reservations for the period
+        $bookings = Booking::with(['room', 'customer'])
+            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
+            ->get();
+        
+        $reservations = Reservation::with(['room', 'customer'])
+            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
+            ->get();
+        
+        $filename = 'dashboard_report_' . now()->format('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+        
+        $callback = function() use ($kpiData, $bookings, $reservations) {
+            $file = fopen('php://output', 'w');
+            
+            // Dashboard Summary
+            fputcsv($file, ['Dashboard Summary Report']);
+            fputcsv($file, ['Generated on', now()->format('M d, Y H:i')]);
+            fputcsv($file, []);
+            
+            // KPI Data
+            fputcsv($file, ['Key Performance Indicators']);
+            fputcsv($file, ['Metric', 'Value']);
+            fputcsv($file, ['Total Guests', $kpiData['guests']]);
+            fputcsv($file, ['Total Bookings', $kpiData['bookings']]);
+            fputcsv($file, ['Total Revenue', '₱' . number_format($kpiData['revenue'], 2)]);
+            fputcsv($file, ['Occupancy Rate', $kpiData['occupancy'] . '%']);
+            fputcsv($file, []);
+            
+            // Bookings
+            fputcsv($file, ['Bookings']);
+            fputcsv($file, ['ID', 'Ref #', 'Guest Name', 'Email', 'Room', 'Check-in', 'Check-out', 'Total', 'Status']);
+            
+            foreach ($bookings as $booking) {
+                fputcsv($file, [
+                    $booking->id,
+                    $booking->reservation_number,
+                    ($booking->customer->firstname ?? '') . ' ' . ($booking->customer->lastname ?? ''),
+                    $booking->customer->email ?? '',
+                    $booking->room->name ?? 'N/A',
+                    $booking->check_in->format('M d, Y'),
+                    $booking->check_out->format('M d, Y'),
+                    '₱' . number_format($booking->total_price, 2),
+                    ucfirst($booking->status)
+                ]);
+            }
+            
+            fputcsv($file, []);
+            
+            // Reservations
+            fputcsv($file, ['Reservations']);
+            fputcsv($file, ['ID', 'Ref #', 'Guest Name', 'Email', 'Room', 'Check-in', 'Check-out', 'Total', 'Status']);
+            
+            foreach ($reservations as $reservation) {
+                fputcsv($file, [
+                    $reservation->id,
+                    $reservation->reservation_number ?? $reservation->id,
+                    ($reservation->customer->firstname ?? '') . ' ' . ($reservation->customer->lastname ?? ''),
+                    $reservation->customer->email ?? '',
+                    $reservation->room->name ?? 'N/A',
+                    Carbon::parse($reservation->check_in)->format('M d, Y'),
+                    Carbon::parse($reservation->check_out)->format('M d, Y'),
+                    '₱' . number_format($reservation->total_price, 2),
+                    ucfirst($reservation->status)
+                ]);
+            }
+            
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, $headers);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to export CSV: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Export dashboard data to PDF
+     */
+    public function exportPdf()
+    {
+        try {
+            $dateRange = $this->getDateRange('monthly');
+            $kpiData = $this->getKPIData($dateRange, 'monthly');
+        
+        // Get bookings and reservations for the period
+        $bookings = Booking::with(['room', 'customer'])
+            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
+            ->get();
+        
+        $reservations = Reservation::with(['room', 'customer'])
+            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
+            ->get();
+        
+        $pdf = Pdf::loadView('admin.dashboard.export-pdf', [
+            'kpiData' => $kpiData,
+            'bookings' => $bookings,
+            'reservations' => $reservations,
+            'dateRange' => $dateRange,
+        ]);
+        
+        $filename = 'dashboard_report_' . now()->format('Y-m-d_His') . '.pdf';
+        
+        return $pdf->download($filename);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to export PDF: ' . $e->getMessage());
+        }
     }
 }
