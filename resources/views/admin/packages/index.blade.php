@@ -82,93 +82,84 @@
                 </div>
 
                 @if ($packages->isEmpty())
-                    <div class="px-6 py-16 flex flex-col items-center justify-center text-center">
-                        <span class="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-teal-500">
-                            <i class="fas fa-box text-xl"></i>
-                        </span>
-                        <p class="text-base font-semibold text-slate-600">No packages found</p>
-                        <p class="mt-1 text-sm text-slate-500">Create your first package to start offering promotions.</p>
-                        <a href="{{ route('admin.packages.create') }}"
-                            class="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white px-6 py-3 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200">
-                            <i class="fas fa-plus"></i>
-                            Create Package
-                        </a>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr class="bg-gray-50 text-left text-gray-600 uppercase text-xs font-bold tracking-wider">
+                                    <th class="py-3 px-4">ID</th>
+                                    <th class="py-3 px-4">Package Name</th>
+                                    <th class="py-3 px-4">Type</th>
+                                    <th class="py-3 px-4">Duration</th>
+                                    <th class="py-3 px-4">Price</th>
+                                    <th class="py-3 px-4">Capacity</th>
+                                    <th class="py-3 px-4">Status</th>
+                                    <th class="py-3 px-4 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="8" class="py-8 text-center text-gray-500">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <i class="fas fa-folder-open text-4xl mb-3 text-gray-300"></i>
+                                            <p>No packages found.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 @else
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-slate-100">
-                            <thead class="bg-slate-50 text-slate-500">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest">Package</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest">Type</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest">Duration</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest">Price</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest">Capacity</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest">Status</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest">Actions</th>
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr class="bg-gray-50 text-left text-gray-600 uppercase text-xs font-bold tracking-wider">
+                                    <th class="py-3 px-4">ID</th>
+                                    <th class="py-3 px-4">Package Name</th>
+                                    <th class="py-3 px-4">Type</th>
+                                    <th class="py-3 px-4">Duration</th>
+                                    <th class="py-3 px-4">Price</th>
+                                    <th class="py-3 px-4">Capacity</th>
+                                    <th class="py-3 px-4">Status</th>
+                                    <th class="py-3 px-4 text-center">Action</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100 bg-white">
+                            <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach ($packages as $package)
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center space-x-4">
-                                                <div class="w-12 h-12 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                                                    <i class="fas fa-box text-teal-600"></i>
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <p class="text-sm font-semibold text-slate-900 truncate">{{ $package->name }}</p>
-                                                    <p class="text-xs text-slate-500 mt-1 line-clamp-2">
-                                                        {{ Str::limit($package->description ?? 'No description available', 60) }}
-                                                    </p>
-                                                </div>
-                                            </div>
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="py-3 px-4 text-xs font-semibold text-gray-700">{{ $package->id }}</td>
+                                        
+                                        <td class="py-3 px-4">
+                                            <div class="text-sm font-bold text-gray-900">{{ $package->name }}</div>
+                                            <div class="text-xs text-gray-500">{{ Str::limit($package->description ?? 'No description', 50) }}</div>
                                         </td>
-                                        <td class="px-6 py-4">
-                                            <span class="text-sm text-slate-700">
-                                                {{ $package->type ?? 'N/A' }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center space-x-2">
-                                                <i class="fas fa-clock text-slate-400 text-xs"></i>
-                                                <span class="text-sm text-slate-700">
-                                                    {{ $package->duration ?? 'N/A' }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <span class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">
-                                                ₱{{ number_format($package->price, 2) }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <span class="text-sm text-slate-700">
-                                                {{ $package->capacity ?? 'N/A' }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold bg-emerald-50 text-emerald-600">
-                                                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+
+                                        <td class="py-3 px-4 text-sm text-gray-700">{{ $package->type ?? 'N/A' }}</td>
+                                        <td class="py-3 px-4 text-sm text-gray-700">{{ $package->duration ?? 'N/A' }}</td>
+                                        <td class="py-3 px-4 font-bold text-emerald-600">₱{{ number_format($package->price, 2) }}</td>
+                                        <td class="py-3 px-4 text-sm text-gray-700">{{ $package->capacity ?? 'N/A' }}</td>
+                                        
+                                        <td class="py-3 px-4">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                 Active
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex flex-wrap items-center gap-2">
+
+                                        <td class="py-3 px-4 text-center">
+                                            <div class="flex items-center justify-center gap-2">
                                                 <a href="{{ route('admin.packages.edit', $package->id) }}"
-                                                    class="inline-flex items-center gap-2 rounded-xl border border-teal-100 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-600 transition hover:bg-teal-100 hover:shadow-sm">
+                                                    class="text-amber-600 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 p-2 rounded-lg transition"
+                                                    title="Edit">
                                                     <i class="fas fa-pen"></i>
-                                                    Edit
                                                 </a>
                                                 <form action="{{ route('admin.packages.destroy', $package->id) }}" method="POST"
-                                                    class="inline-flex items-center gap-2"
-                                                    onsubmit="return confirm('Are you sure you want to delete this package? This action cannot be undone.');">
+                                                    class="inline"
+                                                    onsubmit="return confirm('Are you sure you want to delete this package?');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit"
-                                                        class="inline-flex items-center gap-2 rounded-xl border border-rose-100 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 hover:shadow-sm">
+                                                        class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition"
+                                                        title="Delete">
                                                         <i class="fas fa-trash-alt"></i>
-                                                        Delete
                                                     </button>
                                                 </form>
                                             </div>
