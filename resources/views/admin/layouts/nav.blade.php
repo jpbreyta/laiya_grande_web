@@ -2,7 +2,7 @@
     class="bg-[#2C5F5F] w-64 min-h-screen flex flex-col py-6 shadow-lg transition-all duration-300 ease-in-out overflow-hidden">
     <!-- Sidebar Header -->
     <div class="flex items-center justify-between px-6 mb-8">
-        <h1 class="text-white text-lg font-semibold nav-text transition-opacity duration-300">Laiya Admin</h1>
+        <h1 class="text-white text-lg font-semibold nav-text transition-opacity duration-300">Laiya Grande Admin</h1>
         <button id="toggleSidebarBtn" class="text-white hover:text-yellow-400 transition-colors">
             <i class="fas fa-bars text-xl"></i>
         </button>
@@ -11,24 +11,12 @@
     <div class="flex-1 px-3 space-y-2 overflow-y-auto" id="admin-accordion">
         <!-- Dashboard & Overview -->
         <div class="accordion-section">
-            <button type="button" data-accordion-button data-target="accordion-overview"
-                class="accordion-toggle flex items-center justify-between w-full rounded-lg px-2.5 py-1.5 transition">
+            <a href="{{ route('admin.dashboard') }}" class="accordion-toggle flex items-center justify-between w-full rounded-lg px-2.5 py-1.5 transition hover:bg-white/10">
                 <span class="nav-text text-[13px] font-semibold tracking-wide flex items-center gap-2">
-                    <i class="fas fa-layer-group"></i>
-                    Dashboard & Overview
-                </span>
-                <i class="fas fa-chevron-down text-xs accordion-arrow rotate-180 transition-transform duration-200"></i>
-            </button>
-            <div id="accordion-overview" class="accordion-panel mt-1 space-y-0.5">
-                <a href="{{ route('admin.new.index') }}" class="accordion-link">
-                    <i class="fas fa-plus"></i>
-                    <span>New</span>
-                </a>
-                <a href="{{ route('admin.dashboard') }}" class="accordion-link">
                     <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
-                </a>
-            </div>
+                    Dashboard
+                </span>
+            </a>
         </div>
 
         <!-- Bookings -->
@@ -42,6 +30,10 @@
                 <i class="fas fa-chevron-down text-xs accordion-arrow rotate-0 transition-transform duration-200"></i>
             </button>
             <div id="accordion-bookings" class="accordion-panel mt-1 space-y-0.5">
+                <a href="{{ route('admin.new.index') }}" class="accordion-link">
+                    <i class="fas fa-plus"></i>
+                    <span>New</span>
+                </a>
                 <a href="{{ route('admin.booking.index') }}" class="accordion-link">
                     <i class="fas fa-calendar-check"></i>
                     <span>Manage Bookings</span>
@@ -52,7 +44,7 @@
                 </a>
                 <a href="{{ route('admin.guest-stays.index') }}" class="accordion-link">
                     <i class="fas fa-user-check"></i>
-                    <span>Guest & Booking</span>
+                    <span>Guest Logs</span>
                 </a>
                 <a href="{{ route('admin.qr.scanner') }}" class="accordion-link">
                     <i class="fas fa-qrcode"></i>

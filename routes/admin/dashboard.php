@@ -17,4 +17,8 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     // Room Availability Check
     Route::post('/dashboard/check-room-availability', [DashboardController::class, 'checkRoomAvailability'])->name('admin.dashboard.check-room-availability');
 
+    // Export Routes
+    Route::get('/dashboard/export-csv', [DashboardController::class, 'exportCsv'])->name('admin.dashboard.export-csv');
+    Route::get('/dashboard/export-pdf', [DashboardController::class, 'exportPdf'])->name('admin.dashboard.export-pdf');
+
 });

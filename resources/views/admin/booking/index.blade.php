@@ -13,67 +13,52 @@
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h1 class="text-2xl font-bold text-gray-800">{{ $pageTitle }}</h1>
 
-                <div class="flex gap-2">
-                    <!-- Import Button -->
-                    <button onclick="document.getElementById('importModal').classList.remove('hidden')"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow flex items-center gap-2">
-                        <i class="fas fa-file-import"></i> Import CSV
+                <div class="relative">
+                    <button id="exportDropdownBtn" type="button"
+                        class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow flex items-center gap-2">
+                        <i class="fas fa-download"></i> Export <i class="fas fa-chevron-down text-xs"></i>
                     </button>
-
-                    <!-- Export Dropdown -->
-                    <div class="relative group">
-                        <button
-                            class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-50 flex items-center gap-2">
-                            <i class="fas fa-download"></i> Export <i class="fas fa-chevron-down text-xs"></i>
-                        </button>
-                        <div
-                            class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden group-hover:block z-50 border border-gray-100">
-                            <a href="{{ route('admin.booking.export-csv', ['status' => $currentStatus]) }}"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">CSV</a>
-                            <a href="{{ route('admin.booking.export-csv', ['status' => $currentStatus]) }}"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Excel (csv)</a>
-                            <a href="{{ route('admin.booking.export-pdf', ['status' => $currentStatus]) }}" target="_blank"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Print / PDF</a>
-                        </div>
+                    <div id="exportDropdown"
+                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden z-50 border border-gray-100">
+                        <a href="{{ route('admin.booking.export-csv', ['status' => $currentStatus]) }}"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md">
+                            <i class="fas fa-file-csv mr-2"></i>Export CSV
+                        </a>
+                        <a href="{{ route('admin.booking.export-pdf', ['status' => $currentStatus]) }}" target="_blank"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-md">
+                            <i class="fas fa-file-pdf mr-2"></i>Export PDF
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Status Tabs -->
-            <div class="mb-6 overflow-x-auto">
-                <nav class="flex space-x-2 bg-white p-1 rounded-xl shadow-sm border border-gray-200">
-                    @php
-                        $tabs = [
-                            'all' => 'All',
-                            'pending' => 'Pending',
-                            'confirmed' => 'Confirmed',
-                            'cancelled' => 'Cancelled',
-                            'rejected' => 'Rejected',
-                            'archived' => 'Archived',
-                        ];
-                    @endphp
-                    @foreach ($tabs as $key => $label)
-                        <a href="{{ route('admin.booking.index', ['status' => $key]) }}"
-                            class="px-4 py-2 rounded-lg text-sm font-medium transition-all {{ $currentStatus === $key ? 'bg-teal-600 text-white shadow' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900' }}">
-                            {{ $label }}
-                        </a>
-                    @endforeach
-                </nav>
-            </div>
-
-            <!-- Search and Entries Controls -->
             <div class="mb-4 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-2">
-                    <label class="text-sm text-gray-600">Show</label>
-                    <select id="entriesSelect"
-                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
-                        <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
-                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
-                        <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
-                    </select>
-                    <label class="text-sm text-gray-600">entries</label>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-600">Show</label>
+                        <select id="entriesSelect"
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                            <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                            <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+                        </select>
+                        <label class="text-sm text-gray-600">entries</label>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-600">Status:</label>
+                        <select id="statusFilter"
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                            <option value="all" {{ $currentStatus === 'all' ? 'selected' : '' }}>All</option>
+                            <option value="pending" {{ $currentStatus === 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="confirmed" {{ $currentStatus === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                            <option value="cancelled" {{ $currentStatus === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            <option value="rejected" {{ $currentStatus === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                            <option value="archived" {{ $currentStatus === 'archived' ? 'selected' : '' }}>Archived</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -97,8 +82,11 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr class="bg-gray-50 text-left text-gray-600 uppercase text-xs font-bold tracking-wider">
+                                <th class="py-3 px-4">ID</th>
                                 <th class="py-3 px-4">Ref #</th>
-                                <th class="py-3 px-4">Guest Name</th>
+                                <th class="py-3 px-4">First Name</th>
+                                <th class="py-3 px-4">Last Name</th>
+                                <th class="py-3 px-4">Email</th>
                                 <th class="py-3 px-4">Room</th>
                                 <th class="py-3 px-4">Dates</th>
                                 <th class="py-3 px-4">Total</th>
@@ -109,21 +97,29 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse ($bookings as $booking)
                                 <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4 text-xs font-semibold text-gray-700">
+                                        {{ $booking->id }}</td>
                                     <td class="py-3 px-4 text-xs font-mono text-gray-500">
                                         {{ $booking->reservation_number }}</td>
 
                                     <td class="py-3 px-4">
                                         <div class="text-sm font-bold text-gray-900">
-                                            {{ $booking->customer->firstname ?? 'Unknown' }}
-                                            {{ $booking->customer->lastname ?? '' }}</div>
-                                        <div class="text-xs text-gray-500">{{ $booking->customer->email ?? 'No email' }}
-                                        </div>
+                                            {{ $booking->customer->firstname ?? 'Unknown' }}</div>
+                                    </td>
+
+                                    <td class="py-3 px-4">
+                                        <div class="text-sm font-bold text-gray-900">
+                                            {{ $booking->customer->lastname ?? '-' }}</div>
+                                    </td>
+
+                                    <td class="py-3 px-4">
+                                        <div class="text-sm text-gray-700">{{ $booking->customer->email ?? 'No email' }}</div>
                                     </td>
 
                                     <td class="py-3 px-4 text-sm text-gray-700">{{ $booking->room->name ?? 'N/A' }}</td>
                                     <td class="py-3 px-4 text-sm text-gray-700">
-                                        <div>In: {{ $booking->check_in->format('M d') }}</div>
-                                        <div>Out: {{ $booking->check_out->format('M d') }}</div>
+                                        <div>In: {{ $booking->check_in->format('M d, Y') }}</div>
+                                        <div>Out: {{ $booking->check_out->format('M d, Y') }}</div>
                                     </td>
                                     <td class="py-3 px-4 font-bold text-emerald-600">
                                         ₱{{ number_format($booking->total_price, 2) }}</td>
@@ -159,11 +155,6 @@
                                                     title="View">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="{{ route('admin.booking.edit', $booking->id) }}"
-                                                    class="text-emerald-600 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 p-2 rounded-lg transition"
-                                                    title="Edit">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
 
                                                 <button onclick="archiveBooking({{ $booking->id }})"
                                                     class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition"
@@ -176,7 +167,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="py-8 text-center text-gray-500">
+                                    <td colspan="10" class="py-8 text-center text-gray-500">
                                         <div class="flex flex-col items-center justify-center">
                                             <i class="fas fa-folder-open text-4xl mb-3 text-gray-300"></i>
                                             <p>No {{ $currentStatus == 'all' ? '' : $currentStatus }} bookings found.</p>
@@ -195,33 +186,23 @@
         </div>
     </section>
 
-    <!-- Import Modal -->
-    <div id="importModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 flex">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">Import Bookings</h3>
-            <form action="{{ route('admin.booking.import-csv') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Upload CSV File</label>
-                    <input type="file" name="csv_file" accept=".csv" required
-                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-gray-300 rounded-lg cursor-pointer">
-                    <p class="text-xs text-gray-500 mt-2">Format: Firstname, Lastname, Email, Phone, RoomID, CheckIn,
-                        CheckOut, Guests, Total, Status</p>
-                </div>
-                <div class="flex justify-end gap-3">
-                    <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')"
-                        class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">Upload &
-                        Import</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
-        // Search functionality
         const searchInput = document.getElementById('searchInput');
         const entriesSelect = document.getElementById('entriesSelect');
+        const statusFilter = document.getElementById('statusFilter');
+        const exportDropdownBtn = document.getElementById('exportDropdownBtn');
+        const exportDropdown = document.getElementById('exportDropdown');
+
+        exportDropdownBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            exportDropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!exportDropdown.contains(e.target) && e.target !== exportDropdownBtn) {
+                exportDropdown.classList.add('hidden');
+            }
+        });
 
         let searchTimeout;
         searchInput.addEventListener('input', function() {
@@ -235,10 +216,15 @@
             updateUrl();
         });
 
+        statusFilter.addEventListener('change', function() {
+            updateUrl();
+        });
+
         function updateUrl() {
             const url = new URL(window.location.href);
             const search = searchInput.value;
             const perPage = entriesSelect.value;
+            const status = statusFilter.value;
 
             if (search) {
                 url.searchParams.set('search', search);
@@ -247,6 +233,7 @@
             }
 
             url.searchParams.set('per_page', perPage);
+            url.searchParams.set('status', status);
             url.searchParams.set('page', 1);
 
             window.location.href = url.toString();
