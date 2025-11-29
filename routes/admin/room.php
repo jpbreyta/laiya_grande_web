@@ -3,6 +3,9 @@
 use App\Http\Controllers\Admin\RoomController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/room/export-csv', [RoomController::class, 'exportCsv'])->name('admin.room.export-csv');
+Route::get('/room/export-pdf', [RoomController::class, 'exportPdf'])->name('admin.room.export-pdf');
+
 Route::get('/room', [RoomController::class, 'index'])->name('admin.room.index');
 Route::get('/room/create', [RoomController::class, 'create'])->name('admin.room.create');
 Route::post('/room', [RoomController::class, 'store'])->name('admin.room.store');
