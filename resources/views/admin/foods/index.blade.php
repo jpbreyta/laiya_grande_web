@@ -33,63 +33,78 @@
                 </div>
 
                 @if ($foods->isEmpty())
-                    <div class="px-6 py-16 flex flex-col items-center justify-center text-center">
-                        <span class="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-teal-500">
-                            <i class="fas fa-utensils text-xl"></i>
-                        </span>
-                        <p class="text-base font-semibold text-slate-600">No food items found</p>
-                        <p class="mt-1 text-sm text-slate-500">Add your first menu item to populate the catalog.</p>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr class="bg-gray-50 text-left text-gray-600 uppercase text-xs font-bold tracking-wider">
+                                    <th class="py-3 px-4">ID</th>
+                                    <th class="py-3 px-4">Item Name</th>
+                                    <th class="py-3 px-4">Category</th>
+                                    <th class="py-3 px-4">Price</th>
+                                    <th class="py-3 px-4 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="5" class="py-8 text-center text-gray-500">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <i class="fas fa-folder-open text-4xl mb-3 text-gray-300"></i>
+                                            <p>No food items found.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 @else
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-slate-100">
-                            <thead class="bg-slate-50 text-slate-500">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest">ID</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest">Name</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest">Category</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest">Price</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest">Actions</th>
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr class="bg-gray-50 text-left text-gray-600 uppercase text-xs font-bold tracking-wider">
+                                    <th class="py-3 px-4">ID</th>
+                                    <th class="py-3 px-4">Item Name</th>
+                                    <th class="py-3 px-4">Category</th>
+                                    <th class="py-3 px-4">Price</th>
+                                    <th class="py-3 px-4 text-center">Action</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100 bg-white">
+                            <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach ($foods as $food)
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="px-6 py-4 text-sm font-medium text-slate-700">#{{ $food->id }}</td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex flex-col">
-                                                <span class="text-sm font-semibold text-slate-900">{{ $food->name }}</span>
-                                                <span class="text-xs text-slate-500">{{ $food->description ?? 'No description provided.' }}</span>
-                                            </div>
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="py-3 px-4 text-xs font-semibold text-gray-700">{{ $food->id }}</td>
+                                        
+                                        <td class="py-3 px-4">
+                                            <div class="text-sm font-bold text-gray-900">{{ $food->name }}</div>
+                                            <div class="text-xs text-gray-500">{{ $food->description ?? 'No description' }}</div>
                                         </td>
-                                        <td class="px-6 py-4 text-sm">
-                                            <span class="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-600 border border-teal-100">
-                                                <i class="fas fa-tag text-[10px]"></i>
-                                                {{ $food->category->name ?? 'Uncategorized' }}
-                                            </span>
+
+                                        <td class="py-3 px-4 text-sm text-gray-700">
+                                            {{ $food->category->name ?? 'Uncategorized' }}
                                         </td>
-                                        <td class="px-6 py-4 text-sm font-semibold text-slate-800">₱{{ number_format($food->price, 2) }}</td>
-                                        <td class="px-6 py-4">
-                                            <div class="flex flex-wrap items-center gap-2">
+
+                                        <td class="py-3 px-4 font-bold text-emerald-600">₱{{ number_format($food->price, 2) }}</td>
+
+                                        <td class="py-3 px-4 text-center">
+                                            <div class="flex items-center justify-center gap-2">
                                                 <a href="{{ route('admin.foods.show', $food->id) }}"
-                                                    class="inline-flex items-center gap-2 rounded-xl border border-teal-100 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-600 transition hover:bg-teal-100">
+                                                    class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition"
+                                                    title="View">
                                                     <i class="fas fa-eye"></i>
-                                                    View
                                                 </a>
                                                 <a href="{{ route('admin.foods.edit', $food->id) }}"
-                                                    class="inline-flex items-center gap-2 rounded-xl border border-amber-100 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-600 transition hover:bg-amber-100">
+                                                    class="text-amber-600 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 p-2 rounded-lg transition"
+                                                    title="Edit">
                                                     <i class="fas fa-pen"></i>
-                                                    Edit
                                                 </a>
                                                 <form action="{{ route('admin.foods.destroy', $food->id) }}" method="POST"
-                                                    class="inline-flex items-center gap-2"
+                                                    class="inline"
                                                     onsubmit="return confirm('Are you sure you want to delete this food item?');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit"
-                                                        class="inline-flex items-center gap-2 rounded-xl border border-rose-100 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100">
+                                                        class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition"
+                                                        title="Delete">
                                                         <i class="fas fa-trash-alt"></i>
-                                                        Delete
                                                     </button>
                                                 </form>
                                             </div>

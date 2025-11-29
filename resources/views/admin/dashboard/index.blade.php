@@ -74,23 +74,15 @@
             </div>
         </div>
 
-        {{-- Time Filter Buttons --}}
-        <div class="flex items-center space-x-2 bg-white p-1 rounded-lg border border-gray-200 shadow-sm mb-6 w-fit">
-            <button onclick="updateDashboard('today')"
-                class="filter-btn px-4 py-2 text-sm font-medium rounded-md transition-colors text-gray-600 hover:bg-gray-50"
-                id="btn-today">
-                Today
-            </button>
-            <button onclick="updateDashboard('weekly')"
-                class="filter-btn px-4 py-2 text-sm font-medium rounded-md transition-colors text-gray-600 hover:bg-gray-50"
-                id="btn-weekly">
-                This Week
-            </button>
-            <button onclick="updateDashboard('monthly')"
-                class="filter-btn px-4 py-2 text-sm font-medium rounded-md bg-[#2C5F5F] text-white shadow-sm"
-                id="btn-monthly">
-                This Month
-            </button>
+        {{-- Time Filter Dropdown --}}
+        <div class="flex items-center space-x-3 mb-6">
+            <label for="timeFilter" class="text-sm font-medium text-gray-700">Time Period:</label>
+            <select id="timeFilter" onchange="updateDashboard(this.value)"
+                class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm hover:border-[#2C5F5F] focus:outline-none focus:ring-2 focus:ring-[#2C5F5F] focus:border-transparent transition-colors cursor-pointer">
+                <option value="today">Today</option>
+                <option value="weekly">This Week</option>
+                <option value="monthly" selected>This Month</option>
+            </select>
         </div>
 
         {{-- Dynamic KPI Cards --}}
@@ -405,31 +397,35 @@
             </div>
         </div>
 
-        {{-- Most Booked Rooms Charts --}}
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Top Rooms - Website Bookings</h2>
-                <p class="text-sm text-gray-600 mb-4">Most booked rooms through online platform</p>
-                <div class="h-64">
-                    <canvas id="websiteRoomsChart"></canvas>
+        {{-- Most Booked Rooms Chart (Combined) --}}
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">Guest-Favorite Rooms by Source</h2>
+                    <p class="text-sm text-gray-600 mt-1">Comparison of website vs walk-in bookings for guest favorite rooms</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="flex items-center text-sm">
+                        <span class="w-3 h-3 rounded-full mr-2" style="background-color: #2C5F5F;"></span>
+                        Website
+                    </span>
+                    <span class="flex items-center text-sm">
+                        <span class="w-3 h-3 rounded-full mr-2" style="background-color: #f97316;"></span>
+                        Walk-in
+                    </span>
                 </div>
             </div>
-
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Top Rooms - Walk-in Bookings</h2>
-                <p class="text-sm text-gray-600 mb-4">Most booked rooms through POS system</p>
-                <div class="h-64">
-                    <canvas id="walkinRoomsChart"></canvas>
-                </div>
+            <div class="h-80">
+                <canvas id="topRoomsChart"></canvas>
             </div>
         </div>
 
-        {{-- Peak Hours Chart --}}
+        {{-- Peak Months Chart --}}
         <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Peak Booking Hours</h2>
-            <p class="text-sm text-gray-600 mb-4">Shows when guests typically make bookings and reservations</p>
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Peak Booking Months</h2>
+            <p class="text-sm text-gray-600 mb-4">Shows which months have the most bookings throughout the year ({{ now()->year }})</p>
             <div class="h-64">
-                <canvas id="peakHoursChart"></canvas>
+                <canvas id="peakMonthsChart"></canvas>
             </div>
         </div>
 
@@ -503,24 +499,24 @@
 
     @push('scripts')
         <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
         <script>
             // Global Chart Instances
             let revenueChart = null;
             let statusChart = null;
             let bookingSourceChart = null;
             let servicesChart = null;
-            let peakHoursChart = null;
+            let peakMonthsChart = null;
             let dailyComparisonChart = null;
-            let websiteRoomsChart = null;
-            let walkinRoomsChart = null;
+            let topRoomsChart = null;
             let calendar = null;
 
             document.addEventListener('DOMContentLoaded', () => {
                 // Initialize Calendar
                 initCalendar();
 
-                // Load default (today) data
-                updateDashboard('today');
+                // Load default (monthly) data
+                updateDashboard('monthly');
             });
 
             function initCalendar() {
@@ -620,16 +616,10 @@
             });
 
             function updateDashboard(filter) {
-                // Update button styles
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.classList.remove('bg-[#2C5F5F]', 'text-white', 'shadow-sm');
-                    btn.classList.add('text-gray-600', 'hover:bg-gray-50');
-                });
-
-                const activeBtn = document.getElementById(`btn-${filter}`);
-                if (activeBtn) {
-                    activeBtn.classList.remove('text-gray-600', 'hover:bg-gray-50');
-                    activeBtn.classList.add('bg-[#2C5F5F]', 'text-white', 'shadow-sm');
+                // Update dropdown value
+                const dropdown = document.getElementById('timeFilter');
+                if (dropdown && dropdown.value !== filter) {
+                    dropdown.value = filter;
                 }
 
                 // Fetch data
@@ -780,17 +770,17 @@
                     });
                 }
 
-                // Peak Hours Chart
-                const ctxPeak = document.getElementById('peakHoursChart');
-                if (ctxPeak && charts.peak_hours) {
-                    if (peakHoursChart) peakHoursChart.destroy();
-                    peakHoursChart = new Chart(ctxPeak, {
+                // Peak Months Chart
+                const ctxPeak = document.getElementById('peakMonthsChart');
+                if (ctxPeak && charts.peak_months) {
+                    if (peakMonthsChart) peakMonthsChart.destroy();
+                    peakMonthsChart = new Chart(ctxPeak, {
                         type: 'bar',
                         data: {
-                            labels: charts.peak_hours.labels,
+                            labels: charts.peak_months.labels,
                             datasets: [{
                                 label: 'Number of Bookings',
-                                data: charts.peak_hours.data,
+                                data: charts.peak_months.data,
                                 backgroundColor: '#2C5F5F',
                                 borderRadius: 5
                             }]
@@ -803,6 +793,15 @@
                                     beginAtZero: true,
                                     ticks: {
                                         stepSize: 1
+                                    }
+                                }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        title: function(context) {
+                                            return context[0].label + ' {{ now()->year }}';
+                                        }
                                     }
                                 }
                             }
@@ -876,20 +875,30 @@
                     });
                 }
 
-                // Website Rooms Chart
-                const ctxWebsiteRooms = document.getElementById('websiteRoomsChart');
-                if (ctxWebsiteRooms && charts.most_booked_rooms && charts.most_booked_rooms.website) {
-                    if (websiteRoomsChart) websiteRoomsChart.destroy();
-                    websiteRoomsChart = new Chart(ctxWebsiteRooms, {
+                // Top Rooms Chart (Combined)
+                const ctxTopRooms = document.getElementById('topRoomsChart');
+                if (ctxTopRooms && charts.most_booked_rooms) {
+                    if (topRoomsChart) topRoomsChart.destroy();
+                    topRoomsChart = new Chart(ctxTopRooms, {
                         type: 'bar',
                         data: {
-                            labels: charts.most_booked_rooms.website.labels,
-                            datasets: [{
-                                label: 'Number of Bookings',
-                                data: charts.most_booked_rooms.website.data,
-                                backgroundColor: '#2C5F5F',
-                                borderRadius: 5
-                            }]
+                            labels: charts.most_booked_rooms.labels,
+                            datasets: [
+                                {
+                                    label: 'Website Bookings',
+                                    data: charts.most_booked_rooms.website,
+                                    backgroundColor: '#2C5F5F',
+                                    borderRadius: 5,
+                                    borderSkipped: false
+                                },
+                                {
+                                    label: 'Walk-in Bookings',
+                                    data: charts.most_booked_rooms.walkin,
+                                    backgroundColor: '#f97316',
+                                    borderRadius: 5,
+                                    borderSkipped: false
+                                }
+                            ]
                         },
                         options: {
                             responsive: true,
@@ -898,50 +907,40 @@
                             scales: {
                                 x: {
                                     beginAtZero: true,
+                                    stacked: false,
                                     ticks: {
                                         stepSize: 1
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Bookings'
                                     }
+                                },
+                                y: {
+                                    stacked: false
                                 }
                             },
                             plugins: {
                                 legend: {
-                                    display: false
-                                }
-                            }
-                        }
-                    });
-                }
-
-                // Walk-in Rooms Chart
-                const ctxWalkinRooms = document.getElementById('walkinRoomsChart');
-                if (ctxWalkinRooms && charts.most_booked_rooms && charts.most_booked_rooms.walkin) {
-                    if (walkinRoomsChart) walkinRoomsChart.destroy();
-                    walkinRoomsChart = new Chart(ctxWalkinRooms, {
-                        type: 'bar',
-                        data: {
-                            labels: charts.most_booked_rooms.walkin.labels,
-                            datasets: [{
-                                label: 'Number of Bookings',
-                                data: charts.most_booked_rooms.walkin.data,
-                                backgroundColor: '#f97316',
-                                borderRadius: 5
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            indexAxis: 'y',
-                            scales: {
-                                x: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        stepSize: 1
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        padding: 15,
+                                        font: {
+                                            size: 12
+                                        },
+                                        usePointStyle: true,
+                                        pointStyle: 'circle'
                                     }
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.dataset.label || '';
+                                            const value = context.parsed.x || 0;
+                                            return label + ': ' + value + ' booking' + (value !== 1 ? 's' : '');
+                                        }
+                                    }
                                 }
                             }
                         }

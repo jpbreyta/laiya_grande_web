@@ -104,4 +104,61 @@ class GuestStayController extends Controller
             'guest_stay' => $guestStay,
         ]);
     }
+
+    public function exportCsv(Request $request)
+    {
+        $status = $request->get('status', 'all');
+        $filename = "guest_stays_{$status}_" . date('Y-m-d') . ".csv";
+
+        $query = GuestStay::with(['booking', 'room']);
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+        $guestStays = $query->orderBy('check_in_time', 'desc')->get();
+
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function() use($guestStays) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['ID', 'Reservation #', 'Guest Name', 'Room', 'Status', 'Check-in Time', 'Check-out Time']);
+
+            foreach ($guestStays as $stay) {
+                fputcsv($file, [
+                    $stay->id,
+                    $stay->booking->reservation_number ?? 'N/A',
+                    $stay->guest_name,
+                    $stay->room->name ?? 'N/A',
+                    ucfirst($stay->status),
+                    $stay->check_in_time ? $stay->check_in_time->format('Y-m-d H:i:s') : 'N/A',
+                    $stay->check_out_time ? $stay->check_out_time->format('Y-m-d H:i:s') : '-',
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $status = $request->get('status', 'all');
+        
+        $query = GuestStay::with(['booking', 'room']);
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+        $guestStays = $query->orderBy('check_in_time', 'desc')->get();
+
+        $html = view('admin.guest-stays.pdf', compact('guestStays', 'status'))->render();
+        
+        return response($html)
+            ->header('Content-Type', 'text/html')
+            ->header('Content-Disposition', 'inline; filename="guest_stays_' . $status . '_' . date('Y-m-d') . '.html"');
+    }
 }

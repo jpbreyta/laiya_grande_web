@@ -90,4 +90,51 @@ class RoomController extends Controller
 
         return redirect()->route('admin.room.index')->with('success', 'Room deleted successfully.');
     }
+
+    public function exportCsv()
+    {
+        $filename = "rooms_" . date('Y-m-d') . ".csv";
+        $rooms = Room::all();
+
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function() use($rooms) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['ID', 'Name', 'Price', 'Capacity', 'Status', 'Availability', 'Amenities']);
+
+            foreach ($rooms as $room) {
+                $amenities = is_array($room->amenities) ? implode(', ', $room->amenities) : '';
+                
+                fputcsv($file, [
+                    $room->id,
+                    $room->name,
+                    number_format($room->price, 2),
+                    $room->capacity,
+                    $room->status,
+                    $room->availability ? 'Available' : 'Not Available',
+                    $amenities,
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportPdf()
+    {
+        $rooms = Room::all();
+        
+        $html = view('admin.room.pdf', compact('rooms'))->render();
+        
+        return response($html)
+            ->header('Content-Type', 'text/html')
+            ->header('Content-Disposition', 'inline; filename="rooms_' . date('Y-m-d') . '.html"');
+    }
 }
