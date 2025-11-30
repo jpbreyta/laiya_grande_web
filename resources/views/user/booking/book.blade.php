@@ -180,10 +180,6 @@
                                             </div>
                                         </div>
                                         <small id="phoneError" class="text-xs mt-1 hidden"></small>
-                                        <small class="text-slate-500 text-xs mt-1 block">
-                                            <i class="fas fa-info-circle"></i> Enter PH mobile: 09XX or 9XX (displays as
-                                            +63)
-                                        </small>
                                     </div>
                                     <div></div>
                                 </div>
