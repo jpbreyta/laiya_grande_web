@@ -283,14 +283,10 @@
                                         <span>Subtotal</span>
                                         <span class="font-medium">₱{{ number_format($cartTotal, 2) }}</span>
                                     </div>
-                                    <div class="flex justify-between text-sm text-slate-600">
-                                        <span>Taxes & Fees (12%)</span>
-                                        <span class="font-medium">₱{{ number_format($cartTotal * 0.12, 2) }}</span>
-                                    </div>
                                     <div class="flex justify-between items-center pt-4 mt-2 border-t border-slate-200">
                                         <span class="font-heading font-bold text-lg text-slate-900">Total Due</span>
                                         <span
-                                            class="font-bold text-2xl text-teal-700">₱{{ number_format($cartTotal * 1.12, 2) }}</span>
+                                            class="font-bold text-2xl text-teal-700">₱{{ number_format($cartTotal, 2)}}</span>
                                     </div>
                                 </div>
 

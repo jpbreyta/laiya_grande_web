@@ -61,7 +61,7 @@
     <section
         class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-gray-200 py-4 shadow-sm transition-all duration-300">
         <div class="max-w-7xl mx-auto px-6 overflow-x-auto no-scrollbar">
-            <div class="flex flex-nowrap md:flex-wrap justify-start md:justify-center gap-2 md:gap-4 min-w-max px-2">
+            <div class="flex flex-nowrap md:flex-wrap justify-start md:justify-center gap-2 md:gap-4 min-w-max px-2 py-2">
                 <button
                     class="gallery-filter active group relative px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 bg-teal-700 text-white shadow-lg ring-2 ring-teal-700 ring-offset-2"
                     data-filter="all">

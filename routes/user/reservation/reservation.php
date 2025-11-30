@@ -46,4 +46,11 @@ Route::prefix('user/reservation')->name('user.reservation.')->group(function () 
 
     // Update payment for reservation
     Route::post('/{id}/update-payment', [ReservationController::class, 'updatePayment'])->name('updatePayment');
+
+    // OTP verification routes
+    Route::post('/send-otp', [ReservationController::class, 'sendOTP'])->name('send-otp');
+    Route::post('/verify-otp', [ReservationController::class, 'verifyOTP'])->name('verify-otp');
+
+    // Review page
+    Route::get('/review', [ReservationController::class, 'review'])->name('review');
 });
