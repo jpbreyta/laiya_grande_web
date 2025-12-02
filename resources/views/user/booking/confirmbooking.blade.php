@@ -220,8 +220,10 @@
                         <input type="hidden" name="last_name" value="{{ $request->last_name }}">
                         <input type="hidden" name="email" value="{{ $request->email }}">
                         <input type="hidden" name="phone" value="{{ $request->phone }}">
-                        <input type="hidden" name="check_in" value="{{ $request->check_in }}">
-                        <input type="hidden" name="check_out" value="{{ $request->check_out }}">
+                        <input type="hidden" name="check_in"
+                            value="{{ session('booking_check_in', $request->check_in) }}">
+                        <input type="hidden" name="check_out"
+                            value="{{ session('booking_check_out', $request->check_out) }}">
                         <input type="hidden" name="guests" value="{{ $request->guests }}">
                         <input type="hidden" name="special_requests" value="{{ $request->special_requests }}">
                         <input type="hidden" name="total_price" value="{{ $total }}">

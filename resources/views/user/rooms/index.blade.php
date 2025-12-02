@@ -2,6 +2,55 @@
 
 @section('content')
 
+    <!-- Date Selection Modal -->
+    <div id="dateModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="display: none;">
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeDateModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full transform transition-all">
+            <div class="bg-gradient-to-r from-teal-700 to-teal-600 px-6 py-5 rounded-t-2xl">
+                <h3 class="text-2xl font-heading font-bold text-white flex items-center gap-3">
+                    <i class="fas fa-calendar-check"></i>
+                    Select Your Dates
+                </h3>
+                <p class="text-teal-100 text-sm mt-1">Choose your check-in and check-out dates to view available rooms</p>
+            </div>
+            <form id="dateSelectionForm" class="p-6 space-y-5">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">
+                        <i class="fas fa-sign-in-alt text-teal-600 mr-2"></i>Check-in Date *
+                    </label>
+                    <input type="date" id="modal_check_in" required
+                        class="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">
+                        <i class="fas fa-sign-out-alt text-teal-600 mr-2"></i>Check-out Date *
+                    </label>
+                    <input type="date" id="modal_check_out" required
+                        class="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all">
+                </div>
+                <div id="nightsDisplay" class="hidden bg-teal-50 border-l-4 border-teal-500 p-4 rounded-r-xl">
+                    <p class="text-teal-800 font-semibold flex items-center gap-2">
+                        <i class="fas fa-moon"></i>
+                        <span id="nightsCount">0</span> night(s) selected
+                    </p>
+                </div>
+                <div id="dateError" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl">
+                    <p class="text-sm text-red-700 font-medium"></p>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeDateModal()"
+                        class="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-3 bg-gradient-to-r from-teal-700 to-teal-600 hover:from-teal-800 hover:to-teal-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-teal-700/30">
+                        <i class="fas fa-search mr-2"></i>Check Availability
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap');
 
@@ -63,6 +112,40 @@
                 <p class="text-teal-100 text-lg max-w-2xl mx-auto font-light leading-relaxed">
                     Choose from our collection of luxury rooms and villas.
                 </p>
+
+                @if (isset($checkIn) && isset($checkOut))
+                    <div
+                        class="mt-6 inline-flex items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-6 py-3">
+                        <div class="flex items-center gap-3 text-sm text-white">
+                            <div class="text-left">
+                                <p class="text-xs text-teal-200 font-semibold uppercase">Check-in</p>
+                                <p class="font-bold">{{ \Carbon\Carbon::parse($checkIn)->format('M d, Y') }}</p>
+                            </div>
+                            <i class="fas fa-arrow-right text-teal-300"></i>
+                            <div class="text-left">
+                                <p class="text-xs text-teal-200 font-semibold uppercase">Check-out</p>
+                                <p class="font-bold">{{ \Carbon\Carbon::parse($checkOut)->format('M d, Y') }}</p>
+                            </div>
+                            <div class="border-l border-white/30 pl-3 ml-2">
+                                <p class="text-xs text-teal-200 font-semibold uppercase">Nights</p>
+                                <p class="font-bold">{{ $nights }}</p>
+                            </div>
+                        </div>
+                        <button onclick="openDateModal()"
+                            class="text-xs text-white hover:text-teal-200 font-semibold flex items-center gap-1 bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fas fa-edit"></i>
+                            Change
+                        </button>
+                    </div>
+                @else
+                    <div class="mt-6">
+                        <button onclick="openDateModal()"
+                            class="inline-flex items-center gap-2 bg-white hover:bg-teal-50 text-teal-900 font-bold px-6 py-3 rounded-xl transition-all shadow-lg">
+                            <i class="fas fa-calendar-alt"></i>
+                            Select Your Dates
+                        </button>
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -201,7 +284,8 @@
                                     <i class="fas fa-search text-slate-400 text-2xl"></i>
                                 </div>
                                 <h3 class="text-lg font-medium text-slate-900 font-heading">No rooms found</h3>
-                                <p class="text-slate-500 mt-2">We couldn't find any availability matching your criteria.</p>
+                                <p class="text-slate-500 mt-2">We couldn't find any availability matching your criteria.
+                                </p>
                             </div>
                         @endforelse
                     </div>
@@ -286,7 +370,7 @@
                                     <div class="flex justify-between items-center pt-4 mt-2 border-t border-slate-200">
                                         <span class="font-heading font-bold text-lg text-slate-900">Total Due</span>
                                         <span
-                                            class="font-bold text-2xl text-teal-700">₱{{ number_format($cartTotal, 2)}}</span>
+                                            class="font-bold text-2xl text-teal-700">₱{{ number_format($cartTotal, 2) }}</span>
                                     </div>
                                 </div>
 
@@ -623,6 +707,93 @@
                         });
                     });
             }
+        </script>
+
+        <script>
+            // Date Modal Functions
+            function openDateModal() {
+                document.getElementById('dateModal').style.display = 'flex';
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('modal_check_in').setAttribute('min', today);
+                document.getElementById('modal_check_out').setAttribute('min', today);
+
+                // Pre-fill with existing dates if available
+                @if (isset($checkIn) && isset($checkOut))
+                    document.getElementById('modal_check_in').value = '{{ $checkIn }}';
+                    document.getElementById('modal_check_out').value = '{{ $checkOut }}';
+                    calculateNights();
+                @endif
+            }
+
+            function closeDateModal() {
+                document.getElementById('dateModal').style.display = 'none';
+                document.getElementById('nightsDisplay').classList.add('hidden');
+                document.getElementById('dateError').classList.add('hidden');
+            }
+
+            // Calculate nights
+            document.getElementById('modal_check_in').addEventListener('change', function() {
+                document.getElementById('modal_check_out').setAttribute('min', this.value);
+                calculateNights();
+            });
+            document.getElementById('modal_check_out').addEventListener('change', calculateNights);
+
+            function calculateNights() {
+                const checkIn = document.getElementById('modal_check_in').value;
+                const checkOut = document.getElementById('modal_check_out').value;
+
+                if (checkIn && checkOut) {
+                    const start = new Date(checkIn);
+                    const end = new Date(checkOut);
+                    const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+                    if (nights > 0) {
+                        document.getElementById('nightsCount').textContent = nights;
+                        document.getElementById('nightsDisplay').classList.remove('hidden');
+                        document.getElementById('dateError').classList.add('hidden');
+                    } else {
+                        document.getElementById('nightsDisplay').classList.add('hidden');
+                        document.getElementById('dateError').classList.remove('hidden');
+                        document.getElementById('dateError').querySelector('p').textContent =
+                            'Check-out date must be after check-in date.';
+                    }
+                }
+            }
+
+            // Handle date form submission
+            document.getElementById('dateSelectionForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const checkIn = document.getElementById('modal_check_in').value;
+                const checkOut = document.getElementById('modal_check_out').value;
+
+                if (!checkIn || !checkOut) {
+                    document.getElementById('dateError').classList.remove('hidden');
+                    document.getElementById('dateError').querySelector('p').textContent = 'Please select both dates.';
+                    return;
+                }
+
+                const start = new Date(checkIn);
+                const end = new Date(checkOut);
+                const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+                if (nights <= 0) {
+                    document.getElementById('dateError').classList.remove('hidden');
+                    document.getElementById('dateError').querySelector('p').textContent =
+                        'Check-out date must be after check-in date.';
+                    return;
+                }
+
+                // Redirect to rooms page with dates
+                window.location.href = `{{ route('user.rooms.index') }}?check_in=${checkIn}&check_out=${checkOut}`;
+            });
+
+            // Show modal on page load if no dates are set
+            window.addEventListener('DOMContentLoaded', function() {
+                @if (!isset($checkIn) || !isset($checkOut))
+                    openDateModal();
+                @endif
+            });
         </script>
     @endpush
 
