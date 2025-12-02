@@ -10,6 +10,7 @@ Route::controller(BookingController::class)->group(function () {
     Route::get('/booking', 'index')->name('booking.index');
     Route::post('/cart/add', 'addToCart')->name('cart.add');
     Route::post('/cart/remove', 'removeFromCart')->name('cart.remove');
+    Route::delete('/cart/remove/{roomId}', 'removeFromCart')->name('cart.remove.delete');
     Route::post('/cart/clear', 'clearCart')->name('cart.clear');
     Route::post('/booking/confirm', 'confirmBooking')->name('booking.confirm');
     Route::get('/booking/{id}', [BookingController::class, 'view'])->name('user.booking.view');

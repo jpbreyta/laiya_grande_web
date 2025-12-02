@@ -27,38 +27,8 @@ class BookingController extends Controller
 
     public function index(Request $request)
     {
-        $query = Room::query();
-
-        // Filter by guest capacity
-        if ($request->filled('guests')) {
-            $query->where('capacity', '>=', $request->guests);
-        }
-
-        // Filter by price range
-        if ($request->filled('min_price') && $request->filled('max_price')) {
-            $query->whereBetween('price', [$request->min_price, $request->max_price]);
-        }
-
-        // Filter by availability based on date overlap
-        if ($request->filled('check_in') && $request->filled('check_out')) {
-            $checkIn = $request->check_in;
-            $checkOut = $request->check_out;
-
-            $query->whereDoesntHave('bookings', function ($bookingQuery) use ($checkIn, $checkOut) {
-                $bookingQuery->where(function ($dateFilter) use ($checkIn, $checkOut) {
-                    $dateFilter
-                        ->whereBetween('check_in', [$checkIn, $checkOut])
-                        ->orWhereBetween('check_out', [$checkIn, $checkOut])
-                        ->orWhere(function ($q) use ($checkIn, $checkOut) {
-                            $q->where('check_in', '<=', $checkIn)
-                                ->where('check_out', '>=', $checkOut);
-                        });
-                });
-            });
-        }
-
-        $rooms = $query->where('availability', '>', 0)->get();
-        return view('user.booking.index', compact('rooms'));
+        // Redirect to rooms page - booking happens from rooms selection
+        return redirect()->route('user.rooms.index');
     }
 
     /**
@@ -87,12 +57,15 @@ class BookingController extends Controller
     /**
      * Remove item from cart
      */
-    public function removeFromCart(Request $request)
+    public function removeFromCart(Request $request, $roomId = null)
     {
         $cart = session()->get('cart', []);
+        
+        // Support both POST with room_id in body and DELETE with room_id in URL
+        $id = $roomId ?? $request->room_id;
 
-        if (isset($cart[$request->room_id])) {
-            unset($cart[$request->room_id]);
+        if (isset($cart[$id])) {
+            unset($cart[$id]);
             session()->put('cart', $cart);
         }
 
@@ -115,6 +88,23 @@ class BookingController extends Controller
     {
         $cart = session()->get('cart', []);
         
+        // Get dates from session
+        $checkIn = session('booking_check_in');
+        $checkOut = session('booking_check_out');
+        
+        // Redirect to rooms if dates not set
+        if (!$checkIn || !$checkOut) {
+            return redirect()->route('user.rooms.index')->with('error', 'Please select your booking dates first.');
+        }
+        
+        // Redirect to rooms if cart is empty
+        if (empty($cart)) {
+            return redirect()->route('user.rooms.index')->with('error', 'Please select at least one room.');
+        }
+        
+        // Calculate nights
+        $nights = max(1, Carbon::parse($checkIn)->diffInDays(Carbon::parse($checkOut)));
+        
         // Calculate total capacity
         $totalCapacity = 0;
         foreach ($cart as $item) {
@@ -125,9 +115,10 @@ class BookingController extends Controller
         }
 
         // Calculate cart totals (per night)
-        $cartTotal = collect($cart)->sum(fn($item) => $item['room_price'] * $item['quantity']);
+        $cartSubtotal = collect($cart)->sum(fn($item) => $item['room_price'] * $item['quantity']);
+        $cartTotal = $cartSubtotal * $nights;
 
-        return view('user.booking.book', compact('cart', 'totalCapacity', 'cartTotal'));
+        return view('user.booking.book', compact('cart', 'totalCapacity', 'cartTotal', 'cartSubtotal', 'checkIn', 'checkOut', 'nights'));
     }
 
     /**
@@ -164,9 +155,9 @@ class BookingController extends Controller
             ])->withInput();
         }
 
-        // Calculate dates and nights
-        $checkIn = Carbon::parse($request->check_in);
-        $checkOut = Carbon::parse($request->check_out);
+        // Get dates from session (already validated in booking form)
+        $checkIn = Carbon::parse(session('booking_check_in', $request->check_in));
+        $checkOut = Carbon::parse(session('booking_check_out', $request->check_out));
         $nights = max(1, $checkIn->diffInDays($checkOut));
 
         // Calculate totals
@@ -237,9 +228,39 @@ class BookingController extends Controller
             return response()->json(['success' => false, 'message' => 'Cart is empty.']);
         }
 
-        // Check capacity limits before proceeding
+        // Get dates from session
+        $checkInDate = session('booking_check_in', $request->check_in);
+        $checkOutDate = session('booking_check_out', $request->check_out);
+        
+        // Calculate nights
+        $checkIn = Carbon::parse($checkInDate);
+        $checkOut = Carbon::parse($checkOutDate);
+        $nights = max(1, $checkIn->diffInDays($checkOut));
+
+        // Check for overlapping bookings and availability
         foreach ($cart as $item) {
             $room = Room::findOrFail($item['room_id']);
+            
+            // Check if room has conflicting bookings
+            $conflictingBookings = Booking::where('room_id', $room->id)
+                ->whereIn('status', ['confirmed', 'pending'])
+                ->where(function ($query) use ($checkInDate, $checkOutDate) {
+                    $query->whereBetween('check_in', [$checkInDate, $checkOutDate])
+                        ->orWhereBetween('check_out', [$checkInDate, $checkOutDate])
+                        ->orWhere(function ($q) use ($checkInDate, $checkOutDate) {
+                            $q->where('check_in', '<=', $checkInDate)
+                                ->where('check_out', '>=', $checkOutDate);
+                        });
+                })
+                ->exists();
+            
+            if ($conflictingBookings) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Room {$room->name} is no longer available for the selected dates. Please select different dates or rooms."
+                ]);
+            }
+            
             if ($room->availability < $item['quantity']) {
                 return response()->json([
                     'success' => false,
@@ -247,11 +268,6 @@ class BookingController extends Controller
                 ]);
             }
         }
-
-        // Calculate nights
-        $checkIn = Carbon::parse($request->check_in);
-        $checkOut = Carbon::parse($request->check_out);
-        $nights = max(1, $checkIn->diffInDays($checkOut));
 
         $createdBookings = collect();
 
@@ -287,8 +303,8 @@ class BookingController extends Controller
             $booking = Booking::create([
                 'room_id' => $item['room_id'],
                 'customer_id' => $customer->id,
-                'check_in' => $request->check_in,
-                'check_out' => $request->check_out,
+                'check_in' => $checkInDate,
+                'check_out' => $checkOutDate,
                 'number_of_guests' => $request->guests,
                 'special_request' => $request->special_request ?? null,
                 'payment_method' => $request->payment_method ?? null,

@@ -199,26 +199,40 @@
                             </div>
 
                             <div class="p-8 space-y-6">
-                                <div class="grid md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                                            Check-in Date *
-                                        </label>
-                                        <input type="date" id="check_in" name="check_in" required
-                                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none">
+                                <div class="bg-teal-50 border-l-4 border-teal-500 p-4 rounded-r-xl mb-6">
+                                    <div class="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <p class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">
+                                                Check-in</p>
+                                            <p class="text-lg font-semibold text-teal-900">
+                                                {{ \Carbon\Carbon::parse($checkIn)->format('M d, Y') }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">
+                                                Check-out</p>
+                                            <p class="text-lg font-semibold text-teal-900">
+                                                {{ \Carbon\Carbon::parse($checkOut)->format('M d, Y') }}</p>
+                                        </div>
                                     </div>
-
-                                    <div>
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                                            Check-out Date *
-                                        </label>
-                                        <input type="date" id="check_out" name="check_out" required
-                                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none">
+                                    <div class="mt-3 pt-3 border-t border-teal-200">
+                                        <p class="text-sm text-teal-700 flex items-center gap-2">
+                                            <i class="fas fa-moon"></i>
+                                            <strong>{{ $nights }} night(s)</strong>
+                                        </p>
                                     </div>
-                                    <input type="hidden" name="days_count" id="days_count_hidden">
+                                    <div class="mt-2">
+                                        <a href="{{ route('booking.select-dates') }}"
+                                            class="text-xs text-teal-700 hover:text-teal-900 font-semibold inline-flex items-center gap-1">
+                                            <i class="fas fa-edit"></i>
+                                            Change dates
+                                        </a>
+                                    </div>
                                 </div>
+
+                                <input type="hidden" name="check_in" value="{{ $checkIn }}">
+                                <input type="hidden" name="check_out" value="{{ $checkOut }}">
+                                <input type="hidden" name="days_count" id="days_count_hidden"
+                                    value="{{ $nights }}">
 
                                 <div class="grid md:grid-cols-2 gap-6">
                                     <div>

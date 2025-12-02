@@ -10,6 +10,24 @@ class RoomController extends Controller
 {
     public function index(Request $request)
     {
+        // Store dates in session if provided
+        if ($request->filled('check_in') && $request->filled('check_out')) {
+            session([
+                'booking_check_in' => $request->check_in,
+                'booking_check_out' => $request->check_out
+            ]);
+        }
+
+        // Get dates from session
+        $checkIn = session('booking_check_in');
+        $checkOut = session('booking_check_out');
+        $nights = 1;
+
+        // Calculate nights if dates are set
+        if ($checkIn && $checkOut) {
+            $nights = max(1, \Carbon\Carbon::parse($checkIn)->diffInDays(\Carbon\Carbon::parse($checkOut)));
+        }
+
         $query = Room::query();
 
         // Filter by number of guests
@@ -20,6 +38,25 @@ class RoomController extends Controller
         // Filter by price range
         if ($request->filled('min_price') && $request->filled('max_price')) {
             $query->whereBetween('price', [$request->min_price, $request->max_price]);
+        }
+
+        // Filter by availability based on date overlap if dates are set
+        if ($checkIn && $checkOut) {
+            $query->whereDoesntHave('bookings', function ($bookingQuery) use ($checkIn, $checkOut) {
+                $bookingQuery->whereIn('status', ['confirmed', 'pending'])
+                    ->where(function ($dateFilter) use ($checkIn, $checkOut) {
+                        $dateFilter
+                            // Booking starts during our stay
+                            ->whereBetween('check_in', [$checkIn, $checkOut])
+                            // Booking ends during our stay
+                            ->orWhereBetween('check_out', [$checkIn, $checkOut])
+                            // Booking completely overlaps our stay
+                            ->orWhere(function ($q) use ($checkIn, $checkOut) {
+                                $q->where('check_in', '<=', $checkIn)
+                                    ->where('check_out', '>=', $checkOut);
+                            });
+                    });
+            });
         }
 
         // Get rooms with availability > 0
@@ -40,7 +77,7 @@ class RoomController extends Controller
             });
         }
 
-        return view('user.rooms.index', compact('rooms'));
+        return view('user.rooms.index', compact('rooms', 'checkIn', 'checkOut', 'nights'));
     }
 
     public function show($id)
