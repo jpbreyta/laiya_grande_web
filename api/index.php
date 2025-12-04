@@ -1,16 +1,19 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
 
 $bootstrapCache = '/tmp/bootstrap/cache';
 if (!is_dir($bootstrapCache)) {
     mkdir($bootstrapCache, 0777, true);
 }
 
+$storagePath = '/tmp/storage';
 $frameworkDirs = [
-    '/tmp/storage/framework/views',
-    '/tmp/storage/framework/cache',
-    '/tmp/storage/framework/sessions',
+    $storagePath.'/framework/views',
+    $storagePath.'/framework/cache',
+    $storagePath.'/framework/sessions',
 ];
 foreach ($frameworkDirs as $dir) {
     if (!is_dir($dir)) {
@@ -18,14 +21,24 @@ foreach ($frameworkDirs as $dir) {
     }
 }
 
-$app = require __DIR__ . '/../bootstrap/app.php';
+$app = Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    });
 
-$app->useStoragePath('/tmp/storage');
+// Patch storage and bootstrap paths **before create()**
+$app->useStoragePath($storagePath);
+$app->instance('path.bootstrap', '/tmp/bootstrap');
 
-$packageManifest = $app->make(Illuminate\Foundation\PackageManifest::class);
-$packageManifest->manifestPath = $bootstrapCache . '/services.php';
-
-$request = Illuminate\Http\Request::capture();
-$response = $app->handle($request);
-$response->send();
-$app->terminate($request, $response);
+return $app->create();
