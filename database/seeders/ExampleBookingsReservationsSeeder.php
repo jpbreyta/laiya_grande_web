@@ -6,7 +6,8 @@ use Illuminate\Database\Seeder;
 use App\Models\Booking;
 use App\Models\Reservation;
 use App\Models\Room;
-use App\Models\Customer; // NEW: Import the Customer model
+use App\Models\Customer;
+use App\Models\Payment;
 use Carbon\Carbon;
 
 class ExampleBookingsReservationsSeeder extends Seeder
@@ -125,8 +126,25 @@ class ExampleBookingsReservationsSeeder extends Seeder
             ],
         ];
 
-        foreach ($bookings as $booking) {
-            Booking::create($booking);
+        foreach ($bookings as $bookingData) {
+            // Remove the old 'payment' field
+            unset($bookingData['payment']);
+            
+            // Create booking
+            $booking = Booking::create($bookingData);
+            
+            // Create payment record in payments table
+            Payment::create([
+                'booking_id' => $booking->id,
+                'customer_name' => $booking->customer->firstname . ' ' . $booking->customer->lastname,
+                'contact_number' => $booking->customer->phone_number,
+                'payment_date' => $booking->created_at,
+                'amount_paid' => $booking->total_price,
+                'payment_stage' => 'full',
+                'status' => 'verified',
+                'payment_method' => $booking->payment_method,
+                'verified_at' => $booking->created_at,
+            ]);
         }
 
         // === RESERVATIONS ===
@@ -193,13 +211,25 @@ class ExampleBookingsReservationsSeeder extends Seeder
             ],
         ];
 
-        foreach ($reservations as $reservation) {
-            // NOTE: The reservation array still contains 'first_payment' and 'second_payment'. 
-            // If you keep those in the migration, you need to ensure they are added here.
-            // For now, I've left them out as the Booking table didn't have them, 
-            // assuming 'payment' field covers it. If you need them, you must add them back
-            // to the reservation arrays above.
-            Reservation::create($reservation);
+        foreach ($reservations as $reservationData) {
+            // Remove old payment fields
+            unset($reservationData['payment']);
+            
+            // Create reservation
+            $reservation = Reservation::create($reservationData);
+            
+            // Create payment record in payments table
+            Payment::create([
+                'reservation_id' => $reservation->id,
+                'customer_name' => $reservation->customer->firstname . ' ' . $reservation->customer->lastname,
+                'contact_number' => $reservation->customer->phone_number,
+                'payment_date' => $reservation->created_at,
+                'amount_paid' => $reservation->total_price,
+                'payment_stage' => 'full',
+                'status' => 'verified',
+                'payment_method' => $reservation->payment_method,
+                'verified_at' => $reservation->created_at,
+            ]);
         }
     }
 }

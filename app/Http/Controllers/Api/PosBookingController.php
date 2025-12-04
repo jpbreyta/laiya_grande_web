@@ -49,7 +49,7 @@ class PosBookingController extends Controller
             'check_in' => 'required|date',
             'check_out' => 'required|date|after:check_in',
             'number_of_guests' => 'required|integer|min:1',
-            'payment_method' => 'nullable|string|in:cash,gcash,paymaya,bank_transfer',
+            'payment_method' => 'nullable|string|in:cash,gcash,bank_transfer',
             'special_request' => 'nullable|string|max:255',
         ]);
 
@@ -93,7 +93,6 @@ class PosBookingController extends Controller
             'status' => 'confirmed',
         ]);
 
-        // Reduce room availability
         $room->decrement('availability');
 
         // Create payment record

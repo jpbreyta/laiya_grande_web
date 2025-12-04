@@ -221,7 +221,7 @@
                                         </p>
                                     </div>
                                     <div class="mt-2">
-                                        <a href="{{ route('booking.select-dates') }}"
+                                        <a href="{{ route('user.rooms.index') }}"
                                             class="text-xs text-teal-700 hover:text-teal-900 font-semibold inline-flex items-center gap-1">
                                             <i class="fas fa-edit"></i>
                                             Change dates
@@ -481,7 +481,7 @@
                                     </div>
                                     <div class="flex justify-between text-sm">
                                         <span class="text-slate-500">Number of Nights</span>
-                                        <span class="font-semibold text-slate-700" id="nightsDisplay">1 night(s)</span>
+                                        <span class="font-semibold text-slate-700" id="nightsDisplay">{{ $nights }} night(s)</span>
                                     </div>
                                     <div class="flex justify-between items-end pt-2">
                                         <span class="text-base font-bold text-teal-900">Total</span>
