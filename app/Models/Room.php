@@ -44,4 +44,24 @@ class Room extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    public function ratings()
+    {
+        return $this->hasMany(RoomRating::class);
+    }
+
+    public function averageRating()
+    {
+        return $this->ratings()->avg('rating') ?? 0;
+    }
+
+    public function totalRatings()
+    {
+        return $this->ratings()->count();
+    }
 }

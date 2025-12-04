@@ -19,14 +19,18 @@ class DatabaseSeeder extends Seeder
             RoomSeeder::class,
             AdminUserSeeder::class,
             ExampleBookingsReservationsSeeder::class,
-            CheckinSeeder::class,
             FoodCategorySeeder::class,
             FoodSeeder::class,
             TermsAndConditionsSeeder::class,
             HouseRulesSeeder::class,
             TourPackagesSeeder::class,
-            WaterSportsSeeder::class, 
+            WaterSportsSeeder::class,
+            PopulateReservationNumbersSeeder::class,
+            NotificationSeeder::class,
+            GeneralSettingsSeeder::class,
+            RentalItemSeeder::class,
+            GuestStaySeeder::class,
+            ContactSubjectSeeder::class,
         ]);
-
     }
 }

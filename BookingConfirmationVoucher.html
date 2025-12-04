@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Booking Confirmation Voucher</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: Arial, sans-serif;
+                background: white;
+                padding: 10px;
+            }
+
+            /* Print-specific styling */
+            @media print {
+                @page {
+                    size: 8.5in 11in; /* long bond / legal */
+                    margin: 0mm;
+                }
+                body {
+                    margin: 0;
+                    padding: 0;
+                }
+            }
+
+            .container {
+                border: 2px solid #333;
+                padding: 15px;
+                max-width: 100%;
+            }
+
+            .header {
+                text-align: center;
+                margin-bottom: 12px;
+            }
+
+            .header h1 {
+                color: #2c5aa0;
+                font-size: 20px;
+                letter-spacing: 4px;
+                margin-bottom: 3px;
+            }
+
+            .header .contact {
+                color: #666;
+                font-size: 10px;
+                margin-bottom: 3px;
+            }
+
+            .header h2 {
+                color: #2c5aa0;
+                font-size: 18px;
+                letter-spacing: 3px;
+                margin-bottom: 3px;
+            }
+
+            .header .booking-id {
+                color: #666;
+                font-size: 10px;
+            }
+
+            .main-content {
+                display: flex;
+                gap: 15px;
+                margin-top: 12px;
+            }
+
+            .left-section {
+                flex: 1;
+            }
+
+            .right-section {
+                width: 280px;
+                background: #e8f0ff;
+                padding: 10px;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 10px;
+            }
+
+            td {
+                padding: 6px 8px;
+                border: 1px solid #333;
+                font-size: 11px;
+            }
+
+            .label {
+                background: white;
+                font-weight: bold;
+                width: 42%;
+            }
+
+            .value {
+                background: white;
+                color: #2c5aa0;
+                font-weight: bold;
+            }
+
+            .terms-header {
+                text-align: center;
+                font-weight: bold;
+                margin-bottom: 8px;
+                font-size: 12px;
+            }
+
+            .terms-list {
+                list-style: none;
+                padding-left: 15px;
+                font-size: 9px;
+                line-height: 1.3;
+            }
+
+            .terms-list li {
+                position: relative;
+                margin-bottom: 4px;
+            }
+
+            .terms-list li:before {
+                content: "❏";
+                position: absolute;
+                left: -15px;
+            }
+
+            .section-title {
+                font-weight: bold;
+                margin-top: 8px;
+                margin-bottom: 6px;
+                text-align: center;
+                font-size: 11px;
+            }
+
+            .footer-note {
+                margin-top: 10px;
+                padding: 8px;
+                background: #fff8dc;
+                border: 2px solid #333;
+                text-align: center;
+                font-weight: bold;
+                font-size: 9px;
+                line-height: 1.3;
+            }
+
+            .footer-message {
+                margin-top: 8px;
+                text-align: center;
+                color: #2c5aa0;
+                font-weight: bold;
+                font-size: 11px;
+                letter-spacing: 1px;
+            }
+
+            .print-button {
+                text-align: center;
+                margin-bottom: 15px;
+            }
+
+            .print-button button {
+                background: #2c5aa0;
+                color: white;
+                border: none;
+                padding: 10px 25px;
+                font-size: 14px;
+                cursor: pointer;
+                border-radius: 4px;
+            }
+
+            .print-button button:hover {
+                background: #1e3f70;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Single Voucher Copy -->
+        <div class="container">
+            <div class="header">
+                <h1>LAIYA GRANDE BEACH RESORT</h1>
+                <div class="contact">
+                    CONTACT NUMBERS: 0963-033-7629 | 0977-426-4729
+                </div>
+                <h2>BOOKING CONFIRMATION VOUCHER</h2>
+                <div class="booking-id">BOOKING ID NUMBER: 24-LGBR-C-05867</div>
+            </div>
+
+            <div class="main-content">
+                <div class="left-section">
+                    <table>
+                        <tr>
+                            <td class="label">GUEST NAME/COMPANY NAME:</td>
+                            <td class="value">DESIREE JOYCE J. CADAG</td>
+                        </tr>
+                        <tr>
+                            <td class="label">CONTACT PERSON/NUMBER:</td>
+                            <td class="value">0917-897-5234</td>
+                        </tr>
+                        <tr>
+                            <td class="label">RESERVED DATE:</td>
+                            <td class="value">OCTOBER 26-27, 2025</td>
+                        </tr>
+                        <tr>
+                            <td class="label">NUMBER OF GUEST(S):</td>
+                            <td class="value">4-6 PAX</td>
+                        </tr>
+                        <tr>
+                            <td class="label">ACCOMMODATION NAME:</td>
+                            <td class="value">HERMOSA</td>
+                        </tr>
+                        <tr>
+                            <td class="label">TOTAL AMOUNT:</td>
+                            <td class="value">PHP 3,500.00</td>
+                        </tr>
+                        <tr>
+                            <td class="label">DEPOSITED AMOUNT:</td>
+                            <td class="value">PHP 1,000.00</td>
+                        </tr>
+                        <tr>
+                            <td class="label">REMAINING BALANCE:</td>
+                            <td class="value">PHP 2,500.00</td>
+                        </tr>
+                        <tr>
+                            <td class="label">PREPARED BY:</td>
+                            <td class="value">
+                                JOMAICA ASISTIN-SALAGUBANG<br />SALES AND
+                                MARKETING ASSOCIATE
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="right-section">
+                    <div class="terms-header">TERMS AND CONDITION</div>
+                    <ul class="terms-list">
+                        <li>OVERNIGHT (Check-In 2:00 PM Check-Out 12:00nn)</li>
+                        <li>DAYTOUR (Check-In 8:00 AM Check-Out 5:00 PM)</li>
+                        <li>
+                            Bringing of ELECTRICAL APPLIANCES such as rice
+                            cooker, induction, etc., will be charged PHP 500.00
+                            EACH.
+                        </li>
+                        <li>LOST KEY will be CHARGED PHP 500.00</li>
+                        <li>SWIMMING TIME (6:00 AM – 6:00 PM)</li>
+                        <li>
+                            SWIMMING while UNDER THE INFLUENCE OF ALCOHOL is
+                            STRICTLY PROHIBITED.
+                        </li>
+                        <li>BEACHFRONT GATE CLOSE AT 10:00 PM</li>
+                        <li>
+                            LOUD NOISE/SOUNDS ARE STRICTLY PROHIBITED FROM
+                            10PM-8AM
+                        </li>
+                    </ul>
+                    <div class="section-title">CANCELLATION POLICY</div>
+                    <ul class="terms-list">
+                        <li>Confirmed BOOKING is NON-REFUNDABLE.</li>
+                        <li>
+                            Confirmed BOOKING can only be RE-SCHEDULED or
+                            MODIFIED if due to TYPHOON.
+                        </li>
+                        <li>
+                            FAILURE to re-schedule shall be a result of NO SHOW
+                            and shall be treated as 100% charged.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                PLEASE DON'T FORGET TO DROP BY AT OUR TOURISM RECEPTION AREA
+                BEFORE GOING TO THE RESORT AND PAY ECO TICKET PHP50.00 EACH
+            </div>
+            <div class="footer-message">
+                PRESENT THIS VOUCHER AS A PROOF OF YOUR CONFIRMED RESERVATION
+            </div>
+        </div>
+
+        <!-- Horizontal dotted line -->
+<hr style="border: none; border-top: 5px dotted #333; margin: 10px 0;">
+
+
+                <!-- Single Voucher Copy -->
+        <div class="container">
+            <div class="header">
+                <h1>LAIYA GRANDE BEACH RESORT</h1>
+                <div class="contact">
+                    CONTACT NUMBERS: 0963-033-7629 | 0977-426-4729
+                </div>
+                <h2>BOOKING CONFIRMATION VOUCHER</h2>
+                <div class="booking-id">BOOKING ID NUMBER: 24-LGBR-C-05867</div>
+            </div>
+
+            <div class="main-content">
+                <div class="left-section">
+                    <table>
+                        <tr>
+                            <td class="label">GUEST NAME/COMPANY NAME:</td>
+                            <td class="value">DESIREE JOYCE J. CADAG</td>
+                        </tr>
+                        <tr>
+                            <td class="label">CONTACT PERSON/NUMBER:</td>
+                            <td class="value">0917-897-5234</td>
+                        </tr>
+                        <tr>
+                            <td class="label">RESERVED DATE:</td>
+                            <td class="value">OCTOBER 26-27, 2025</td>
+                        </tr>
+                        <tr>
+                            <td class="label">NUMBER OF GUEST(S):</td>
+                            <td class="value">4-6 PAX</td>
+                        </tr>
+                        <tr>
+                            <td class="label">ACCOMMODATION NAME:</td>
+                            <td class="value">HERMOSA</td>
+                        </tr>
+                        <tr>
+                            <td class="label">TOTAL AMOUNT:</td>
+                            <td class="value">PHP 3,500.00</td>
+                        </tr>
+                        <tr>
+                            <td class="label">DEPOSITED AMOUNT:</td>
+                            <td class="value">PHP 1,000.00</td>
+                        </tr>
+                        <tr>
+                            <td class="label">REMAINING BALANCE:</td>
+                            <td class="value">PHP 2,500.00</td>
+                        </tr>
+                        <tr>
+                            <td class="label">PREPARED BY:</td>
+                            <td class="value">
+                                JOMAICA ASISTIN-SALAGUBANG<br />SALES AND
+                                MARKETING ASSOCIATE
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="right-section">
+                    <div class="terms-header">TERMS AND CONDITION</div>
+                    <ul class="terms-list">
+                        <li>OVERNIGHT (Check-In 2:00 PM Check-Out 12:00nn)</li>
+                        <li>DAYTOUR (Check-In 8:00 AM Check-Out 5:00 PM)</li>
+                        <li>
+                            Bringing of ELECTRICAL APPLIANCES such as rice
+                            cooker, induction, etc., will be charged PHP 500.00
+                            EACH.
+                        </li>
+                        <li>LOST KEY will be CHARGED PHP 500.00</li>
+                        <li>SWIMMING TIME (6:00 AM – 6:00 PM)</li>
+                        <li>
+                            SWIMMING while UNDER THE INFLUENCE OF ALCOHOL is
+                            STRICTLY PROHIBITED.
+                        </li>
+                        <li>BEACHFRONT GATE CLOSE AT 10:00 PM</li>
+                        <li>
+                            LOUD NOISE/SOUNDS ARE STRICTLY PROHIBITED FROM
+                            10PM-8AM
+                        </li>
+                    </ul>
+                    <div class="section-title">CANCELLATION POLICY</div>
+                    <ul class="terms-list">
+                        <li>Confirmed BOOKING is NON-REFUNDABLE.</li>
+                        <li>
+                            Confirmed BOOKING can only be RE-SCHEDULED or
+                            MODIFIED if due to TYPHOON.
+                        </li>
+                        <li>
+                            FAILURE to re-schedule shall be a result of NO SHOW
+                            and shall be treated as 100% charged.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                PLEASE DON'T FORGET TO DROP BY AT OUR TOURISM RECEPTION AREA
+                BEFORE GOING TO THE RESORT AND PAY ECO TICKET PHP50.00 EACH
+            </div>
+            <div class="footer-message">
+                PRESENT THIS VOUCHER AS A PROOF OF YOUR CONFIRMED RESERVATION
+            </div>
+        </div>
+    </body>
+</html>

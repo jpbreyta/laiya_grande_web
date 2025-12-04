@@ -20,11 +20,19 @@
 
     <!-- Navigation Links -->
     <div class="flex flex-col space-y-4 px-6 flex-1 text-white">
+        <a href="{{ route('admin.inbox.all-mail') }}" class="flex items-center space-x-3 hover:text-yellow-400 transition">
+            <i class="fas fa-envelope-open-text text-xl w-6 shrink-0"></i>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">All Mail</span>
+        </a>
+
         <a href="{{ route('admin.inbox.index') }}" class="flex items-center space-x-3 hover:text-yellow-400 transition">
             <i class="fas fa-inbox text-xl w-6 shrink-0"></i>
             <span class=" gap-2 nav-text text-sm font-medium transition-opacity duration-300 flex items-center">
                 Inbox
-                <span class="ml-auto bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs">12</span>
+                @if ($unreadCount > 0)
+                    <span
+                        class="ml-auto bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs">{{ $unreadCount }}</span>
+                @endif
             </span>
         </a>
 
@@ -33,28 +41,43 @@
             <span class="nav-text text-sm font-medium transition-opacity duration-300">Sent</span>
         </a>
 
-        <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
-            <i class="fas fa-envelope-open-text text-xl w-6 shrink-0"></i>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">All Mail</span>
+        <a href="{{ route('admin.inbox.archived') }}" class="flex items-center space-x-3 hover:text-yellow-400 transition">
+            <i class="fas fa-archive text-xl w-6 shrink-0"></i>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">Archives</span>
         </a>
 
         <!-- Labels Section -->
         <div class="border-t border-white/20 my-4"></div>
         <div class="text-xs text-gray-300 uppercase tracking-wide nav-text">Labels</div>
 
-        <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
-            <span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">Reservations</span>
+        <a href="{{ route('admin.inbox.label', 'Reservation Inquiry') }}" class="flex items-center space-x-3 hover:text-yellow-400 transition">
+            <span class="w-2 h-2 rounded-full bg-blue-400 inline-block"></span>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">Reservation Inquiry</span>
         </a>
 
-        <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
+        <a href="{{ route('admin.inbox.label', 'Booking Assistance') }}" class="flex items-center space-x-3 hover:text-yellow-400 transition">
             <span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">Bookings</span>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">Booking Assistance</span>
         </a>
 
-        <a href="#" class="flex items-center space-x-3 hover:text-yellow-400 transition">
+        <a href="{{ route('admin.inbox.label', 'General Question') }}" class="flex items-center space-x-3 hover:text-yellow-400 transition">
+            <span class="w-2 h-2 rounded-full bg-purple-400 inline-block"></span>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">General Question</span>
+        </a>
+
+        <a href="{{ route('admin.inbox.label', 'Feedback') }}" class="flex items-center space-x-3 hover:text-yellow-400 transition">
+            <span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">Feedback</span>
+        </a>
+
+        <a href="{{ route('admin.inbox.label', 'Complaint') }}" class="flex items-center space-x-3 hover:text-yellow-400 transition">
             <span class="w-2 h-2 rounded-full bg-red-400 inline-block"></span>
-            <span class="nav-text text-sm font-medium transition-opacity duration-300">Urgent</span>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">Complaint</span>
+        </a>
+
+        <a href="{{ route('admin.inbox.label', 'Other') }}" class="flex items-center space-x-3 hover:text-yellow-400 transition">
+            <span class="w-2 h-2 rounded-full bg-gray-400 inline-block"></span>
+            <span class="nav-text text-sm font-medium transition-opacity duration-300">Other</span>
         </a>
     </div>
 </nav>

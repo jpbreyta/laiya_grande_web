@@ -1,11 +1,13 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Room;
 use App\Models\Reservation;
 use App\Models\Booking;
+use Carbon\Carbon;
 
 class NewController extends Controller
 {
@@ -63,6 +65,7 @@ class NewController extends Controller
                 'status' => $validated['status'],
                 'total_price' => $validated['total_price'],
                 'special_request' => $validated['special_request'] ?? null,
+                'reservation_number' => $this->generateReservationNumber(),
             ]);
 
             return redirect()->route('admin.reservation.show', $reservation->id)
@@ -81,9 +84,38 @@ class NewController extends Controller
             'status' => $validated['status'],
             'total_price' => $validated['total_price'],
             'special_request' => $validated['special_request'] ?? null,
+            'reservation_number' => $this->generateBookingNumber(),
         ]);
 
         return redirect()->route('admin.booking.show', $booking->id)
             ->with('success', 'Walk-in booking created successfully.');
     }
+    private function generateReservationNumber(): string
+    {
+        do {
+            $date = Carbon::now()->format('YmdHis');
+            $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
+            $reservationNumber = 'RSV-' . $date . '-' . $random;
+        } while (
+            \App\Models\Booking::where('reservation_number', $reservationNumber)->exists() ||
+            Reservation::where('reservation_number', $reservationNumber)->exists()
+        );
+
+        return $reservationNumber;
+    }
+    
+    private function generateBookingNumber(): string
+    {
+        do {
+            $date = Carbon::now()->format('YmdHis');
+            $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
+            $reservationNumber = 'BK-' . $date . '-' . $random;
+        } while (
+            Booking::where('reservation_number', $reservationNumber)->exists() ||
+            \App\Models\Reservation::where('reservation_number', $reservationNumber)->exists()
+        );
+
+        return $reservationNumber;
+    }
+
 }

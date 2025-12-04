@@ -16,7 +16,6 @@ return new class extends Migration
             $table->decimal('price', 10, 2);
             $table->integer('capacity'); // GOOD FOR X PAX
             $table->integer('availability')->default(1);
-
             // Room feature flags based on actual inclusions
             $table->boolean('has_aircon')->default(true);
             $table->boolean('has_private_cr')->default(true);

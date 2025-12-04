@@ -1,421 +1,762 @@
 @extends('user.layouts.app')
 
 @section('content')
-<section class="relative isolate bg-center min-h-[40svh] overflow-hidden">
-    <div class="absolute inset-0 -z-10">
-        <img src="{{ asset('images/laiyagrande.png') }}" alt="" aria-hidden="true" class="h-full w-full object-cover">
-    </div>
-
-    <div class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-teal-900/50 dark:from-black/70 dark:via-black/50 dark:to-teal-900/60"></div>
-    <div class="relative mx-auto max-w-7xl px-6 py-16 flex min-h-[40svh] items-center justify-center">
-        <div class="text-center text-white max-w-4xl">
-            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-balance font-heading mb-4 animate-slide-up">
-                <span class="block bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent">
-                    Gallery
-                </span>
-            </h1>
-            <p class="text-lg md:text-xl leading-relaxed text-white/90 mb-6 animate-fade-in" style="animation-delay: 0.3s;">
-                Discover the beauty of Laiya Grande through our stunning collection of photos
-            </p>
-        </div>
-    </div>
-</section>
-
-<section class="py-8 bg-gray-50 dark:bg-slate-900">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="flex flex-wrap justify-center gap-4">
-            <button class="gallery-filter active bg-teal-500 text-white px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-600" data-filter="all">
-                ALL
-            </button>
-            <button class="gallery-filter bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-50 dark:hover:bg-slate-700" data-filter="beach">
-                BEACH
-            </button>
-            <button class="gallery-filter bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-50 dark:hover:bg-slate-700" data-filter="rooms">
-                ROOMS
-            </button>
-            <button class="gallery-filter bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-50 dark:hover:bg-slate-700" data-filter="amenities">
-                AMENITIES
-            </button>
-            <button class="gallery-filter bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-6 py-2 rounded-full font-medium transition-all duration-300 hover:bg-teal-50 dark:hover:bg-slate-700" data-filter="activities">
-                ACTIVITIES
-            </button>
-        </div>
-    </div>
-</section>
-
-<section class="py-16 bg-white dark:bg-slate-950">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="gallery-grid">
-            
-            <div class="gallery-item beach group cursor-pointer" data-category="beach">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-teal-100 to-cyan-100 dark:from-teal-900/30 dark:to-cyan-900/30 flex items-center justify-center">
-                        <img src="{{ asset('images/beach1.jpg') }}" alt="Pristine Beach" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div class="text-center hidden">
-                            <h3 class="text-lg font-bold text-teal-700 dark:text-teal-300">Pristine Beach</h3>
-                            <p class="text-sm text-teal-600 dark:text-teal-400">Crystal clear waters</p>
-                        </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gallery-item beach group cursor-pointer" data-category="beach">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 flex items-center justify-center">
-                        <img src="{{ asset('images/sunset1.jpg') }}" alt="Sunset Views" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div class="text-center hidden">
-                            <h3 class="text-lg font-bold text-orange-700 dark:text-orange-300">Sunset Views</h3>
-                            <p class="text-sm text-orange-600 dark:text-orange-400">Breathtaking sunsets</p>
-                        </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gallery-item beach group cursor-pointer" data-category="beach">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 flex items-center justify-center">
-                            <div class="text-center">
-                                <h3 class="text-lg font-bold text-blue-700 dark:text-blue-300">Ocean Waves</h3>
-                                <p class="text-sm text-blue-600 dark:text-blue-400">Gentle waves</p>
-                            </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gallery-item rooms group cursor-pointer" data-category="rooms">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center">
-                            <div class="text-center">
-                                <h3 class="text-lg font-bold text-purple-700 dark:text-purple-300">Luxury Suite</h3>
-                                <p class="text-sm text-purple-600 dark:text-purple-400">Premium accommodation</p>
-                            </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gallery-item rooms group cursor-pointer" data-category="rooms">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center">
-                            <div class="text-center">
-                                <h3 class="text-lg font-bold text-green-700 dark:text-green-300">Deluxe Room</h3>
-                                <p class="text-sm text-green-600 dark:text-green-400">Comfortable stay</p>
-                            </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gallery-item rooms group cursor-pointer" data-category="rooms">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-900/30 dark:to-blue-900/30 flex items-center justify-center">
-                            <div class="text-center">
-                                <h3 class="text-lg font-bold text-indigo-700 dark:text-indigo-300">Beachfront Villa</h3>
-                                <p class="text-sm text-indigo-600 dark:text-indigo-400">Ocean view</p>
-                            </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gallery-item amenities group cursor-pointer" data-category="amenities">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-red-100 to-pink-100 dark:from-red-900/30 dark:to-pink-900/30 flex items-center justify-center">
-                            <div class="text-center">
-                                <h3 class="text-lg font-bold text-red-700 dark:text-red-300">Fine Dining</h3>
-                                <p class="text-sm text-red-600 dark:text-red-400">Restaurant & Bar</p>
-                            </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gallery-item amenities group cursor-pointer" data-category="amenities">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-teal-100 to-cyan-100 dark:from-teal-900/30 dark:to-cyan-900/30 flex items-center justify-center">
-                            <div class="text-center">
-                                <h3 class="text-lg font-bold text-teal-700 dark:text-teal-300">Swimming Pool</h3>
-                                <p class="text-sm text-teal-600 dark:text-teal-400">Infinity pool</p>
-                            </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gallery-item amenities group cursor-pointer" data-category="amenities">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/30 dark:to-amber-900/30 flex items-center justify-center">
-                            <div class="text-center">
-                                <h3 class="text-lg font-bold text-yellow-700 dark:text-yellow-300">Spa & Wellness</h3>
-                                <p class="text-sm text-yellow-600 dark:text-yellow-400">Relaxation center</p>
-                            </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gallery-item activities group cursor-pointer" data-category="activities">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 flex items-center justify-center">
-                            <div class="text-center">
-                                <h3 class="text-lg font-bold text-orange-700 dark:text-orange-300">Water Sports</h3>
-                                <p class="text-sm text-orange-600 dark:text-orange-400">Surfing & diving</p>
-                            </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gallery-item activities group cursor-pointer" data-category="activities">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-green-100 to-teal-100 dark:from-green-900/30 dark:to-teal-900/30 flex items-center justify-center">
-                            <div class="text-center">
-                                <h3 class="text-lg font-bold text-green-700 dark:text-green-300">Island Hopping</h3>
-                                <p class="text-sm text-green-600 dark:text-green-400">Boat tours</p>
-                            </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gallery-item activities group cursor-pointer" data-category="activities">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 flex items-center justify-center">
-                            <div class="text-center">
-                                <h3 class="text-lg font-bold text-purple-700 dark:text-purple-300">Fishing</h3>
-                                <p class="text-sm text-purple-600 dark:text-purple-400">Deep sea fishing</p>
-                            </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gallery-item beach group cursor-pointer" data-category="beach">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-cyan-100 to-blue-100 dark:from-cyan-900/30 dark:to-blue-900/30 flex items-center justify-center">
-                            <div class="text-center">
-                                <h3 class="text-lg font-bold text-cyan-700 dark:text-cyan-300">Private Island</h3>
-                                <p class="text-sm text-cyan-600 dark:text-cyan-400">Exclusive access</p>
-                            </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gallery-item beach group cursor-pointer" data-category="beach">
-                <div class="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                    <div class="aspect-square bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 flex items-center justify-center">
-                            <div class="text-center">
-                                <h3 class="text-lg font-bold text-emerald-700 dark:text-emerald-300">Tropical Garden</h3>
-                                <p class="text-sm text-emerald-600 dark:text-emerald-400">Lush vegetation</p>
-                            </div>
-                    </div>
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="text-white text-2xl">View</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</section>
-
-<section class="py-16 bg-gray-50 dark:bg-slate-900">
-    <div class="max-w-7xl mx-auto px-6 text-center">
-        <h2 class="text-4xl font-bold text-teal-600 dark:text-teal-400 font-heading mb-4">Gallery Highlights</h2>
-        <p class="text-lg text-gray-600 dark:text-slate-300 mb-12">Discover what makes Laiya Grande special</p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div class="text-center">
-                <div class="text-4xl font-bold text-teal-600 dark:text-teal-400 mb-2">50+</div>
-                <div class="text-sm text-gray-600 dark:text-slate-300">Stunning Photos</div>
-            </div>
-            <div class="text-center">
-                <div class="text-4xl font-bold text-teal-600 dark:text-teal-400 mb-2">4</div>
-                <div class="text-sm text-gray-600 dark:text-slate-300">Photo Categories</div>
-            </div>
-            <div class="text-center">
-                <div class="text-4xl font-bold text-teal-600 dark:text-teal-400 mb-2">360°</div>
-                <div class="text-sm text-gray-600 dark:text-slate-300">Virtual Tours</div>
-            </div>
-            <div class="text-center">
-                <div class="text-4xl font-bold text-teal-600 dark:text-teal-400 mb-2">24/7</div>
-                <div class="text-sm text-gray-600 dark:text-slate-300">Photo Updates</div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="py-16 bg-gradient-to-br from-teal-600 to-teal-700 text-white dark:from-teal-700 dark:to-teal-800">
-    <div class="max-w-7xl mx-auto px-6 text-center">
-        <h2 class="text-4xl font-bold tracking-tight font-heading mb-4">Ready to Experience Paradise?</h2>
-        <p class="text-lg text-white/90 mb-8">Book your stay and create your own memories at Laiya Grande</p>
-        
-        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <a href="{{ url('/register') }}" class="inline-block rounded-full bg-yellow-400 px-8 py-4 font-semibold text-black shadow-lg shadow-black/20 ring-1 ring-white/10 hover:bg-yellow-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-700 motion-safe:transition">
-                Book Your Stay
-            </a>
-            <a href="{{ url('/contact') }}" class="inline-block rounded-full border-2 border-white/30 bg-white/10 backdrop-blur-sm px-8 py-4 font-semibold text-white hover:bg-white/20 hover:border-white/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-700 motion-safe:transition">
-                Contact Us
-            </a>
-        </div>
-    </div>
-</section>
-
-<div id="lightbox" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
-    <div class="relative max-w-6xl max-h-full">
-        <button id="close-lightbox" class="absolute -top-12 right-0 text-white text-2xl hover:text-gray-300 transition-colors z-10">
-            ✕
-        </button>
-        <div class="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-2xl">
-            <div class="aspect-video relative">
-                <img id="lightbox-image" src="" alt="" class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-black/20 flex items-center justify-center">
-                    <div class="text-center text-white">
-                        <h3 id="lightbox-title" class="text-3xl font-bold mb-2">Beautiful Beach View</h3>
-                        <p id="lightbox-description" class="text-lg">Experience the pristine beauty of Laiya Grande</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const filterButtons = document.querySelectorAll('.gallery-filter');
-        const galleryItems = document.querySelectorAll('.gallery-item');
-        const lightbox = document.getElementById('lightbox');
-        const closeLightbox = document.getElementById('close-lightbox');
-
-        filterButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const filter = this.getAttribute('data-filter');
-                
-                filterButtons.forEach(btn => {
-                    btn.classList.remove('active', 'bg-teal-500', 'text-white');
-                    btn.classList.add('bg-white', 'dark:bg-slate-800', 'text-gray-700', 'dark:text-slate-300');
-                });
-                this.classList.add('active', 'bg-teal-500', 'text-white');
-                this.classList.remove('bg-white', 'dark:bg-slate-800', 'text-gray-700', 'dark:text-slate-300');
-
-                galleryItems.forEach(item => {
-                    if (filter === 'all' || item.getAttribute('data-category') === filter) {
-                        item.style.display = 'block';
-                        item.style.animation = 'fadeIn 0.5s ease-in-out';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            });
-        });
-
-        galleryItems.forEach(item => {
-            item.addEventListener('click', function() {
-                const photoImg = this.querySelector('img');
-                const photoTitleEl = this.querySelector('h3');
-                const photoDescriptionEl = this.querySelector('p');
-                
-                const lightboxImage = lightbox.querySelector('#lightbox-image');
-                const lightboxTitle = lightbox.querySelector('#lightbox-title');
-                const lightboxDescription = lightbox.querySelector('#lightbox-description');
-                
-                if (photoImg && lightboxImage) {
-                    lightboxImage.src = photoImg.src;
-                    lightboxImage.alt = photoImg.alt;
-                }
-                if (lightboxTitle && photoTitleEl) lightboxTitle.textContent = photoTitleEl.textContent;
-                if (lightboxDescription && photoDescriptionEl) lightboxDescription.textContent = photoDescriptionEl.textContent;
-                
-                lightbox.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-            });
-        });
-
-        closeLightbox.addEventListener('click', function() {
-            lightbox.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        });
-
-        lightbox.addEventListener('click', function(e) {
-            if (e.target === lightbox) {
-                lightbox.classList.add('hidden');
-                document.body.style.overflow = 'auto';
+    <style>
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
             }
-        });
 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && !lightbox.classList.contains('hidden')) {
-                lightbox.classList.add('hidden');
-                document.body.style.overflow = 'auto';
+            to {
+                opacity: 1;
+                transform: scale(1);
             }
-        });
-    });
-
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
         }
-    `;
-    document.head.appendChild(style);
-</script>
+
+        .lightbox-animate {
+            animation: zoomIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        ::selection {
+            background-color: #0d9488;
+            color: white;
+        }
+    </style>
+
+    <section class="relative isolate h-[50vh] min-h-[400px] overflow-hidden">
+        <div class="absolute inset-0 -z-10">
+            <img src="{{ asset('images/bg3.jpg') }}" alt="Laiya Grande Resort"
+                class="h-full w-full object-cover transition-transform duration-1000 hover:scale-105">
+        </div>
+
+        <div class="absolute inset-0 bg-gradient-to-t from-teal-950/90 via-black/40 to-black/30"></div>
+
+        <div class="relative mx-auto max-w-7xl px-6 h-full flex flex-col justify-center items-center text-center">
+            <div class="max-w-3xl animate-slide-up">
+                <span
+                    class="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold tracking-widest text-white uppercase mb-4">
+                    Visual Experience
+                </span>
+                <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-white font-heading mb-6 drop-shadow-lg">
+                    The Gallery
+                </h1>
+                <p class="text-lg md:text-xl text-gray-200 font-light max-w-2xl mx-auto leading-relaxed">
+                    Explore the pristine beauty, luxurious accommodations, and vibrant life at <span
+                        class="text-yellow-400 font-medium">Laiya Grande</span>.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section
+        class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-gray-200 py-4 shadow-sm transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 overflow-x-auto no-scrollbar">
+            <div class="flex flex-nowrap md:flex-wrap justify-start md:justify-center gap-2 md:gap-4 min-w-max px-2 py-2">
+                <button
+                    class="gallery-filter active group relative px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 bg-teal-700 text-white shadow-lg ring-2 ring-teal-700 ring-offset-2"
+                    data-filter="all">
+                    All Photos
+                </button>
+
+                <button
+                    class="gallery-filter group relative px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 hover:border-gray-300"
+                    data-filter="beach">
+                    Beach
+                </button>
+
+                <button
+                    class="gallery-filter group relative px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 hover:border-gray-300"
+                    data-filter="rooms">
+                    Accommodations
+                </button>
+
+                <button
+                    class="gallery-filter group relative px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 hover:border-gray-300"
+                    data-filter="amenities">
+                    Activities
+                </button>
+
+                <button
+                    class="gallery-filter group relative px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 hover:border-gray-300"
+                    data-filter="packages">
+                    Packages
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-12 md:py-20 bg-gray-50 min-h-screen">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8" id="gallery-grid">
+
+                @php
+                    $beachPhotos = [
+                        [
+                            'file' => 'real',
+                            'title' => 'Serene Shoreline',
+                            'desc' =>
+                                'Relax on our pristine white sands while enjoying the calming sound of the waves.',
+                        ],
+                        [
+                            'file' => 'poster',
+                            'title' => 'Resort Overview',
+                            'desc' => 'A panoramic shot of the Laiya Grande resort grounds and beachfront.',
+                        ],
+                        [
+                            'file' => 'bg3',
+                            'title' => 'Golden Hour',
+                            'desc' =>
+                                'Witness the breathtaking sunset that paints the sky in hues of orange and purple.',
+                        ],
+                    ];
+                    $rooms = [
+                        [
+                            'file' => 'HermosaKadayawan',
+                            'title' => 'Hermosa Kadayawan',
+                            'desc' => 'A spacious family suite perfect for large gatherings.',
+                        ],
+                        [
+                            'file' => 'Marina (2)',
+                            'title' => 'Marina View',
+                            'desc' => 'Enjoy a direct view of the ocean from this cozy double room.',
+                        ],
+                        [
+                            'file' => 'Sublian',
+                            'title' => 'Sublian Villa',
+                            'desc' => 'Traditional aesthetics meet modern comfort in this standalone villa.',
+                        ],
+                        [
+                            'file' => 'Ati-atihan',
+                            'title' => 'Ati-atihan Suite',
+                            'desc' => 'Vibrant interiors inspired by the famous Filipino festival.',
+                        ],
+                        [
+                            'file' => 'Sigapawan',
+                            'title' => 'Sigapawan Hut',
+                            'desc' => 'A native-style accommodation for a true island experience.',
+                        ],
+                        [
+                            'file' => 'Aliwan',
+                            'title' => 'Aliwan Lodge',
+                            'desc' => 'Perfect for couples looking for a private getaway.',
+                        ],
+                        [
+                            'file' => 'Pahiyas',
+                            'title' => 'Pahiyas Room',
+                            'desc' => 'Colorful decor that brightens up your stay.',
+                        ],
+                        [
+                            'file' => 'Marina (3)',
+                            'title' => 'Marina Deluxe',
+                            'desc' => 'Upgraded amenities with a private balcony.',
+                        ],
+                        [
+                            'file' => 'Marina (1)',
+                            'title' => 'Marina Standard',
+                            'desc' => 'Comfortable and affordable luxury by the beach.',
+                        ],
+                        [
+                            'file' => 'Panagbenga',
+                            'title' => 'Panagbenga Flower',
+                            'desc' => 'Surrounded by the resort gardens for a refreshing stay.',
+                        ],
+                    ];
+                    $activities = [
+                        [
+                            'file' => 'banana-boat',
+                            'title' => 'Banana Boat Ride',
+                            'desc' => 'Hold on tight! A thrilling group activity riding the waves.',
+                        ],
+                        [
+                            'file' => 'kayaking',
+                            'title' => 'Kayaking Adventure',
+                            'desc' => 'Paddle through the calm waters and explore the coastline at your own pace.',
+                        ],
+                        [
+                            'file' => 'jetski',
+                            'title' => 'Jet Ski Experience',
+                            'desc' => 'Feel the need for speed with our high-powered jet skis.',
+                        ],
+                        [
+                            'file' => 'island-hopping',
+                            'title' => 'Island Hopping',
+                            'desc' => 'Discover hidden coves and nearby islands with our boat tours.',
+                        ],
+                    ];
+                    $packages = [
+                        [
+                            'file' => 'daytour',
+                            'title' => 'Day Tour Special',
+                            'desc' => 'Access to all amenities from 8 AM to 5 PM with lunch included.',
+                        ],
+                        [
+                            'file' => 'overnight',
+                            'title' => 'Overnight Getaway',
+                            'desc' => 'Experience the magic of Laiya at night with our full-board overnight stay.',
+                        ],
+                    ];
+                @endphp
+
+                @foreach ($beachPhotos as $photo)
+                    <div class="gallery-item beach group relative cursor-zoom-in overflow-hidden rounded-2xl bg-gray-200 shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+                        data-category="beach" data-src="{{ asset('images/beach/' . $photo['file'] . '.jpg') }}"
+                        data-title="{{ $photo['title'] }}" data-description="{{ $photo['desc'] }}">
+
+                        <div class="aspect-[4/5] overflow-hidden">
+                            <img src="{{ asset('images/beach/' . $photo['file'] . '.jpg') }}" loading="lazy"
+                                class="h-full w-full object-cover transition-transform duration-700 will-change-transform group-hover:scale-110 group-hover:filter group-hover:brightness-110">
+                        </div>
+
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                            <div
+                                class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                <span
+                                    class="text-yellow-400 text-xs font-bold uppercase tracking-wider mb-1 block">Beach</span>
+                                <h3 class="text-white font-bold text-lg leading-tight">{{ $photo['title'] }}</h3>
+                            </div>
+                        </div>
+
+                        <div
+                            class="absolute top-4 right-4 bg-white/20 backdrop-blur-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                            </svg>
+                        </div>
+                    </div>
+                @endforeach
+
+                @foreach ($rooms as $room)
+                    <div class="gallery-item rooms group relative cursor-zoom-in overflow-hidden rounded-2xl bg-gray-200 shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+                        data-category="rooms" data-src="{{ asset('images/rooms/' . $room['file'] . '.jpg') }}"
+                        data-title="{{ $room['title'] }}" data-description="{{ $room['desc'] }}"
+                        data-room-name="{{ $room['title'] }}">
+
+                        <div class="aspect-[4/5] overflow-hidden">
+                            <img src="{{ asset('images/rooms/' . $room['file'] . '.jpg') }}" loading="lazy"
+                                class="h-full w-full object-cover transition-transform duration-700 will-change-transform group-hover:scale-110 group-hover:filter group-hover:brightness-110">
+                        </div>
+
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                            <div
+                                class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                <span
+                                    class="text-teal-300 text-xs font-bold uppercase tracking-wider mb-1 block">Room</span>
+                                <h3 class="text-white font-bold text-lg leading-tight">{{ $room['title'] }}</h3>
+                            </div>
+                        </div>
+
+                        <div
+                            class="absolute top-4 right-4 bg-white/20 backdrop-blur-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                            </svg>
+                        </div>
+                    </div>
+                @endforeach
+
+                @foreach ($activities as $activity)
+                    <div class="gallery-item amenities group relative cursor-zoom-in overflow-hidden rounded-2xl bg-gray-200 shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+                        data-category="amenities" data-src="{{ asset('images/activities/' . $activity['file'] . '.jpg') }}"
+                        data-title="{{ $activity['title'] }}" data-description="{{ $activity['desc'] }}">
+
+                        <div class="aspect-[4/5] overflow-hidden">
+                            <img src="{{ asset('images/activities/' . $activity['file'] . '.jpg') }}" loading="lazy"
+                                class="h-full w-full object-cover transition-transform duration-700 will-change-transform group-hover:scale-110 group-hover:filter group-hover:brightness-110">
+                        </div>
+
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                            <div
+                                class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                <span
+                                    class="text-blue-300 text-xs font-bold uppercase tracking-wider mb-1 block">Activity</span>
+                                <h3 class="text-white font-bold text-lg leading-tight">{{ $activity['title'] }}</h3>
+                            </div>
+                        </div>
+
+                        <div
+                            class="absolute top-4 right-4 bg-white/20 backdrop-blur-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                            </svg>
+                        </div>
+                    </div>
+                @endforeach
+
+                @foreach ($packages as $package)
+                    <div class="gallery-item packages group relative cursor-zoom-in overflow-hidden rounded-2xl bg-gray-200 shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+                        data-category="packages" data-src="{{ asset('images/packages/' . $package['file'] . '.jpg') }}"
+                        data-title="{{ $package['title'] }}" data-description="{{ $package['desc'] }}">
+
+                        <div class="aspect-[4/5] overflow-hidden">
+                            <img src="{{ asset('images/packages/' . $package['file'] . '.jpg') }}" loading="lazy"
+                                class="h-full w-full object-cover transition-transform duration-700 will-change-transform group-hover:scale-110 group-hover:filter group-hover:brightness-110">
+                        </div>
+
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                            <div
+                                class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                <span
+                                    class="text-orange-300 text-xs font-bold uppercase tracking-wider mb-1 block">Package</span>
+                                <h3 class="text-white font-bold text-lg leading-tight">{{ $package['title'] }}</h3>
+                            </div>
+                        </div>
+
+                        <div
+                            class="absolute top-4 right-4 bg-white/20 backdrop-blur-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                            </svg>
+                        </div>
+                    </div>
+                @endforeach
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 relative overflow-hidden bg-teal-900">
+        <div class="absolute inset-0 opacity-10"
+            style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 30px 30px;"></div>
+        <div class="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 rounded-full bg-teal-500 blur-3xl opacity-20"></div>
+        <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 rounded-full bg-yellow-400 blur-3xl opacity-10"></div>
+
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+            <h2 class="text-3xl md:text-5xl font-bold tracking-tight text-white mb-6 font-heading">Ready to Experience
+                Paradise?</h2>
+            <p class="text-lg text-teal-100 mb-10 max-w-2xl mx-auto font-light leading-relaxed">Book your stay today and
+                turn these pictures into your reality. Your perfect getaway awaits at Laiya Grande.</p>
+
+            <div class="flex flex-col sm:flex-row gap-5 justify-center items-center">
+                <a href="{{ url('/register') }}"
+                    class="min-w-[180px] rounded-full bg-yellow-400 px-8 py-4 font-bold text-teal-900 shadow-[0_0_20px_rgba(250,204,21,0.3)] hover:bg-yellow-300 hover:shadow-[0_0_30px_rgba(250,204,21,0.5)] transform hover:-translate-y-1 transition-all duration-300">
+                    Book Your Stay
+                </a>
+                <a href="{{ url('/contact') }}"
+                    class="min-w-[180px] rounded-full border border-white/30 bg-white/5 backdrop-blur-sm px-8 py-4 font-bold text-white hover:bg-white/10 hover:border-white transition-all duration-300">
+                    Contact Us
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div id="lightbox" class="fixed inset-0 z-[999] hidden" aria-modal="true">
+
+        <div class="absolute inset-0 bg-black/95 backdrop-blur-lg transition-opacity duration-300 opacity-0"
+            id="lightbox-backdrop"></div>
+
+        <div class="relative w-full h-full flex flex-col md:flex-row lightbox-animate opacity-0 transition-all duration-300"
+            id="lightbox-content">
+
+            <button id="close-lightbox"
+                class="absolute top-6 right-6 z-50 p-3 text-white/50 hover:text-white bg-black/50 hover:bg-white/10 backdrop-blur-xl rounded-full transition-all duration-200 hover:rotate-90 border border-white/10">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div
+                class="relative flex-1 flex items-center justify-center p-4 md:p-12 h-[65vh] md:h-full group bg-gradient-to-b from-gray-900 to-black">
+
+                <img id="lightbox-img" src=""
+                    class="max-w-full max-h-full object-contain rounded shadow-2xl transition-opacity duration-300"
+                    alt="Gallery Image" />
+
+                <button id="prev-btn"
+                    class="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-4 text-white/80 hover:text-white bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-full border border-white/10 transition-all duration-300 hover:scale-110">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                    </svg>
+                </button>
+
+                <button id="next-btn"
+                    class="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-4 text-white/80 hover:text-white bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-full border border-white/10 transition-all duration-300 hover:scale-110">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                </button>
+            </div>
+
+            <div
+                class="w-full md:w-[400px] bg-white text-gray-800 flex flex-col h-[35vh] md:h-full shadow-2xl relative z-40">
+                <div class="flex-1 overflow-y-auto p-8 md:p-10 no-scrollbar flex flex-col justify-center">
+
+                    <div class="w-16 h-1.5 bg-teal-500 mb-8 rounded-full"></div>
+
+                    <h3 id="lightbox-title" class="text-3xl font-bold font-heading text-gray-900 mb-6 leading-tight"></h3>
+
+                    <p id="lightbox-desc" class="text-gray-600 text-lg leading-relaxed font-light"></p>
+
+                    <div class="mt-auto pt-10 border-t border-gray-100">
+                        <div class="flex items-center text-teal-600 text-xs font-bold uppercase tracking-widest mb-2">
+                            <span class="w-2 h-2 bg-teal-500 rounded-full mr-3 animate-pulse"></span>
+                            Laiya Grande Collection
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            const filterButtons = document.querySelectorAll(".gallery-filter");
+            const items = [...document.querySelectorAll(".gallery-item")];
+
+            const lightbox = document.getElementById("lightbox");
+            const backdrop = document.getElementById("lightbox-backdrop");
+            const content = document.getElementById("lightbox-content");
+            const img = document.getElementById("lightbox-img");
+            const title = document.getElementById("lightbox-title");
+            const desc = document.getElementById("lightbox-desc");
+
+            const nextBtn = document.getElementById("next-btn");
+            const prevBtn = document.getElementById("prev-btn");
+            const closeBtn = document.getElementById("close-lightbox");
+
+            let currentIndex = 0;
+            let visibleItems = items;
+
+
+            filterButtons.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const filter = btn.dataset.filter;
+
+
+                    filterButtons.forEach(b => {
+                        b.classList.remove("bg-teal-700", "text-white", "shadow-lg",
+                            "ring-2", "ring-teal-700", "ring-offset-2");
+                        b.classList.add("bg-gray-50", "text-gray-600", "hover:bg-gray-100",
+                            "border", "border-gray-200");
+                    });
+
+
+                    btn.classList.remove("bg-gray-50", "text-gray-600", "hover:bg-gray-100",
+                        "border", "border-gray-200");
+                    btn.classList.add("bg-teal-700", "text-white", "shadow-lg", "ring-2",
+                        "ring-teal-700", "ring-offset-2");
+
+
+                    items.forEach(item => {
+                        if (filter === "all" || item.dataset.category === filter) {
+                            item.style.display = "block";
+
+                        } else {
+                            item.style.display = "none";
+                        }
+                    });
+
+                    visibleItems = items.filter(item => item.style.display !== "none");
+                });
+            });
+
+            // --- LIGHTBOX FUNCTIONS 
+
+            function openLightbox(targetItem) {
+                currentIndex = visibleItems.indexOf(targetItem);
+                if (currentIndex === -1) return;
+
+                updateContent();
+
+                lightbox.classList.remove("hidden");
+                setTimeout(() => {
+                    backdrop.classList.remove("opacity-0");
+                    content.classList.remove("opacity-0");
+                }, 10);
+
+                document.body.style.overflow = "hidden";
+            }
+
+            function closeLightbox() {
+                backdrop.classList.add("opacity-0");
+                content.classList.add("opacity-0");
+
+                setTimeout(() => {
+                    lightbox.classList.add("hidden");
+                    document.body.style.overflow = "auto";
+                }, 300);
+            }
+
+            function updateContent() {
+                const item = visibleItems[currentIndex];
+
+                img.style.opacity = "0.5";
+                img.style.transform = "scale(0.98)";
+
+                setTimeout(() => {
+                    img.src = item.dataset.src;
+                    title.textContent = item.dataset.title;
+                    desc.textContent = item.dataset.description;
+
+                    img.onload = () => {
+                        img.style.opacity = "1";
+                        img.style.transform = "scale(1)";
+                    };
+                }, 150);
+            }
+
+            function next() {
+                currentIndex = (currentIndex + 1) % visibleItems.length;
+                updateContent();
+            }
+
+            function prev() {
+                currentIndex = (currentIndex - 1 + visibleItems.length) % visibleItems.length;
+                updateContent();
+            }
+
+            items.forEach(item => {
+                item.addEventListener("click", () => openLightbox(item));
+            });
+
+            nextBtn.onclick = (e) => {
+                e.stopPropagation();
+                next();
+            };
+            prevBtn.onclick = (e) => {
+                e.stopPropagation();
+                prev();
+            };
+            closeBtn.onclick = closeLightbox;
+
+            lightbox.onclick = (e) => {
+                if (e.target === lightbox || e.target === backdrop || e.target.closest(
+                        '.flex-1.bg-gradient-to-b')) {
+
+                    if (e.target !== img && e.target !== nextBtn && e.target !== prevBtn) {
+                        closeLightbox();
+                    }
+                }
+            };
+
+            document.addEventListener("keydown", (e) => {
+                if (lightbox.classList.contains("hidden")) return;
+                if (e.key === "ArrowRight") next();
+                if (e.key === "ArrowLeft") prev();
+                if (e.key === "Escape") closeLightbox();
+            });
+        });
+    </script>
+
+    <!-- Rating Modal -->
+    <div id="ratingModal"
+        class="fixed inset-0 z-[9999] hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-slate-800 font-heading">Rate This Room</h3>
+                <button onclick="closeRatingModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form id="ratingForm" onsubmit="submitRating(event)">
+                <input type="hidden" id="rating_room_id" name="room_id">
+
+                <div class="mb-4">
+                    <p class="text-sm text-slate-600 mb-2" id="rating_room_name"></p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Your Rating *</label>
+                    <div class="flex gap-2" id="starRating">
+                        <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors"
+                            data-rating="1"></i>
+                        <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors"
+                            data-rating="2"></i>
+                        <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors"
+                            data-rating="3"></i>
+                        <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors"
+                            data-rating="4"></i>
+                        <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors"
+                            data-rating="5"></i>
+                    </div>
+                    <input type="hidden" id="rating_value" name="rating" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Your Email *</label>
+                    <input type="email" id="guest_email" name="guest_email" required
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        placeholder="your@email.com">
+                    <p class="text-xs text-slate-500 mt-1">We use this to track ratings and prevent duplicates</p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Your Name (Optional)</label>
+                    <input type="text" id="guest_name" name="guest_name"
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        placeholder="John Doe">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Comment (Optional)</label>
+                    <textarea id="rating_comment" name="comment" rows="3"
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        placeholder="Share your experience..."></textarea>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeRatingModal()"
+                        class="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg font-bold hover:bg-teal-700 transition-colors">
+                        Submit Rating
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let selectedRating = 0;
+
+        function openRatingModal(roomId, roomName) {
+            document.getElementById('rating_room_id').value = roomId;
+            document.getElementById('rating_room_name').textContent = roomName;
+            document.getElementById('ratingModal').classList.remove('hidden');
+            selectedRating = 0;
+            updateStars(0);
+        }
+
+        function closeRatingModal() {
+            document.getElementById('ratingModal').classList.add('hidden');
+            document.getElementById('ratingForm').reset();
+            selectedRating = 0;
+            updateStars(0);
+        }
+
+        // Star rating interaction
+        const ratingStars = document.querySelectorAll('#starRating i');
+
+        ratingStars.forEach(star => {
+            star.addEventListener('click', function() {
+                selectedRating = parseInt(this.dataset.rating);
+                document.getElementById('rating_value').value = selectedRating;
+                updateStars(selectedRating);
+            });
+
+            star.addEventListener('mouseenter', function() {
+                const hoverRating = parseInt(this.dataset.rating);
+                updateStars(hoverRating);
+            });
+        });
+
+        document.getElementById('starRating').addEventListener('mouseleave', function() {
+            updateStars(selectedRating);
+        });
+
+        function updateStars(rating) {
+            const stars = document.querySelectorAll('#starRating i');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.remove('text-gray-300');
+                    star.classList.add('text-yellow-400');
+                } else {
+                    star.classList.remove('text-yellow-400');
+                    star.classList.add('text-gray-300');
+                }
+            });
+        }
+
+        function submitRating(event) {
+            event.preventDefault();
+
+            if (selectedRating === 0) {
+                Swal.fire({
+                    title: 'Rating Required',
+                    text: 'Please select a star rating',
+                    icon: 'warning',
+                    confirmButtonColor: '#0f766e'
+                });
+                return;
+            }
+
+            const formData = {
+                room_id: document.getElementById('rating_room_id').value,
+                guest_email: document.getElementById('guest_email').value,
+                guest_name: document.getElementById('guest_name').value,
+                rating: selectedRating,
+                comment: document.getElementById('rating_comment').value
+            };
+
+            Swal.fire({
+                title: 'Submitting...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch('{{ route('ratings.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Swal.close();
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Thank You!',
+                            text: data.message,
+                            icon: 'success',
+                            confirmButtonColor: '#0f766e'
+                        }).then(() => {
+                            closeRatingModal();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.message,
+                            icon: 'error',
+                            confirmButtonColor: '#ef4444'
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Something went wrong. Please try again.',
+                        icon: 'error',
+                        confirmButtonColor: '#ef4444'
+                    });
+                });
+        }
+
+        // Gallery Rating - Find room by name
+        window.openGalleryRatingModal = function(roomName) {
+            // For simplicity, we'll use a direct mapping or you can create an API endpoint
+            // For now, let's just open the modal with room name
+            openRatingModal(0, roomName); // You'll need to map room names to IDs
+        };
+    </script>
 @endsection

@@ -4,18 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 
 class Booking extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'room_id',
-        'firstname',
-        'lastname',
-        'email',
-        'phone_number',
+        'customer_id',
         'check_in',
         'check_out',
         'number_of_guests',
@@ -34,8 +32,8 @@ class Booking extends Model
         'check_out' => 'datetime',
         'actual_check_in_time' => 'datetime',
         'actual_check_out_time' => 'datetime',
-        'payment' => 'decimal:2',
-        'total_price' => 'decimal:2',
+        'payment' => 'string',
+        'total_price' => 'float',
     ];
 
     // Relationships
@@ -44,13 +42,55 @@ class Booking extends Model
         return $this->belongsTo(Room::class);
     }
 
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function paymentRecord()
+    {
+        return $this->hasOne(Payment::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function guestStay()
+    {
+        return $this->hasOne(GuestStay::class);
+    }
+
     // Accessors
     public function getFullNameAttribute()
     {
-        return "{$this->firstname} {$this->lastname}";
+        return $this->customer 
+            ? "{$this->customer->firstname} {$this->customer->lastname}" 
+            : 'Walk-in / Unknown';
     }
 
-    // Auto-format reservation number (optional utility)
+    public function getFirstnameAttribute()
+    {
+        return $this->customer ? $this->customer->firstname : '';
+    }
+
+    public function getLastnameAttribute()
+    {
+        return $this->customer ? $this->customer->lastname : '';
+    }
+
+    public function getEmailAttribute()
+    {
+        return $this->customer ? $this->customer->email : '';
+    }
+
+    public function getPhoneNumberAttribute()
+    {
+        return $this->customer ? $this->customer->phone_number : '';
+    }
+
+    // Auto-format reservation number
     public static function generateReservationNumber(): string
     {
         $date = Carbon::now()->format('YmdHis');

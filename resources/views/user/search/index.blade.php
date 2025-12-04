@@ -1,179 +1,168 @@
 @extends('user.layouts.app')
 
 @section('content')
-    <div class="container mx-auto px-4 py-8">
-        <div class="max-w-6xl mx-auto">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h1 class="text-3xl font-bold mb-6 text-gray-800">Find Your Reservation or Booking</h1>
+    <div class="min-h-screen flex flex-col md:flex-row bg-white">
+        
+        <div class="relative hidden md:block w-full md:w-1/2 lg:w-3/5 xl:w-2/3 bg-gray-100">
+            <img class="absolute inset-0 h-full w-full object-cover" 
+                 src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80" 
+                 alt="Luxury resort background with pool and view">
+            
 
-                @if (session('success'))
-                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-                        {{ session('success') }}
-                    </div>
-                @endif
+            <div class="absolute inset-0 bg-gradient-to-t from-teal-900 to-teal-700 opacity-70"></div>
+            
 
-                <!-- Reservation/Booking Code Lookup Form -->
-                <div class="mb-8">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Search by Reservation Code</h2>
-                    <p class="text-gray-600 mb-6">Enter your reservation or booking code to view your details.</p>
-
-                    <form id="searchForm" class="bg-gray-50 p-6 rounded-lg">
-                        @csrf
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label for="reservation_code"
-                                    class="block text-sm font-medium text-gray-700 mb-2">Reservation/Booking Code
-                                </label>
-                                <input type="text" id="reservation_code" name="reservation_code" required
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Enter your code (RSV- or BK-...)">
-                            </div>
-                        </div>
-                        <button type="submit"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-md transition duration-300">
-                            <i class="fas fa-search mr-2"></i>Search
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Results Container -->
-                <div id="resultsContainer" class="hidden">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Results</h2>
-                    <div id="resultsDetails"></div>
+            <div class="absolute inset-0 flex flex-col justify-end p-8 lg:p-12 xl:p-20 text-white z-10">
+                <p class="text-sm uppercase tracking-wider mb-2 text-teal-200">Your Journey Starts Here</p>
+                <blockquote class="mb-6">
+                    <p class="text-2xl lg:text-3xl font-serif italic leading-relaxed">
+                        "Effortlessly access your reservations and embark on your next adventure."
+                    </p>
+                </blockquote>
+                <div class="flex items-center space-x-3 text-sm opacity-90">
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <p class="font-medium">Trusted by thousands Batangueños.</p>
                 </div>
             </div>
         </div>
+
+        <div class="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-12 xl:px-20 bg-gradient-to-br from-white to-gray-50 z-20 shadow-xl md:shadow-none">
+            <div class="mx-auto w-full max-w-md lg:max-w-lg">
+
+                <div class="flex items-center gap-2 mb-10 text-center md:text-left">
+                    <div class="h-10 w-10 bg-teal-600 rounded-lg flex items-center justify-center text-white shadow-md">
+                        <i class="fas fa-bookmark"></i>
+                    </div>
+                    <span class="text-2xl font-extrabold text-gray-900 tracking-tight">Laiya Grande Beach Resort</span>
+                </div>
+
+                <div class="mb-8">
+                    <h2 class="text-4xl font-extrabold text-gray-900 leading-tight">
+                        Find Your <span class="text-teal-600">Reservation</span>
+                    </h2>
+                    <p class="mt-3 text-lg text-gray-600">
+                        Enter your booking reference to view and manage your trip details.
+                    </p>
+                </div>
+
+
+                <form id="searchForm" class="space-y-6 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+                    @csrf
+                    
+                    <div>
+                        <label for="reservation_code" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Booking Reference Code
+                        </label>
+                        <div class="mt-1 relative rounded-lg shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" 
+                                name="reservation_code" 
+                                id="reservation_code" 
+                                required
+                                class="focus:ring-teal-500 focus:border-teal-500 block w-full pl-11 pr-4 py-4 sm:text-lg border-gray-300 rounded-lg placeholder-gray-400 transition-colors duration-200" 
+                                placeholder="e.g. BKG-A7B8C9 or REF-XYZ123"
+                            >
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500 flex items-center">
+                            <i class="fas fa-info-circle mr-1 text-teal-500"></i> You can find this code in your confirmation email.
+                        </p>
+                    </div>
+
+                    <div>
+                        <button type="submit" 
+                            class="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-lg shadow-md text-base font-bold text-white bg-gradient-to-r from-teal-600 to-cyan-500 hover:from-teal-700 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all duration-300 transform hover:-translate-y-0.5">
+                            <i class="fas fa-arrow-right mr-3 text-lg"></i>
+                            <span>Continue to Details</span>
+                        </button>
+                    </div>
+                </form>
+                
+
+                <div class="mt-8 text-center">
+                    <p class="text-sm text-gray-500">
+                        Trouble finding your booking? 
+                        <a href="#" class="font-medium text-teal-600 hover:text-teal-500 hover:underline transition-colors">
+                            Contact Support
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
     </div>
-
-    <script>
-        document.getElementById('searchForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(this);
-            const reservationCode = formData.get('reservation_code');
-
-            // Show loading state
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Searching...';
-            submitBtn.disabled = true;
-
-            // Make AJAX request to search
-            fetch('/search/by-code', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
-                            'content')
-                    },
-                    body: JSON.stringify({
-                        reservation_code: reservationCode
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-
-                    if (data.success) {
-                        displayResult(data.data, data.type);
-                    } else {
-                        showError(data.message || 'No reservation or booking found with the provided code.');
-                    }
-                })
-                .catch(error => {
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                    showError('An error occurred while searching.');
-                    console.error('Error:', error);
-                });
-        });
-
-        function displayResult(data, type) {
-            const container = document.getElementById('resultsContainer');
-            const details = document.getElementById('resultsDetails');
-
-            const checkIn = data.check_in ? new Date(data.check_in).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            }) : 'N/A';
-            const checkOut = data.check_out ? new Date(data.check_out).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            }) : 'N/A';
-
-            const typeLabel = type === 'reservation' ? 'Reservation' : 'Booking';
-
-            details.innerHTML = `
-                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer" onclick="window.location.href='/search/${data.id}/${type}'">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-800 mb-1">
-                                ${data.firstname} ${data.lastname}
-                            </h3>
-                            <p class="text-sm text-gray-600">${typeLabel} #${data.reservation_number || data.id}</p>
-                        </div>
-                        <span class="px-3 py-1 rounded-full text-xs font-bold
-                            ${data.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' :
-                              data.status === 'paid' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
-                              data.status === 'confirmed' ? 'bg-green-100 text-green-800 border border-green-300' :
-                              'bg-red-100 text-red-800 border border-red-300'}">
-                            ${data.status.charAt(0).toUpperCase() + data.status.slice(1)}
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                            <span class="font-medium text-gray-500">Room:</span>
-                            <span class="text-gray-900">${data.room ? data.room.name : 'N/A'}</span>
-                        </div>
-                        <div>
-                            <span class="font-medium text-gray-500">Check-in:</span>
-                            <span class="text-gray-900">${checkIn}</span>
-                        </div>
-                        <div>
-                            <span class="font-medium text-gray-500">Check-out:</span>
-                            <span class="text-gray-900">${checkOut}</span>
-                        </div>
-                        <div>
-                            <span class="font-medium text-gray-500">Total:</span>
-                            <span class="text-green-600 font-semibold">₱${parseFloat(data.total_price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                        </div>
-                    </div>
-
-                    <div class="mt-3 text-right">
-                        <span class="text-blue-600 hover:text-blue-800 text-sm font-medium">Click to view details →</span>
-                    </div>
-                </div>
-            `;
-
-            container.classList.remove('hidden');
-            container.scrollIntoView({
-                behavior: 'smooth'
-            });
-        }
-
-        function showError(message) {
-            const container = document.getElementById('resultsContainer');
-            const details = document.getElementById('resultsDetails');
-
-            details.innerHTML = `
-                <div class="bg-red-50 border border-red-200 rounded-lg p-6">
-                    <div class="flex items-center">
-                        <svg class="w-6 h-6 text-red-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                        </svg>
-                        <div>
-                            <h3 class="text-lg font-semibold text-red-800">Not Found</h3>
-                            <p class="text-red-700 mt-1">${message}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            container.classList.remove('hidden');
-        }
-    </script>
 @endsection
+
+@push('scripts')
+<script>
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const reservationCode = formData.get('reservation_code');
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalBtnHtml = submitBtn.innerHTML; 
+        const inputField = document.getElementById('reservation_code');
+
+
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-3 text-lg"></i> Searching...';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+        inputField.disabled = true;
+        inputField.classList.add('bg-gray-50');
+
+        fetch("{{ route('search.byCode') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ reservation_code: reservationCode })
+            })
+            .then(response => response.json())
+            .then(data => {
+
+                submitBtn.innerHTML = originalBtnHtml;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                inputField.disabled = false;
+                inputField.classList.remove('bg-gray-50');
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Booking Found!',
+                        text: 'Redirecting to your reservation details...',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        didClose: () => { window.location.href = data.redirect_url; }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Booking Not Found',
+                        text: data.message || 'Please double-check the code and try again.',
+                        confirmButtonColor: '#0d9488'
+                    });
+                }
+            })
+            .catch(error => {
+
+                submitBtn.innerHTML = originalBtnHtml;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                inputField.disabled = false;
+                inputField.classList.remove('bg-gray-50');
+                
+                console.error('Fetch Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'System Error',
+                    text: 'An unexpected error occurred. Please try again later.',
+                    confirmButtonColor: '#0d9488'
+                });
+            });
+    });
+</script>
+@endpush

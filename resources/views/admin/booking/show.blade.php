@@ -1,8 +1,12 @@
 @extends('admin.layouts.app')
 
+@php
+    $pageTitle = 'View Booking Details';
+@endphp
+
 @section('content')
-    <section class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-        <div class="max-w-6xl mx-auto">
+    <section class="bg-gradient-to-br from-slate-50 via-white to-slate-100 min-h-screen py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             @php
                 $room = $booking->room;
                 $roomImages = $room
@@ -28,34 +32,36 @@
                 $hasImages = !empty($allImages);
             @endphp
 
-            <div class="relative h-80 md:h-96 rounded-t-2xl overflow-hidden shadow-xl mb-6">
+            <!-- Hero Header -->
+            <div class="relative h-64 md:h-80 rounded-3xl overflow-hidden shadow-2xl mb-8">
                 @if ($hasImages)
                     <div id="imageCarousel" class="relative h-full">
                         @foreach ($allImages as $index => $image)
                             <div
                                 class="carousel-slide {{ $index === 0 ? 'active' : '' }} absolute inset-0 transition-opacity duration-500 {{ $index === 0 ? 'opacity-100' : 'opacity-0' }}">
-                                <img src="{{ asset($image) }}" alt="{{ $room->name ?? 'Room' }} - Image {{ $index + 1 }}"
+                                <img src="{{ Str::startsWith($image, 'images/') ? asset($image) : asset('storage/' . $image) }}"
+                                    alt="{{ $room->name ?? 'Room' }} - Image {{ $index + 1 }}"
                                     class="w-full h-full object-cover">
                             </div>
                         @endforeach
 
                         @if (count($allImages) > 1)
                             <button id="prevBtn"
-                                class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110 z-10">
+                                class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110 z-10">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
                             <button id="nextBtn"
-                                class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110 z-10">
+                                class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110 z-10">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
 
-                            <div class="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                            <div class="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                                 @foreach ($allImages as $index => $image)
                                     <button
                                         class="carousel-indicator w-2 h-2 rounded-full transition-all duration-300 {{ $index === 0 ? 'bg-white w-8' : 'bg-white/50' }}"
@@ -64,13 +70,13 @@
                             </div>
 
                             <div
-                                class="absolute top-20 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
+                                class="absolute top-4 right-4 bg-black/50 text-white px-3 py-1.5 rounded-full text-xs font-semibold z-10">
                                 <span id="currentImage">1</span> / <span id="totalImages">{{ count($allImages) }}</span>
                             </div>
                         @endif
                     </div>
                 @else
-                    <div class="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600"></div>
+                    <div class="w-full h-full bg-gradient-to-br from-teal-600 via-emerald-500 to-cyan-500"></div>
                 @endif
 
                 <div
@@ -81,7 +87,7 @@
                     <div
                         class="inline-block bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-xl border border-white/20 shadow-lg">
                         <h1
-                            class="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-white tracking-tight drop-shadow-lg">
+                            class="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-teal-100 to-white tracking-tight drop-shadow-lg">
                             Booking Details
                         </h1>
                     </div>
@@ -91,12 +97,14 @@
                     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                         <div class="flex items-center gap-3">
                             <div
-                                class="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                                {{ strtoupper(substr($booking->firstname, 0, 1) . substr($booking->lastname, 0, 1)) }}
+                                class="h-14 w-14 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white font-bold text-lg shadow-lg ring-2 ring-white/20">
+                                {{ strtoupper(substr($booking->customer->firstname ?? 'G', 0, 1) . substr($booking->customer->lastname ?? 'U', 0, 1)) }}
                             </div>
                             <div>
-                                <p class="text-xl md:text-2xl font-bold text-white">{{ $booking->firstname }}
-                                    {{ $booking->lastname }}</p>
+                                <p class="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
+                                    {{ $booking->customer->firstname ?? 'Unknown' }}
+                                    {{ $booking->customer->lastname ?? '' }}
+                                </p>
                                 <p class="text-sm text-gray-200">{{ $booking->room->name ?? 'Room N/A' }}</p>
                             </div>
                         </div>
@@ -114,108 +122,259 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                <div class="p-6">
-                    <!-- Booking Info Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Main Content Card -->
+            <div class="bg-white rounded-2xl shadow-xl ring-1 ring-slate-200 overflow-hidden">
+                <div class="p-6 md:p-8">
+                    <!-- Guest & Booking Info Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Left Column: Guest Information -->
                         <div class="space-y-4">
-                            <div class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-                                <div class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Guest Name</div>
-                                <div class="text-lg font-semibold text-gray-900">{{ $booking->firstname }}
-                                    {{ $booking->lastname }}</div>
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Guest Information
+                            </h3>
+
+                            <div
+                                class="p-5 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-100 shadow-sm">
+                                <div class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">Guest Name</div>
+                                <div class="text-lg font-semibold text-slate-900">
+                                    {{ $booking->customer->firstname ?? 'N/A' }}
+                                    {{ $booking->customer->lastname ?? '' }}</div>
                             </div>
 
-                            <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
-                                <div class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Email</div>
-                                <div class="text-sm font-medium text-gray-900">{{ $booking->email }}</div>
-                            </div>
-
-                            <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
-                                <div class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Phone Number
+                            <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Email Address
                                 </div>
-                                <div class="text-sm font-medium text-gray-900">{{ $booking->phone_number }}</div>
+                                <div class="text-sm font-medium text-slate-900">{{ $booking->customer->email ?? 'N/A' }}
+                                </div>
                             </div>
 
-                            <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
-                                <div class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Number of Guests
+                            <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Phone Number
                                 </div>
-                                <div class="text-sm font-medium text-gray-900">{{ $booking->number_of_guests }}</div>
+                                <div class="text-sm font-medium text-slate-900">
+                                    {{ $booking->customer->phone_number ?? 'N/A' }}</div>
+                            </div>
+
+                            <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Number of Guests
+                                </div>
+                                <div class="text-sm font-medium text-slate-900">{{ $booking->number_of_guests }} guests
+                                </div>
                             </div>
                         </div>
 
+                        <!-- Right Column: Booking Details -->
                         <div class="space-y-4">
-                            <div class="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
-                                <div class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1">Room</div>
-                                <div class="text-lg font-semibold text-gray-900">{{ $booking->room->name ?? 'N/A' }}</div>
-                            </div>
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Booking Details</h3>
 
-                            <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
-                                <div class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Check-in Date
-                                </div>
-                                <div class="text-sm font-medium text-gray-900">
-                                    {{ \Carbon\Carbon::parse($booking->check_in)->format('M d, Y') }}</div>
-                            </div>
-
-                            <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
-                                <div class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Check-out Date
-                                </div>
-                                <div class="text-sm font-medium text-gray-900">
-                                    {{ \Carbon\Carbon::parse($booking->check_out)->format('M d, Y') }}</div>
+                            <div
+                                class="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 shadow-sm">
+                                <div class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Booking ID</div>
+                                <div class="text-lg font-semibold text-slate-900 font-mono">
+                                    {{ $booking->reservation_number }}</div>
                             </div>
 
                             <div
-                                class="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
-                                
+                                class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 shadow-sm">
+                                <div class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1">Room</div>
+                                <div class="text-lg font-semibold text-slate-900">{{ $booking->room->name ?? 'N/A' }}</div>
+                            </div>
+
+                            <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Check-in Date
+                                </div>
+                                <div class="text-sm font-medium text-slate-900">
+                                    {{ \Carbon\Carbon::parse($booking->check_in)->format('M d, Y') }}</div>
+                            </div>
+
+                            <div class="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Check-out Date
+                                </div>
+                                <div class="text-sm font-medium text-slate-900">
+                                    {{ \Carbon\Carbon::parse($booking->check_out)->format('M d, Y') }}</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <!-- Total Amount & Status Highlight -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="p-6 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl shadow-lg">
+                            <div class="text-xs font-bold text-emerald-50 uppercase tracking-wider mb-2">Total Amount</div>
+                            <div class="text-3xl font-black text-white">
+                                ₱{{ number_format($booking->total_price, 2) }}
+                            </div>
+                        </div>
 
-                        <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
-                            <div class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Status</div>
-                            <span
+                        <div class="p-6 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Status</div>
+                            <span id="statusBadge"
                                 class="inline-flex items-center px-4 py-2 rounded-full text-xs font-bold shadow-sm
-                            @if ($booking->status === 'pending') bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200
-                            @elseif($booking->status === 'confirmed') bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200
-                            @else bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200 @endif">
+                                @if ($booking->status === 'pending') bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200
+                                @elseif($booking->status === 'confirmed') bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200
+                                @else bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200 @endif">
                                 <span
                                     class="w-2 h-2 rounded-full mr-2 {{ $booking->status === 'confirmed' ? 'bg-green-500' : ($booking->status === 'pending' ? 'bg-amber-500' : 'bg-red-500') }}"></span>
                                 {{ ucfirst($booking->status) }}
                             </span>
                         </div>
                     </div>
- 
-                    @if ($booking->payment && file_exists(storage_path('app/public/' . $booking->payment)))
-                        <div class="mb-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200"
-                            id="paymentProofSection">
-                            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">Payment Proof</h3>
-                            <div class="relative inline-block">
-                                <img src="{{ asset('storage/' . $booking->payment) }}" alt="Payment Proof"
-                                    class="rounded-lg shadow-md border-2 border-gray-200 max-w-md">
-                            </div>
-                        </div>
-                    @elseif($booking->payment)
-                        <div class="mb-6 p-4 bg-gradient-to-r from-red-50 to-rose-50 rounded-lg border border-red-200 text-red-700"
-                            id="paymentProofSection">
-                            <div class="flex items-center">
-                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                Payment proof uploaded but file not found!
-                            </div>
-                        </div>
-                    @endif
 
-                    <div class="flex flex-wrap justify-end gap-3 pt-6 border-t border-gray-200" id="actionButtons">
+                    <!-- Booking Code Section -->
+                    <div
+                        class="p-6 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-200 shadow-sm mb-8">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">Booking Code
+                                </div>
+                                <div class="text-2xl font-black text-slate-900 font-mono tracking-wide">
+                                    {{ $booking->reservation_number ?? $booking->id }}
+                                </div>
+                            </div>
+                            <button id="openPassModal"
+                                class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white px-5 py-2.5 text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                                <i class="fas fa-qrcode"></i>
+                                View QR & Code
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Payment Information Section -->
+                    <div class="mb-8">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Payment Information</h3>
+
+                        <!-- Payment Summary Card -->
+                        <div
+                            class="p-6 bg-gradient-to-r from-teal-50 via-emerald-50 to-cyan-50 rounded-2xl border-2 border-teal-200 shadow-lg mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
+                                        <i class="fas fa-credit-card text-teal-600 text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-teal-600 uppercase tracking-wider">Payment
+                                            Method
+                                        </div>
+                                        <div class="text-sm font-bold text-slate-900" data-field="payment_method">
+                                            {{ $booking->paymentRecord ? ucfirst($booking->paymentRecord->payment_method) : 'N/A' }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="h-12 w-12 rounded-xl bg-white/60 flex items-center justify-center shadow-sm">
+                                        <i class="fas fa-calendar-alt text-cyan-600 text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-cyan-600 uppercase tracking-wider">Booking
+                                            Date</div>
+                                        <div class="text-sm font-bold text-slate-900" data-field="payment_date">
+                                            {{ $booking->created_at->format('M d, Y H:i') }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md">
+                                        <i class="fas fa-money-bill-wave text-white text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Total
+                                            Amount</div>
+                                        <div class="text-lg font-black text-emerald-700" data-field="amount_paid">
+                                            ₱{{ number_format($booking->total_price, 2) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Proof Section -->
+                        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4
+                                    class="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fas fa-receipt text-teal-600"></i>
+                                    Payment Proof
+                                </h4>
+                                @if ($booking->paymentRecord && $booking->paymentRecord->reference_id)
+                                    <span
+                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200 ocr-processed-badge">
+                                        <i class="fas fa-check-circle mr-1.5"></i>
+                                        Verified
+                                    </span>
+                                @else
+                                    <span style="display:none"
+                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200 ocr-processed-badge">
+                                        <i class="fas fa-check-circle mr-1.5"></i>
+                                        OCR Processed
+                                    </span>
+                                @endif
+                            </div>
+
+                            @if ($booking->payment)
+                                @php
+                                    $paymentPath = $booking->payment;
+                                    $fileExists =
+                                        $paymentPath && file_exists(storage_path('app/public/' . $paymentPath));
+                                @endphp
+
+                                @if ($fileExists)
+                                    <div id="paymentProofSection" class="space-y-4">
+                                        <div
+                                            class="relative rounded-xl overflow-hidden border-2 border-slate-300 shadow-lg bg-white p-4">
+                                            <img src="{{ asset('storage/' . $paymentPath) }}" alt="Payment Proof"
+                                                class="w-full h-auto max-h-96 object-contain mx-auto">
+                                        </div>
+
+                                        <div class="flex flex-wrap gap-3">
+                                            <button type="button" id="processOCRBtn"
+                                                class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white px-5 py-2.5 text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                                                <i class="fas fa-magic"></i>
+                                                Extract Payment Information
+                                            </button>
+
+                                            <div class="text-xs text-slate-500 flex items-center ml-2">
+                                                <i class="fas fa-info-circle mr-1"></i> Reference ID: <span
+                                                    class="font-bold ml-1"
+                                                    data-field="reference_id">{{ $booking->paymentRecord->reference_id ?? 'Not Extracted' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div
+                                        class="p-6 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border-2 border-red-200">
+                                        <div class="flex items-center gap-3 text-red-700">
+                                            <i class="fas fa-exclamation-triangle text-xl"></i>
+                                            <div>
+                                                <p class="font-semibold">Payment proof file not found</p>
+                                                <p class="text-xs text-red-600 mt-1">Path: {{ $paymentPath }}</p>
+                                                <p class="text-xs text-red-600 mt-1">Full Path:
+                                                    {{ storage_path('app/public/' . $paymentPath) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @else
+                                <div class="p-12 bg-white rounded-xl border-2 border-dashed border-slate-300 text-center">
+                                    <i class="fas fa-receipt text-5xl text-slate-300 mb-3"></i>
+                                    <p class="text-sm font-medium text-slate-500">No payment proof uploaded</p>
+                                    <p class="text-xs text-slate-400 mt-1">Payment proof will appear here once uploaded</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap justify-end gap-3 pt-6 border-t border-slate-200" id="actionButtons">
                         @if ($booking->status === 'pending')
                             <form id="approveForm" action="{{ route('admin.booking.approve', $booking->id) }}"
                                 method="POST" class="inline">
                                 @csrf
                                 <button type="button" id="approveBtn"
-                                    class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                                    class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-6 py-2.5 text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                                    <i class="fas fa-check-circle"></i>
                                     Confirm Booking
                                 </button>
                             </form>
@@ -224,14 +383,24 @@
                                 method="POST" class="inline">
                                 @csrf
                                 <button type="button" id="rejectBtn"
-                                    class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                                    class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-6 py-2.5 text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                                    <i class="fas fa-times-circle"></i>
                                     Cancel Booking
                                 </button>
                             </form>
                         @endif
 
+                        @if ($booking->status === 'confirmed')
+                            <button type="button" id="manualCheckinBtn"
+                                class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-2.5 text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                                <i class="fas fa-user-check"></i>
+                                Manual Check-in
+                            </button>
+                        @endif
+
                         <a href="{{ route('admin.booking.index') }}"
-                            class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                            class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-6 py-2.5 text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                            <i class="fas fa-arrow-left"></i>
                             Back to List
                         </a>
                     </div>
@@ -240,10 +409,100 @@
         </div>
     </section>
 
+    <!-- Booking Pass Modal -->
+    <div id="bookingPassOverlay" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"></div>
+    <div id="bookingPassModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+            <div
+                class="px-6 py-4 border-b bg-gradient-to-r from-teal-600 to-emerald-600 text-white flex items-center justify-between">
+                <h3 class="text-lg font-bold">Booking Pass</h3>
+                <button class="text-white/80 hover:text-white transition" data-close-booking-pass>&times;</button>
+            </div>
+            <div id="bookingPassPrintArea" class="p-6 space-y-4">
+                <div>
+                    <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Booking Code</div>
+                    <div id="bookingCodeValue" class="text-2xl font-extrabold text-slate-900 tracking-wide font-mono">
+                        {{ $booking->reservation_number ?? $booking->id }}
+                    </div>
+                </div>
+                <div class="flex items-center justify-center">
+                    <div class="bg-white p-4 rounded-xl shadow border">
+                        {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(200)->margin(1)->generate($qrString ?? ($booking->reservation_number ?? $booking->id)) !!}
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 text-center">Present this at the front desk for quick verification.</p>
+            </div>
+            <div class="px-6 py-4 border-t bg-slate-50 flex items-center justify-end gap-2">
+                <button id="copyBookingCodeBtn"
+                    class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 transition">Copy
+                    Code</button>
+                <button id="printBookingPassBtn"
+                    class="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:from-teal-700 hover:to-emerald-700 transition">Print</button>
+                <button class="px-4 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition"
+                    data-close-booking-pass>Close</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Booking Pass Modal
+        (function() {
+            const openBtn = document.getElementById('openPassModal');
+            const modal = document.getElementById('bookingPassModal');
+            const overlay = document.getElementById('bookingPassOverlay');
+            const closeBtns = document.querySelectorAll('[data-close-booking-pass]');
+            const copyBtn = document.getElementById('copyBookingCodeBtn');
+            const printBtn = document.getElementById('printBookingPassBtn');
 
+            const toggle = (show) => {
+                if (!modal || !overlay) return;
+                if (show) {
+                    overlay.classList.remove('hidden');
+                    modal.classList.remove('hidden');
+                } else {
+                    overlay.classList.add('hidden');
+                    modal.classList.add('hidden');
+                }
+            };
+
+            openBtn?.addEventListener('click', () => toggle(true));
+            overlay?.addEventListener('click', () => toggle(false));
+            closeBtns.forEach(btn => btn.addEventListener('click', () => toggle(false)));
+
+            copyBtn?.addEventListener('click', () => {
+                const codeEl = document.getElementById('bookingCodeValue');
+                if (!codeEl) return;
+                navigator.clipboard.writeText(codeEl.textContent.trim()).then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Copied',
+                        text: 'Booking code copied.',
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+                });
+            });
+
+            printBtn?.addEventListener('click', () => {
+                const printArea = document.getElementById('bookingPassPrintArea');
+                if (!printArea) return;
+                const win = window.open('', 'PRINT', 'height=600,width=800');
+                win.document.write('<html><head><title>Booking Pass</title>');
+                win.document.write(
+                    '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">'
+                );
+                win.document.write('</head><body>');
+                win.document.write(printArea.innerHTML);
+                win.document.write('</body></html>');
+                win.document.close();
+                win.focus();
+                win.print();
+                win.close();
+            });
+        })();
+
+        // Image Carousel Functionality
         (function() {
             const slides = document.querySelectorAll('.carousel-slide');
             const indicators = document.querySelectorAll('.carousel-indicator');
@@ -253,7 +512,7 @@
             let currentIndex = 0;
             const totalImages = slides.length;
 
-            if (totalImages <= 1) return; 
+            if (totalImages <= 1) return;
 
             function showSlide(index) {
                 slides.forEach((slide, i) => {
@@ -429,6 +688,177 @@
                             icon: 'error',
                             title: 'Error',
                             text: 'Failed to process the request.',
+                            confirmButtonColor: '#d33'
+                        });
+                    });
+            });
+        });
+
+        // OCR Processing
+        document.getElementById('processOCRBtn')?.addEventListener('click', function() {
+            Swal.fire({
+                title: 'Process Payment?',
+                text: 'This will read the uploaded proof and pull out the payment details.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Process OCR'
+            }).then(result => {
+                if (!result.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Extracting Data...',
+                    text: 'Please wait while we extract the payment information.',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                fetch("{{ route('admin.booking.process-ocr', $booking->id) }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        Swal.close();
+                        if (data.success) {
+                            // Update the UI via JS function
+                            updatePaymentInfo(data.data);
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'OCR Processed!',
+                                text: data.message,
+                                confirmButtonColor: '#16a34a'
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'OCR Failed',
+                                text: data.message,
+                                confirmButtonColor: '#d33'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to process OCR request.',
+                            confirmButtonColor: '#d33'
+                        });
+                    });
+            });
+        });
+
+        function updatePaymentInfo(data) {
+            const paymentMethodElement = document.querySelector('[data-field="payment_method"]');
+            if (paymentMethodElement) {
+                paymentMethodElement.textContent = data.payment_method ? data.payment_method.charAt(0).toUpperCase() + data
+                    .payment_method.slice(1) : 'N/A';
+            }
+
+            const referenceIdElement = document.querySelector('[data-field="reference_id"]');
+            if (referenceIdElement) {
+                referenceIdElement.textContent = data.reference_id || 'N/A';
+            }
+
+            const paymentDateElement = document.querySelector('[data-field="payment_date"]');
+            if (paymentDateElement) {
+                const date = data.payment_date ? new Date(data.payment_date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'N/A';
+                paymentDateElement.textContent = date;
+            }
+
+            const amountPaidElement = document.querySelector('[data-field="amount_paid"]');
+            if (amountPaidElement) {
+                const amount = data.amount_paid ? '₱' + parseFloat(data.amount_paid).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }) : 'N/A';
+                amountPaidElement.textContent = amount;
+            }
+
+            const ocrBadge = document.querySelector('.ocr-processed-badge');
+            if (ocrBadge) {
+                ocrBadge.style.display = 'inline-flex';
+            }
+        }
+
+        // Manual Check-in Handler
+        document.getElementById('manualCheckinBtn')?.addEventListener('click', function() {
+            Swal.fire({
+                title: 'Check-in Guest?',
+                text: 'This will mark the guest as checked-in and generate a voucher.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, Check-in'
+            }).then(result => {
+                if (!result.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Checking in guest...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                fetch('{{ route('admin.qr.scan') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            qr_code: '{{ $booking->reservation_number ?? $booking->id }}'
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        Swal.close();
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Checked-in!',
+                                text: 'Guest has been checked-in successfully',
+                                showCancelButton: true,
+                                confirmButtonText: 'Print Voucher',
+                                cancelButtonText: 'Close',
+                                confirmButtonColor: '#16a34a'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.open(
+                                        '{{ route('admin.qr.preview-pdf', $booking->id) }}',
+                                        '_blank');
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message || 'Failed to check-in guest',
+                                confirmButtonColor: '#d33'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to process check-in request.',
                             confirmButtonColor: '#d33'
                         });
                     });

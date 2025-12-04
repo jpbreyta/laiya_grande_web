@@ -11,19 +11,44 @@ class InboxController extends Controller
 {
     public function index()
     {
+        $messages = ContactMessage::notArchived()->latest()->paginate(10);
+        $unreadCount = ContactMessage::unread()->count();
+        return view('admin.inbox.index', compact('messages', 'unreadCount'));
+
+    }
+
+    public function allMail()
+    {
         $messages = ContactMessage::latest()->paginate(10);
-        return view('admin.inbox.index', compact('messages'));
+        $unreadCount = ContactMessage::unread()->count();
+        return view('admin.inbox.all-mail', compact('messages', 'unreadCount'));
+    }
+
+    public function filterByLabel($label)
+    {
+        $messages = ContactMessage::notArchived()
+            ->whereHas('contactSubject', function($query) use ($label) {
+                $query->where('classification', $label);
+            })
+            ->latest()
+            ->paginate(10);
+        $unreadCount = ContactMessage::unread()->count();
+        $currentLabel = $label;
+        
+        return view('admin.inbox.label-filter', compact('messages', 'unreadCount', 'currentLabel'));
     }
 
     public function sent()
     {
         $messages = ContactMessage::replied()->latest()->paginate(10);
-        return view('admin.inbox.sent', compact('messages'));
+        $unreadCount = ContactMessage::unread()->count();
+        return view('admin.inbox.sent', compact('messages', 'unreadCount'));
     }
 
     public function compose()
     {
-        return view('admin.inbox.compose');
+        $unreadCount = ContactMessage::unread()->count();
+        return view('admin.inbox.compose', compact('unreadCount'));
     }
 
     public function store(Request $request)
@@ -37,8 +62,8 @@ class InboxController extends Controller
         // Send email
         Mail::raw($request->message, function ($mail) use ($request) {
             $mail->to($request->to_email)
-                 ->subject($request->subject)
-                 ->from(config('mail.from.address'), config('mail.from.name'));
+                ->subject($request->subject)
+                ->from(config('mail.from.address'), config('mail.from.name'));
         });
 
         return redirect()->route('admin.inbox.sent')->with('success', 'Message sent successfully.');
@@ -47,13 +72,14 @@ class InboxController extends Controller
     public function show($id)
     {
         $message = ContactMessage::findOrFail($id);
+        $unreadCount = ContactMessage::unread()->count();
 
         // Mark as read if not already read
         if ($message->status === 'unread') {
             $message->markAsRead();
         }
 
-        return view('admin.inbox.show', compact('message'));
+        return view('admin.inbox.show', compact('message', 'unreadCount'));
     }
 
     public function markAsReplied($id)
@@ -67,7 +93,8 @@ class InboxController extends Controller
     public function composeReply($id)
     {
         $message = ContactMessage::findOrFail($id);
-        return view('admin.inbox.compose-reply', compact('message'));
+        $unreadCount = ContactMessage::unread()->count();
+        return view('admin.inbox.compose-reply', compact('message', 'unreadCount'));
     }
 
     public function reply(Request $request, $id)
@@ -82,8 +109,13 @@ class InboxController extends Controller
         // Send email reply
         Mail::to($message->email)->send(new \App\Mail\ContactReply($message, $request->subject, $request->reply_content));
 
-        // Mark as replied
-        $message->markAsReplied();
+        // Save reply content and mark as replied
+        $message->update([
+            'status' => 'replied',
+            'reply_subject' => $request->subject,
+            'reply_content' => $request->reply_content,
+            'replied_at' => now()
+        ]);
 
         return redirect()->route('admin.inbox.show', $message->id)->with('success', 'Reply sent successfully and message marked as replied.');
     }
@@ -94,5 +126,52 @@ class InboxController extends Controller
         $message->delete();
 
         return redirect()->route('admin.inbox.index')->with('success', 'Message deleted successfully.');
+    }
+
+    public function archived()
+    {
+        $messages = ContactMessage::archived()->latest()->paginate(10);
+        $unreadCount = ContactMessage::unread()->count();
+        return view('admin.inbox.archived', compact('messages', 'unreadCount'));
+    }
+
+    public function archive($id)
+    {
+        $message = ContactMessage::findOrFail($id);
+        $message->archive();
+
+        return redirect()->back()->with('success', 'Message archived successfully.');
+    }
+
+    public function unarchive($id)
+    {
+        $message = ContactMessage::findOrFail($id);
+        $message->unarchive();
+
+        return redirect()->back()->with('success', 'Message restored from archive.');
+    }
+
+    public function bulkArchive(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:contact_messages,id'
+        ]);
+
+        ContactMessage::whereIn('id', $request->ids)->update(['archived_at' => now()]);
+
+        return redirect()->back()->with('success', count($request->ids) . ' message(s) archived successfully.');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:contact_messages,id'
+        ]);
+
+        ContactMessage::whereIn('id', $request->ids)->delete();
+
+        return redirect()->back()->with('success', count($request->ids) . ' message(s) deleted successfully.');
     }
 }
