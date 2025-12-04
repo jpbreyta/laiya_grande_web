@@ -8,6 +8,7 @@ use App\Models\Reservation;
 use App\Models\GuestStay;
 use App\Models\Room;
 use App\Models\Customer;
+use App\Models\Payment;
 use Carbon\Carbon;
 
 class HistoricalDataSeeder extends Seeder
@@ -115,6 +116,7 @@ class HistoricalDataSeeder extends Seeder
                 $source = rand(1, 10) <= 7 ? 'online' : 'pos';
                 
                 // Create booking
+                $paymentMethod = $bookingPaymentMethods[array_rand($bookingPaymentMethods)];
                 $booking = Booking::create([
                     'room_id' => $room->id,
                     'customer_id' => $customer->id,
@@ -122,8 +124,7 @@ class HistoricalDataSeeder extends Seeder
                     'check_out' => $checkOut,
                     'number_of_guests' => $numberOfGuests,
                     'special_request' => $specialRequests[array_rand($specialRequests)],
-                    'payment_method' => $bookingPaymentMethods[array_rand($bookingPaymentMethods)],
-                    'payment' => 'full',
+                    'payment_method' => $paymentMethod,
                     'total_price' => $totalPrice,
                     'status' => 'confirmed',
                     'source' => $source,
@@ -131,6 +132,19 @@ class HistoricalDataSeeder extends Seeder
                     'actual_check_in_time' => $checkIn->copy()->setTime(14, rand(0, 59)),
                     'actual_check_out_time' => $checkOut->copy()->setTime(11, rand(0, 59)),
                     'created_at' => $checkIn->copy()->subDays(rand(3, 14)),
+                ]);
+                
+                // Create payment record
+                Payment::create([
+                    'booking_id' => $booking->id,
+                    'customer_name' => $customer->firstname . ' ' . $customer->lastname,
+                    'contact_number' => $customer->phone_number,
+                    'payment_date' => $booking->created_at,
+                    'amount_paid' => $totalPrice,
+                    'payment_stage' => 'full',
+                    'status' => 'verified',
+                    'payment_method' => $paymentMethod,
+                    'verified_at' => $booking->created_at,
                 ]);
                 
                 $bookingCount++;
@@ -184,6 +198,7 @@ class HistoricalDataSeeder extends Seeder
                 $totalPrice = $room->price * $nights;
                 
                 // Create reservation
+                $paymentMethod = $reservationPaymentMethods[array_rand($reservationPaymentMethods)];
                 $reservation = Reservation::create([
                     'room_id' => $room->id,
                     'customer_id' => $customer->id,
@@ -191,15 +206,40 @@ class HistoricalDataSeeder extends Seeder
                     'check_out' => $checkOut,
                     'number_of_guests' => $numberOfGuests,
                     'special_request' => $specialRequests[array_rand($specialRequests)],
-                    'payment_method' => $reservationPaymentMethods[array_rand($reservationPaymentMethods)],
-                    'payment' => 'full',
-                    'first_payment' => $totalPrice * 0.5,
-                    'second_payment' => $totalPrice * 0.5,
+                    'payment_method' => $paymentMethod,
                     'total_price' => $totalPrice,
                     'status' => rand(0, 10) > 2 ? 'confirmed' : 'paid', // 80% confirmed, 20% paid
                     'expires_at' => $checkIn->copy()->subDays(1),
                     'reservation_number' => $this->generateReservationNumber('RSV'),
                     'created_at' => $checkIn->copy()->subDays(rand(7, 30)),
+                ]);
+                
+                // Create payment records (partial + final)
+                $firstPayment = $totalPrice * 0.5;
+                $secondPayment = $totalPrice * 0.5;
+                
+                Payment::create([
+                    'reservation_id' => $reservation->id,
+                    'customer_name' => $customer->firstname . ' ' . $customer->lastname,
+                    'contact_number' => $customer->phone_number,
+                    'payment_date' => $reservation->created_at,
+                    'amount_paid' => $firstPayment,
+                    'payment_stage' => 'partial',
+                    'status' => 'verified',
+                    'payment_method' => $paymentMethod,
+                    'verified_at' => $reservation->created_at,
+                ]);
+                
+                Payment::create([
+                    'reservation_id' => $reservation->id,
+                    'customer_name' => $customer->firstname . ' ' . $customer->lastname,
+                    'contact_number' => $customer->phone_number,
+                    'payment_date' => $reservation->created_at->copy()->addDays(1),
+                    'amount_paid' => $secondPayment,
+                    'payment_stage' => 'final',
+                    'status' => 'verified',
+                    'payment_method' => $paymentMethod,
+                    'verified_at' => $reservation->created_at->copy()->addDays(1),
                 ]);
                 
                 $reservationCount++;

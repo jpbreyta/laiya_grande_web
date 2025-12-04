@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class Booking extends Model
@@ -19,12 +20,14 @@ class Booking extends Model
         'number_of_guests',
         'special_request',
         'payment_method',
-        'payment',
         'total_price',
         'status',
+        'source',
         'reservation_number',
         'actual_check_in_time',
         'actual_check_out_time',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
@@ -96,5 +99,34 @@ class Booking extends Model
         $date = Carbon::now()->format('YmdHis');
         $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
         return "RSV-{$date}-{$random}";
+    }
+
+    // Audit trail relationships
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    // Boot method to auto-track who created/updated
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (Auth::check()) {
+                $model->created_by = Auth::id();
+            }
+        });
+
+        static::updating(function ($model) {
+            if (Auth::check()) {
+                $model->updated_by = Auth::id();
+            }
+        });
     }
 }

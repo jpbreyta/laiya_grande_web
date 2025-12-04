@@ -10,13 +10,11 @@ return new class extends Migration {
         Schema::create('guest_stays', function (Blueprint $table) {
             $table->id();
 
-            // Connections to bookings or reservations
-            $table->unsignedBigInteger('booking_id')->nullable();
-            $table->unsignedBigInteger('reservation_id')->nullable();
-            $table->unsignedBigInteger('room_id')->nullable();
+            // Connection to booking (required - guest stays are created from bookings)
+            $table->unsignedBigInteger('booking_id');
+            $table->unsignedBigInteger('room_id');
+            $table->unsignedBigInteger('customer_id');
 
-            // Guest snapshot (optional if you want redundancy)
-            $table->string('guest_name');
 
             // Only two statuses needed
             $table->enum('status', ['checked-in', 'checked-out'])->default('checked-in');
@@ -29,11 +27,11 @@ return new class extends Migration {
 
             // Foreign keys
             $table->foreign('booking_id')->references('id')->on('bookings')->onDelete('cascade');
-            $table->foreign('reservation_id')->references('id')->on('reservations')->onDelete('cascade');
             $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
+            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
 
             // Indexes for quick queries
-            $table->index(['booking_id', 'reservation_id']);
+            $table->index('booking_id');
             $table->index('status');
             $table->index('room_id');
         });
