@@ -1,17 +1,29 @@
 <?php
 
-// 1. Register the Composer Autoloader (MISSING LINE FIXED HERE)
-// This loads all the libraries in the 'vendor' folder so Laravel can use them.
 require __DIR__ . '/../vendor/autoload.php';
 
-// 2. Load the Laravel App
 $app = require __DIR__ . '/../bootstrap/app.php';
 
-// 3. FORCE Storage Path to /tmp
-// Vercel only allows writing to /tmp, so we redirect storage there.
 $app->useStoragePath('/tmp/storage');
 
-// 4. Handle the Request
+$app->bootstrapPath = function () {
+    return '/tmp/bootstrap';
+};
+
+if (!is_dir('/tmp/bootstrap/cache')) {
+    mkdir('/tmp/bootstrap/cache', 0777, true);
+}
+
+if (!is_dir('/tmp/storage/framework/views')) {
+    @mkdir('/tmp/storage/framework/views', 0777, true);
+}
+if (!is_dir('/tmp/storage/framework/cache')) {
+    @mkdir('/tmp/storage/framework/cache', 0777, true);
+}
+if (!is_dir('/tmp/storage/framework/sessions')) {
+    @mkdir('/tmp/storage/framework/sessions', 0777, true);
+}
+
 $request = Illuminate\Http\Request::capture();
 $response = $app->handle($request);
 
