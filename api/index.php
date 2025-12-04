@@ -1,13 +1,17 @@
 <?php
 
-// 1. Loading the Laravel app
+// 1. Register the Composer Autoloader (MISSING LINE FIXED HERE)
+// This loads all the libraries in the 'vendor' folder so Laravel can use them.
+require __DIR__ . '/../vendor/autoload.php';
+
+// 2. Load the Laravel App
 $app = require __DIR__ . '/../bootstrap/app.php';
 
-// 2. FORCE Storage Path to /tmp (The only writable directory on Vercel)
-// This fixes the "Read-only file system" error for caches and views
+// 3. FORCE Storage Path to /tmp
+// Vercel only allows writing to /tmp, so we redirect storage there.
 $app->useStoragePath('/tmp/storage');
 
-// 3. Handle the incoming request
+// 4. Handle the Request
 $request = Illuminate\Http\Request::capture();
 $response = $app->handle($request);
 
