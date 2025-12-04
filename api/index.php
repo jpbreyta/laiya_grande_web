@@ -4,20 +4,24 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $app = require __DIR__ . '/../bootstrap/app.php';
 
-// Use /tmp for storage
+// --------------------
+// VERCEL SERVERLESS FIX
+// --------------------
+
+// 1. Use /tmp for storage
 $app->useStoragePath('/tmp/storage');
 
-// Force bootstrap/cache path to /tmp/bootstrap/cache
+// 2. Create /tmp/bootstrap/cache and patch PackageManifest
 $bootstrapCache = '/tmp/bootstrap/cache';
 if (!is_dir($bootstrapCache)) {
     mkdir($bootstrapCache, 0777, true);
 }
 
-// Patch the PackageManifest to use /tmp/bootstrap/cache
-$app->make(Illuminate\Foundation\PackageManifest::class)
-    ->manifestPath = $bootstrapCache . '/services.php';
+// Patch PackageManifest to write manifest to /tmp
+$packageManifest = $app->make(Illuminate\Foundation\PackageManifest::class);
+$packageManifest->manifestPath = $bootstrapCache . '/services.php';
 
-// Ensure storage/framework directories exist
+// 3. Ensure storage/framework directories exist
 $frameworkDirs = [
     '/tmp/storage/framework/views',
     '/tmp/storage/framework/cache',
@@ -30,7 +34,10 @@ foreach ($frameworkDirs as $dir) {
     }
 }
 
-// Handle the request
+// --------------------
+// HANDLE THE REQUEST
+// --------------------
+
 $request = Illuminate\Http\Request::capture();
 $response = $app->handle($request);
 $response->send();
