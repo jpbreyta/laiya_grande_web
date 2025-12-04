@@ -21,7 +21,9 @@ foreach ($frameworkDirs as $dir) {
 $app = require __DIR__ . '/../bootstrap/app.php';
 
 $app->useStoragePath('/tmp/storage');
-$app->instance('path.bootstrap', '/tmp/bootstrap');
+
+$packageManifest = $app->make(Illuminate\Foundation\PackageManifest::class);
+$packageManifest->manifestPath = $bootstrapCache . '/services.php';
 
 $request = Illuminate\Http\Request::capture();
 $response = $app->handle($request);
