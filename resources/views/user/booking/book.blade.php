@@ -25,7 +25,7 @@
 
 @section('content')
     <section class="min-h-screen bg-slate-50 py-16 font-sans">
-        <div class="container mx-auto px-4 max-w-7xl">
+        <div class="container mx-auto px-4 max-w-7xl mt-6">
 
             <div class="mb-10 text-center">
                 <h1 class="text-4xl font-serif font-bold text-teal-900 mb-2">Secure Your Stay</h1>
@@ -85,7 +85,7 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('booking.confirmbooking') }}" id="bookingForm"
+                    <form method="POST" action="{{ route('user.booking.show-confirm') }}" id="bookingForm"
                         enctype="multipart/form-data" class="space-y-8">
                         @csrf
 
@@ -306,7 +306,7 @@
                                             class="flex items-center justify-between p-4 bg-yellow-50 rounded-xl border border-yellow-100">
                                             <div class="flex flex-col">
                                                 <span class="text-yellow-800 font-medium">Total Amount Due</span>
-                                                <span class="text-xs text-yellow-600" id="nightsInfo">1 night(s)</span>
+                                                <span class="text-xs text-yellow-600" id="nightsInfo">{{ $nights }} night(s)</span>
                                             </div>
                                             <span id="amountDueBook" class="text-xl font-bold text-teal-900">
                                                 PHP {{ number_format($cartTotal ?? 0, 2) }}
@@ -399,7 +399,7 @@
                         </div>
 
                         <div class="flex flex-col-reverse sm:flex-row gap-4 pt-4">
-                            <a href="{{ route('booking.index') }}"
+                            <a href="{{ route('cart.index') }}"
                                 class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-4 rounded-xl text-center hover:bg-gray-50 transition shadow-sm">
                                 Go Back
                             </a>
@@ -697,7 +697,7 @@
                 @if (empty(session('cart')))
                     e.preventDefault();
                     alert('Please select rooms first before proceeding to checkout.');
-                    window.location.href = '{{ route('booking.index') }}';
+                    window.location.href = '{{ route('cart.index') }}';
                     return false;
                 @endif
 
@@ -906,7 +906,7 @@
                 sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
 
                 try {
-                    const response = await fetch('{{ route('booking.send-otp') }}', {
+                    const response = await fetch('{{ route('user.booking.send-otp') }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1041,7 +1041,7 @@
 
                 if (otp.length === 6) {
                     try {
-                        const response = await fetch('{{ route('booking.verify-otp') }}', {
+                        const response = await fetch('{{ route('user.booking.verify-otp') }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
