@@ -213,7 +213,7 @@
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('booking.confirm') }}" id="processBookingForm"
+                    <form method="POST" action="{{ route('user.booking.confirm') }}" id="processBookingForm"
                         enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="first_name" value="{{ $request->first_name }}">
@@ -534,8 +534,8 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
 
             Swal.fire({
-                title: 'Processing Booking...',
-                text: 'Please wait while we process your booking.',
+                title: 'Processing user.booking...',
+                text: 'Please wait while we process your user.booking.',
                 icon: 'info',
                 allowOutsideClick: false,
                 showConfirmButton: false,
@@ -546,7 +546,7 @@
 
             const formData = new FormData(document.getElementById('processBookingForm'));
 
-            fetch('{{ route('booking.confirm') }}', {
+            fetch('{{ route('user.booking.confirm') }}', {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -608,7 +608,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'An error occurred while processing your booking.',
+                        text: 'An error occurred while processing your user.booking.',
                         confirmButtonColor: '#0f766e'
                     });
                 });

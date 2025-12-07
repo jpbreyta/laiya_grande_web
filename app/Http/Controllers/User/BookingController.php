@@ -16,9 +16,6 @@ use Carbon\Carbon;
 
 class BookingController extends Controller
 {
-    /**
-     * Show all available rooms and handle filters/search.
-     */
     public function view($id)
     {
         $room = Room::findOrFail($id);
@@ -27,13 +24,9 @@ class BookingController extends Controller
 
     public function index(Request $request)
     {
-        // Redirect to rooms page - booking happens from rooms selection
         return redirect()->route('user.rooms.index');
     }
 
-    /**
-     * Add room to booking cart (session-based)
-     */
     public function addToCart(Request $request)
     {
         $cart = session()->get('cart', []);
@@ -54,14 +47,9 @@ class BookingController extends Controller
         return response()->json(['success' => true, 'cart' => $cart]);
     }
 
-    /**
-     * Remove item from cart
-     */
     public function removeFromCart(Request $request, $roomId = null)
     {
         $cart = session()->get('cart', []);
-        
-        // Support both POST with room_id in body and DELETE with room_id in URL
         $id = $roomId ?? $request->room_id;
 
         if (isset($cart[$id])) {
@@ -72,40 +60,28 @@ class BookingController extends Controller
         return response()->json(['success' => true, 'cart' => $cart]);
     }
 
-    /**
-     * Clear entire cart
-     */
     public function clearCart()
     {
         session()->forget('cart');
         return response()->json(['success' => true]);
     }
 
-    /**
-     * Show booking form with cart items
-     */
     public function book()
     {
         $cart = session()->get('cart', []);
-        
-        // Get dates from session
         $checkIn = session('booking_check_in');
         $checkOut = session('booking_check_out');
-        
-        // Redirect to rooms if dates not set
+
         if (!$checkIn || !$checkOut) {
             return redirect()->route('user.rooms.index')->with('error', 'Please select your booking dates first.');
         }
-        
-        // Redirect to rooms if cart is empty
+
         if (empty($cart)) {
             return redirect()->route('user.rooms.index')->with('error', 'Please select at least one room.');
         }
-        
-        // Calculate nights
+
         $nights = max(1, Carbon::parse($checkIn)->diffInDays(Carbon::parse($checkOut)));
-        
-        // Calculate total capacity
+
         $totalCapacity = 0;
         foreach ($cart as $item) {
             $room = Room::find($item['room_id']);
@@ -114,19 +90,14 @@ class BookingController extends Controller
             }
         }
 
-        // Calculate cart totals (per night)
         $cartSubtotal = collect($cart)->sum(fn($item) => $item['room_price'] * $item['quantity']);
         $cartTotal = $cartSubtotal * $nights;
 
         return view('user.booking.book', compact('cart', 'totalCapacity', 'cartTotal', 'cartSubtotal', 'checkIn', 'checkOut', 'nights'));
     }
 
-    /**
-     * Show confirmation page before final submission
-     */
     public function showConfirmBooking(Request $request)
     {
-        // Validate OTP verification and phone number
         $request->validate([
             'otp_verified' => 'required|in:1',
             'phone' => ['required', 'regex:/^(09|\+639|639)\d{9}$/'],
@@ -137,7 +108,6 @@ class BookingController extends Controller
             'phone.regex' => 'Please enter a valid Philippine mobile number (11 digits starting with 09).',
         ]);
 
-        // Validate guest capacity against room capacities
         $cart = session()->get('cart', []);
         $totalGuests = $request->guests ?? 0;
         $totalCapacity = 0;
@@ -155,21 +125,17 @@ class BookingController extends Controller
             ])->withInput();
         }
 
-        // Get dates from session (already validated in booking form)
         $checkIn = Carbon::parse(session('booking_check_in', $request->check_in));
         $checkOut = Carbon::parse(session('booking_check_out', $request->check_out));
         $nights = max(1, $checkIn->diffInDays($checkOut));
 
-        // Calculate totals
         $cartSubtotal = collect($cart)->sum(fn($item) => $item['room_price'] * $item['quantity']);
         $total = $cartSubtotal * $nights;
 
-        // --- Payment Proof Logic (now required) ---
         $paymentProofPath = null;
         $paymentProofUrl = null;
 
         if ($request->hasFile('payment_proof')) {
-            // Store temporarily in storage/app/public/temp/payments for preview
             $path = $request->file('payment_proof')->store('temp/payments', 'public');
             $paymentProofPath = $path;
             $paymentProofUrl = asset("storage/{$path}");
@@ -186,11 +152,6 @@ class BookingController extends Controller
         ));
     }
 
-
-    /**
-     * Save booking to DB — mark as pending, wait for admin approval
-     * Handles payment proof upload
-     */
     public function confirmBooking(Request $request)
     {
         $request->validate([
@@ -208,7 +169,6 @@ class BookingController extends Controller
             'phone.regex' => 'Please enter a valid Philippine mobile number (11 digits starting with 09).',
         ]);
 
-        // Custom validation for payment proof (either new upload or existing temp file)
         if (!$request->hasFile('payment_proof') && !$request->filled('payment_proof_temp')) {
             return response()->json([
                 'success' => false,
@@ -216,7 +176,6 @@ class BookingController extends Controller
             ]);
         }
 
-        // Validate file if uploaded
         if ($request->hasFile('payment_proof')) {
             $request->validate([
                 'payment_proof' => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
@@ -228,20 +187,16 @@ class BookingController extends Controller
             return response()->json(['success' => false, 'message' => 'Cart is empty.']);
         }
 
-        // Get dates from session
         $checkInDate = session('booking_check_in', $request->check_in);
         $checkOutDate = session('booking_check_out', $request->check_out);
-        
-        // Calculate nights
+
         $checkIn = Carbon::parse($checkInDate);
         $checkOut = Carbon::parse($checkOutDate);
         $nights = max(1, $checkIn->diffInDays($checkOut));
 
-        // Check for overlapping bookings and availability
         foreach ($cart as $item) {
             $room = Room::findOrFail($item['room_id']);
-            
-            // Check if room has conflicting bookings
+
             $conflictingBookings = Booking::where('room_id', $room->id)
                 ->whereIn('status', ['confirmed', 'pending'])
                 ->where(function ($query) use ($checkInDate, $checkOutDate) {
@@ -253,14 +208,14 @@ class BookingController extends Controller
                         });
                 })
                 ->exists();
-            
+
             if ($conflictingBookings) {
                 return response()->json([
                     'success' => false,
                     'message' => "Room {$room->name} is no longer available for the selected dates. Please select different dates or rooms."
                 ]);
             }
-            
+
             if ($room->availability < $item['quantity']) {
                 return response()->json([
                     'success' => false,
@@ -270,15 +225,12 @@ class BookingController extends Controller
         }
 
         $createdBookings = collect();
-
-        // Handle payment proof — since it's now required, it should always be present
         $paymentPath = null;
+
         if ($request->hasFile('payment_proof')) {
-            // Store the uploaded file directly to permanent storage
             $path = $request->file('payment_proof')->store('payments', 'public');
             $paymentPath = $path;
         } elseif ($request->filled('payment_proof_temp')) {
-            // Move from temp to permanent storage
             $tempPath = $request->payment_proof_temp;
             if (Storage::disk('public')->exists($tempPath)) {
                 $filename = basename($tempPath);
@@ -287,6 +239,7 @@ class BookingController extends Controller
                 $paymentPath = $newPath;
             }
         }
+
         $customer = Customer::updateOrCreate(
             ['email' => $request->email],
             [
@@ -297,7 +250,6 @@ class BookingController extends Controller
         );
 
         foreach ($cart as $item) {
-            // Calculate total price including nights
             $itemTotal = $item['room_price'] * $item['quantity'] * $nights;
 
             $booking = Booking::create([
@@ -314,11 +266,9 @@ class BookingController extends Controller
                 'reservation_number' => $this->generateReservationNumber(),
             ]);
 
-
-            // Create payment record - now required since payment proof is mandatory
             \App\Models\Payment::create([
                 'booking_id' => $booking->id,
-                'reference_id' => null, // Will be filled by OCR later
+                'reference_id' => null,
                 'customer_name' => "{$request->first_name} {$request->last_name}",
                 'contact_number' => $request->phone,
                 'payment_date' => now(),
@@ -330,14 +280,11 @@ class BookingController extends Controller
 
             $createdBookings->push($booking);
 
-            // Reduce room availability
             $room = Room::findOrFail($item['room_id']);
             $room->availability -= $item['quantity'];
             $room->save();
         }
 
-
-        // Create notification for admin
         \App\Models\Notification::create([
             'type' => 'booking',
             'title' => 'New Booking Request',
@@ -354,7 +301,6 @@ class BookingController extends Controller
             'read' => false,
         ]);
 
-        // Clear the cart
         session()->forget('cart');
 
         return response()->json([
@@ -365,9 +311,6 @@ class BookingController extends Controller
         ]);
     }
 
-    /**
-     * Keep email logic for admin confirmation stage
-     */
     private function sendBookingConfirmationEmail(Booking $booking, Request $request)
     {
         try {
@@ -395,11 +338,6 @@ class BookingController extends Controller
         }
     }
 
-
-
-    /**
-     * Send OTP to email for verification
-     */
     public function sendOTP(Request $request)
     {
         $request->validate([
@@ -407,10 +345,8 @@ class BookingController extends Controller
         ]);
 
         try {
-            // Generate 6-digit OTP
             $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            
-            // Store OTP in session with 1-minute expiry
+
             $expiryTime = now()->addMinute();
             session([
                 'otp_code' => $otp,
@@ -419,7 +355,6 @@ class BookingController extends Controller
                 'otp_sent_at' => now()->timestamp
             ]);
 
-            // Send OTP via email
             Mail::raw("Your OTP code for Laiya Grande booking is: {$otp}\n\nThis code will expire in 1 minute.", function ($message) use ($request) {
                 $message->to($request->email)
                     ->subject('Email Verification - Laiya Grande Resort');
@@ -434,7 +369,7 @@ class BookingController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to send OTP', ['error' => $e->getMessage()]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to send OTP. Please try again.'
@@ -442,9 +377,6 @@ class BookingController extends Controller
         }
     }
 
-    /**
-     * Verify OTP code
-     */
     public function verifyOTP(Request $request)
     {
         $request->validate([
@@ -464,7 +396,6 @@ class BookingController extends Controller
             'expiry' => $otpExpiry
         ]);
 
-        // Check if OTP exists
         if (!$sessionOtp || !$sessionEmail || !$otpExpiry) {
             return response()->json([
                 'success' => false,
@@ -472,7 +403,6 @@ class BookingController extends Controller
             ]);
         }
 
-        // Check if OTP expired
         if (now()->greaterThan($otpExpiry)) {
             session()->forget(['otp_code', 'otp_email', 'otp_expiry', 'otp_sent_at']);
             return response()->json([
@@ -481,7 +411,6 @@ class BookingController extends Controller
             ]);
         }
 
-        // Check if email matches
         if ($sessionEmail !== $request->email) {
             return response()->json([
                 'success' => false,
@@ -489,11 +418,10 @@ class BookingController extends Controller
             ]);
         }
 
-        // Verify OTP
         if ($sessionOtp === $request->otp) {
             session(['email_verified' => true]);
             session()->forget(['otp_code', 'otp_email', 'otp_expiry']);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Email verified successfully!'

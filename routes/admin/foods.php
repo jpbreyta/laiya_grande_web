@@ -3,14 +3,12 @@
 use App\Http\Controllers\Admin\FoodsController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'admin'])->group(function () {
-    Route::resource('foods', FoodsController::class)->names([
-        'index' => 'admin.foods.index',
-        'create' => 'admin.foods.create',
-        'store' => 'admin.foods.store',
-        'show' => 'admin.foods.show',
-        'edit' => 'admin.foods.edit',
-        'update' => 'admin.foods.update',
-        'destroy' => 'admin.foods.destroy',
-    ]);
-});
+Route::resource('foods', FoodsController::class)->names([
+    'index' => 'foods.index',
+    'create' => 'foods.create',
+    'store' => 'foods.store',
+    'show' => 'foods.show',
+    'edit' => 'foods.edit',
+    'update' => 'foods.update',
+    'destroy' => 'foods.destroy',
+]);
