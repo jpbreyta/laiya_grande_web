@@ -38,11 +38,6 @@ Route::get('/search', function () {
 // ==========================
 // ADMIN ROUTES
 // ==========================
-Route::prefix('admin')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard.index');
-    })->name('admin.dashboard');
-});
 
 Route::get('/cart/details', [CartController::class, 'getCartDetails'])->name('cart.details');
 
