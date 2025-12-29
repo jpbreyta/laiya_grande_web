@@ -142,7 +142,7 @@
                                             </button>
                                         </div>
                                         <small id="otpTimer"
-                                            class="text-teal-600 text-xs mt-1 hidden flex items-center gap-1">
+                                            class="text-teal-600 text-xs mt-1 hidden md:flex items-center gap-1">
                                             <i class="fas fa-clock"></i> <span id="timerText"></span>
                                         </small>
                                     </div>
@@ -243,7 +243,7 @@
                                             class="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
                                             id="guestsInput">
 
-                                        <small class="text-slate-500 text-xs mt-2 block flex items-center gap-1"
+                                        <small class="text-slate-500 text-xs mt-2 block md:flex items-center gap-1"
                                             id="capacityHint">
                                             @php
                                                 $cart = session('cart', []);
@@ -306,7 +306,8 @@
                                             class="flex items-center justify-between p-4 bg-yellow-50 rounded-xl border border-yellow-100">
                                             <div class="flex flex-col">
                                                 <span class="text-yellow-800 font-medium">Total Amount Due</span>
-                                                <span class="text-xs text-yellow-600" id="nightsInfo">{{ $nights }} night(s)</span>
+                                                <span class="text-xs text-yellow-600" id="nightsInfo">{{ $nights }}
+                                                    night(s)</span>
                                             </div>
                                             <span id="amountDueBook" class="text-xl font-bold text-teal-900">
                                                 PHP {{ number_format($cartTotal ?? 0, 2) }}
@@ -405,7 +406,16 @@
                             </a>
                             <button type="submit" id="submitBtn"
                                 class="flex-[2] bg-teal-700 hover:bg-teal-800 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-teal-700/30 flex items-center justify-center gap-2">
-                                Continue to Review <i class="fas fa-arrow-right"></i>
+                                <span class="btn-text flex items-center gap-2">
+                                    Continue to Review <i class="fas fa-arrow-right"></i>
+                                </span>
+                                <svg class="btn-spinner hidden animate-spin h-5 w-5 text-white"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+                                    </path>
+                                </svg>
                             </button>
                         </div>
                     </form>
@@ -481,7 +491,8 @@
                                     </div>
                                     <div class="flex justify-between text-sm">
                                         <span class="text-slate-500">Number of Nights</span>
-                                        <span class="font-semibold text-slate-700" id="nightsDisplay">{{ $nights }} night(s)</span>
+                                        <span class="font-semibold text-slate-700" id="nightsDisplay">{{ $nights }}
+                                            night(s)</span>
                                     </div>
                                     <div class="flex justify-between items-end pt-2">
                                         <span class="text-base font-bold text-teal-900">Total</span>

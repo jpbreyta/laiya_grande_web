@@ -1,26 +1,27 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\BookingController as BookingController;
+use App\Http\Controllers\Admin\BookingController;
 
-Route::get('/booking/export-csv', [BookingController::class, 'exportCsv'])->name('booking.export-csv');
-Route::get('/booking/export-pdf', [BookingController::class, 'exportPdf'])->name('booking.export-pdf');
-Route::post('/booking/import-csv', [BookingController::class, 'importCsv'])->name('booking.import-csv');
+Route::prefix('booking')->name('booking.')->group(function () {
+    Route::get('/', [BookingController::class, 'index'])->name('index');
+    Route::post('/', [BookingController::class, 'store'])->name('store');
+    
+    Route::get('/deleted', [BookingController::class, 'index'])->defaults('status', 'archived')->name('deleted');
+    
+    Route::get('/export-csv', [BookingController::class, 'exportCsv'])->name('export-csv');
+    Route::get('/export-pdf', [BookingController::class, 'exportPdf'])->name('export-pdf');
+    Route::post('/import-csv', [BookingController::class, 'importCsv'])->name('import-csv');
 
-Route::get('/booking/deleted', [BookingController::class, 'index'])->defaults('status', 'archived')->name('booking.deleted');
+    Route::get('/{id}', [BookingController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [BookingController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [BookingController::class, 'update'])->name('update');
+    Route::delete('/{id}', [BookingController::class, 'destroy'])->name('destroy');
 
-Route::get('/booking', [BookingController::class, 'index'])->name('booking.index');
-Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+    Route::post('/{id}/approve', [BookingController::class, 'approve'])->name('approve');
+    Route::post('/{id}/reject', [BookingController::class, 'reject'])->name('reject');
+    Route::post('/{id}/process-ocr', [BookingController::class, 'processOCRForBooking'])->name('process-ocr');
+    Route::post('/{id}/restore', [BookingController::class, 'restore'])->name('restore');
+    Route::delete('/{id}/force-delete', [BookingController::class, 'forceDelete'])->name('force-delete');
+});
 
-
-Route::post('/booking/{id}/approve', [BookingController::class, 'approve'])->name('booking.approve');
-Route::post('/booking/{id}/reject', [BookingController::class, 'reject'])->name('booking.reject');
-Route::post('/booking/{id}/process-ocr', [BookingController::class, 'processOCRForBooking'])->name('booking.process-ocr');
-
-Route::post('/booking/{id}/restore', [BookingController::class, 'restore'])->name('booking.restore');
-Route::delete('/booking/{id}/force-delete', [BookingController::class, 'forceDelete'])->name('booking.force-delete');
-
-Route::get('/booking/{id}', [BookingController::class, 'show'])->name('booking.show');
-Route::get('/booking/{id}/edit', [BookingController::class, 'edit'])->name('booking.edit');
-Route::put('/booking/{id}', [BookingController::class, 'update'])->name('booking.update');
-Route::delete('/booking/{id}', [BookingController::class, 'destroy'])->name('booking.destroy'); 

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 
 class SearchController extends Controller
@@ -303,8 +304,112 @@ class SearchController extends Controller
 
         return response()->json([
             'success' => true,
-            'redirect_url' => route('search.verifyInfo', ['reservation_code' => $code])
+            'redirect_url' => route('search.selectOtpMethod', ['reservation_code' => $code])
         ]);
+    }
+
+    public function selectOtpMethod(Request $request)
+    {
+        $reservationCode = $request->query('reservation_code');
+        
+        if (!$reservationCode) {
+            return redirect()->route('search.index')->with('alert', [
+                'type' => 'error',
+                'message' => 'Please enter a valid booking code.'
+            ]);
+        }
+
+        // Verify the booking exists
+        $record = Reservation::where('reservation_number', $reservationCode)->first()
+            ?? Booking::where('reservation_number', $reservationCode)->first();
+
+        if (!$record) {
+            return redirect()->route('search.index')->with('alert', [
+                'type' => 'error',
+                'message' => 'No reservation or booking found with the provided code.'
+            ]);
+        }
+
+        return view('user.search.select-otp-method', compact('reservationCode'));
+    }
+
+    public function sendOtpByMethod(Request $request)
+    {
+        $request->validate([
+            'reservation_code' => 'required|string',
+            'otp_method' => 'required|in:email,sms'
+        ]);
+
+        $code = $request->reservation_code;
+        $method = $request->otp_method;
+
+        $record = Reservation::with('customer')->where('reservation_number', $code)->first();
+        $type = 'reservation';
+
+        if (!$record) {
+            $record = Booking::with('customer')->where('reservation_number', $code)->first();
+            $type = 'booking';
+        }
+
+        if (!$record) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking or reservation not found.'
+            ]);
+        }
+
+        // Generate OTP
+        $otpCode = $this->generateOtp();
+        
+        try {
+            $otp = Otp::updateOrCreate(
+                ['user_id' => $record->id, 'type' => $type],
+                [
+                    'otp_code' => $otpCode,
+                    'email_sent' => false,
+                    'sms_sent' => false,
+                    'expires_at' => Carbon::now()->addMinutes(10),
+                    'used' => false,
+                ]
+            );
+
+            Log::info('OTP created for method selection', [
+                'otp_id' => $otp->id,
+                'user_id' => $record->id,
+                'type' => $type,
+                'method' => $method,
+                'otp_code' => $otpCode,
+            ]);
+
+            if ($method === 'sms') {
+                $phoneNumber = $record->customer ? $record->customer->phone_number : $record->phone_number;
+                $this->sendOtpSms($otp, $phoneNumber);
+                $message = 'OTP sent successfully to your phone number.';
+            } else {
+                $email = $record->customer ? $record->customer->email : $record->email;
+                $this->sendOtpEmail($otp, $email);
+                $message = 'OTP sent successfully to your email address.';
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'redirect_url' => route('search.verifyOtpForm', ['reservation_code' => $code, 'method' => $method])
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to create/send OTP', [
+                'user_id' => $record->id,
+                'type' => $type,
+                'method' => $method,
+                'error' => $e->getMessage(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send OTP. Please try again.'
+            ]);
+        }
     }
 
     public function show($id, $type)
@@ -435,6 +540,50 @@ class SearchController extends Controller
             Log::error('Failed to send OTP SMS', [
                 'user_id' => $otp->user_id ?? 'unknown',
                 'otp_id' => $otp->id ?? 'unknown',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
+    }
+
+    private function sendOtpEmail($otp, $email)
+    {
+        try {
+            if (!$email) {
+                Log::error('OTP Email failed: No email address provided', [
+                    'user_id' => $otp->user_id,
+                    'otp_id' => $otp->id,
+                ]);
+                return;
+            }
+
+            Log::info('Sending OTP Email', [
+                'user_id' => $otp->user_id,
+                'otp_id' => $otp->id,
+                'email' => $email,
+                'otp_code' => $otp->otp_code,
+            ]);
+
+            // Send email using Laravel's Mail facade
+            Mail::send('emails.otp', ['otp' => $otp], function ($message) use ($email) {
+                $message->to($email)
+                        ->subject('Your Laiya Grande Verification Code');
+            });
+
+            $otp->email_sent = true;
+            $otp->save();
+            
+            Log::info('OTP Email sent successfully and record updated', [
+                'user_id' => $otp->user_id,
+                'otp_id' => $otp->id,
+                'email_sent' => $otp->email_sent,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to send OTP Email', [
+                'user_id' => $otp->user_id ?? 'unknown',
+                'otp_id' => $otp->id ?? 'unknown',
+                'email' => $email ?? 'unknown',
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
