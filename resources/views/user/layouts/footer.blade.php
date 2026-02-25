@@ -1,6 +1,5 @@
 <footer class="bg-white border-t border-slate-100 pt-20 pb-12 font-poppins">
     <div class="max-w-7xl mx-auto px-6 lg:px-8">
-        
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 mb-16">
             
             <div class="lg:col-span-5 flex flex-col justify-between h-full">
@@ -15,16 +14,13 @@
                 </div>
 
                 <div class="flex gap-4 mt-8 lg:mt-0">
-                    <a href="https://web.facebook.com/laiyagrande" target="_blank" 
-                       class="w-11 h-11 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-teal-600 hover:text-white hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-teal-600/30">
+                    <a href="https://web.facebook.com/laiyagrande" target="_blank" class="w-11 h-11 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-teal-600 hover:text-white hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-teal-600/30">
                         <i class="fab fa-facebook-f"></i>
                     </a>
-                    <a href="#" 
-                       class="w-11 h-11 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-teal-600 hover:text-white hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-teal-600/30">
+                    <a href="#" class="w-11 h-11 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-teal-600 hover:text-white hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-teal-600/30">
                         <i class="fab fa-instagram"></i>
                     </a>
-                    <a href="#" 
-                       class="w-11 h-11 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-teal-600 hover:text-white hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-teal-600/30">
+                    <a href="#" class="w-11 h-11 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-teal-600 hover:text-white hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-teal-600/30">
                         <i class="fab fa-tiktok"></i>
                     </a>
                 </div>
@@ -33,7 +29,6 @@
             <div class="hidden lg:block lg:col-span-1"></div>
 
             <div class="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-10">
-                
                 <div>
                     <h4 class="text-sm font-bold text-teal-900 uppercase tracking-widest mb-6 relative inline-block after:content-[''] after:absolute after:-bottom-2 after:left-0 after:w-8 after:h-0.5 after:bg-teal-200">
                         Explore
@@ -98,7 +93,6 @@
             <p class="text-xs text-slate-400 font-light">
                 &copy; {{ date('Y') }} Laiya Grande Beach Resort. All rights reserved.
             </p>
-            
             <div class="flex gap-6">
                 <a href="#" class="text-xs text-slate-400 hover:text-teal-600 transition-colors">Privacy Policy</a>
                 <a href="#" class="text-xs text-slate-400 hover:text-teal-600 transition-colors">Terms of Service</a>
@@ -107,27 +101,22 @@
     </div>
 </footer>
 
-<button id="backToTopBtn" 
-    class="fixed bottom-8 right-8 z-50 translate-y-20 opacity-0 transition-all duration-500 ease-out
-           w-12 h-12 rounded-full bg-white text-teal-600 shadow-xl border border-slate-50
-           flex items-center justify-center hover:bg-teal-600 hover:text-white hover:-translate-y-1 hover:shadow-2xl
-           focus:outline-none"
-    aria-label="Back to top">
+<button id="backToTopBtn" class="fixed bottom-8 right-8 z-50 translate-y-20 opacity-0 transition-all duration-500 ease-out w-12 h-12 rounded-full bg-white text-teal-600 shadow-xl border border-slate-50 flex items-center justify-center hover:bg-teal-600 hover:text-white hover:-translate-y-1 hover:shadow-2xl focus:outline-none" aria-label="Back to top">
     <i class="fas fa-chevron-up text-sm"></i>
 </button>
 
 <script>
-    const backToTopBtn = document.getElementById('backToTopBtn');
-
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 300) {
-            backToTopBtn.classList.remove('translate-y-20', 'opacity-0');
-        } else {
-            backToTopBtn.classList.add('translate-y-20', 'opacity-0');
-        }
-    });
-
-    backToTopBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.addEventListener('DOMContentLoaded', () => {
+        const backToTopBtn = document.getElementById('backToTopBtn');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.remove('translate-y-20', 'opacity-0');
+            } else {
+                backToTopBtn.classList.add('translate-y-20', 'opacity-0');
+            }
+        });
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     });
 </script>

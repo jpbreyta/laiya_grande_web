@@ -109,11 +109,20 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-3">
+                            @php
+                                $badgeConfig = [
+                                    'pending' => 'from-amber-400 to-yellow-400 border-amber-300',
+                                    'confirmed' => 'from-green-400 to-emerald-400 border-green-300',
+                                    'cancelled' => 'from-red-400 to-rose-400 border-red-300',
+                                ];
+
+                                $currentColors =
+                                    $badgeConfig[$booking->status] ?? 'from-gray-400 to-slate-400 border-gray-300';
+                            @endphp
+
                             <span id="statusBadge"
-                                class="inline-flex items-center px-4 py-2 rounded-full text-xs font-bold shadow-lg
-                            @if ($booking->status === 'pending') bg-gradient-to-r from-amber-400 to-yellow-400 text-white border border-amber-300
-                            @elseif($booking->status === 'confirmed') bg-gradient-to-r from-green-400 to-emerald-400 text-white border border-green-300
-                            @else bg-gradient-to-r from-red-400 to-rose-400 text-white border border-red-300 @endif">
+                                class="inline-flex items-center px-4 py-2 rounded-full text-xs font-bold shadow-lg text-white bg-gradient-to-r border {{ $currentColors }}">
+
                                 <span class="w-2 h-2 rounded-full mr-2 bg-white"></span>
                                 {{ ucfirst($booking->status) }}
                             </span>
@@ -206,13 +215,28 @@
 
                         <div class="p-6 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
                             <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Status</div>
+
+                            @php
+                                $statusClasses =
+                                    [
+                                        'pending' =>
+                                            'from-amber-100 to-yellow-100 text-amber-800 border-amber-200 dot-bg-amber-500',
+                                        'confirmed' =>
+                                            'from-green-100 to-emerald-100 text-green-800 border-green-200 dot-bg-green-500',
+                                        'cancelled' =>
+                                            'from-red-100 to-rose-100 text-red-800 border-red-200 dot-bg-red-500',
+                                    ][$booking->status] ??
+                                    'from-gray-100 to-slate-100 text-gray-800 border-gray-200 dot-bg-gray-500';
+                                $dotColor = str_replace(
+                                    'dot-bg-',
+                                    'bg-',
+                                    explode(' ', $statusClasses)[4] ?? 'bg-gray-500',
+                                );
+                            @endphp
                             <span id="statusBadge"
-                                class="inline-flex items-center px-4 py-2 rounded-full text-xs font-bold shadow-sm
-                                @if ($booking->status === 'pending') bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200
-                                @elseif($booking->status === 'confirmed') bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200
-                                @else bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200 @endif">
-                                <span
-                                    class="w-2 h-2 rounded-full mr-2 {{ $booking->status === 'confirmed' ? 'bg-green-500' : ($booking->status === 'pending' ? 'bg-amber-500' : 'bg-red-500') }}"></span>
+                                class="inline-flex items-center px-4 py-2 rounded-full text-xs font-bold shadow-sm bg-gradient-to-r border {{ $currentStatus['bg'] }} {{ $currentStatus['text'] }} {{ $currentStatus['border'] }}">
+
+                                <span class="w-2 h-2 rounded-full mr-2 {{ $currentStatus['dot'] }}"></span>
                                 {{ ucfirst($booking->status) }}
                             </span>
                         </div>
@@ -409,44 +433,56 @@
         </div>
     </section>
 
-    <!-- Booking Pass Modal -->
     <div id="bookingPassOverlay" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"></div>
-    <div id="bookingPassModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+
+    <div id="bookingPassModal" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
             <div
                 class="px-6 py-4 border-b bg-gradient-to-r from-teal-600 to-emerald-600 text-white flex items-center justify-between">
                 <h3 class="text-lg font-bold">Booking Pass</h3>
-                <button class="text-white/80 hover:text-white transition" data-close-booking-pass>&times;</button>
+                <button class="text-white/80 hover:text-white transition text-2xl" data-close-booking-pass>&times;</button>
             </div>
+
             <div id="bookingPassPrintArea" class="p-6 space-y-4">
                 <div>
-                    <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Booking Code</div>
-                    <div id="bookingCodeValue" class="text-2xl font-extrabold text-slate-900 tracking-wide font-mono">
+                    <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1 text-center sm:text-left">
+                        Booking Code</div>
+                    <div id="bookingCodeValue"
+                        class="text-2xl font-extrabold text-slate-900 tracking-wide font-mono text-center sm:text-left">
                         {{ $booking->reservation_number ?? $booking->id }}
                     </div>
                 </div>
+
                 <div class="flex items-center justify-center">
-                    <div class="bg-white p-4 rounded-xl shadow border">
+                    <div class="bg-white p-4 rounded-xl shadow-inner border border-slate-100">
                         {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(200)->margin(1)->generate($qrString ?? ($booking->reservation_number ?? $booking->id)) !!}
                     </div>
                 </div>
-                <p class="text-xs text-slate-500 text-center">Present this at the front desk for quick verification.</p>
+                <p class="text-xs text-slate-500 text-center italic">Present this at the front desk for quick verification.
+                </p>
             </div>
-            <div class="px-6 py-4 border-t bg-slate-50 flex items-center justify-end gap-2">
+
+            <div class="px-6 py-4 border-t bg-slate-50 flex flex-wrap items-center justify-end gap-2">
                 <button id="copyBookingCodeBtn"
-                    class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 transition">Copy
-                    Code</button>
+                    class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 transition text-sm font-medium">
+                    Copy Code
+                </button>
                 <button id="printBookingPassBtn"
-                    class="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:from-teal-700 hover:to-emerald-700 transition">Print</button>
-                <button class="px-4 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition"
-                    data-close-booking-pass>Close</button>
+                    class="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:opacity-90 transition text-sm font-medium shadow-md">
+                    Print
+                </button>
+                <button
+                    class="px-4 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition text-sm font-medium text-slate-600"
+                    data-close-booking-pass>
+                    Close
+                </button>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
-        // Booking Pass Modal
+
         (function() {
             const openBtn = document.getElementById('openPassModal');
             const modal = document.getElementById('bookingPassModal');

@@ -1,12 +1,7 @@
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
 <style>
-    /* Custom font-styles */
     .font-poppins { font-family: 'Poppins', sans-serif; }
     .font-playfair { font-family: 'Playfair Display', serif; }
 
-    /* Soft Glassmorphism */
     .nav-glass {
         background-color: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(16px);
@@ -15,17 +10,19 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     
-    /* Scrolled state */
     .nav-scrolled {
         background-color: rgba(255, 255, 255, 0.98);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
+
+    [x-cloak] { display: none !important; }
 </style>
 
 <nav id="site-nav" 
      x-data="{ 
         mobileMenuOpen: false, 
         scrolled: false,
+        totalCount: 0,
         init() {
             window.addEventListener('scroll', () => {
                 this.scrolled = window.scrollY > 20;
@@ -59,14 +56,8 @@
             </div>
 
             <div class="hidden xl:flex items-center gap-8 text-sm font-medium text-slate-500 mx-auto whitespace-nowrap">
-                
-                <a href="{{ url('/') }}" class="hover:text-[#0E7C7B] transition-colors relative py-2">
-                    Home
-                </a>
-                
-                <a href="{{ route('search.index') }}" class="hover:text-[#0E7C7B] transition-colors relative py-2">
-                    My Reservations
-                </a>
+                <a href="{{ url('/') }}" class="hover:text-[#0E7C7B] transition-colors relative py-2">Home</a>
+                <a href="{{ route('search.index') }}" class="hover:text-[#0E7C7B] transition-colors relative py-2">My Reservations</a>
 
                 <div class="relative group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
                     <button class="flex items-center gap-1 hover:text-[#0E7C7B] transition-colors py-2 focus:outline-none">
@@ -75,21 +66,17 @@
                     </button>
 
                     <div x-show="open" 
+                         x-cloak
                          x-transition:enter="transition ease-out duration-200"
                          x-transition:enter-start="opacity-0 translate-y-2 scale-98"
                          x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                          x-transition:leave="transition ease-in duration-150"
                          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                          x-transition:leave-end="opacity-0 translate-y-2 scale-98"
-                         class="absolute top-full left-0 mt-2 w-48 bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-slate-100 py-1 z-50 overflow-hidden"
-                         style="display: none;">
+                         class="absolute top-full left-0 mt-2 w-48 bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-slate-100 py-1 z-50 overflow-hidden">
                         
-                        <a href="{{ route('contact') }}" class="block px-4 py-2.5 text-slate-600 hover:bg-[#0E7C7B]/5 hover:text-[#0E7C7B] transition-colors duration-200">
-                            Contact Us
-                        </a>
-                        <a href="{{ url('/gallery') }}" class="block px-4 py-2.5 text-slate-600 hover:bg-[#0E7C7B]/5 hover:text-[#0E7C7B] transition-colors duration-200">
-                            Gallery
-                        </a>
+                        <a href="{{ route('contact') }}" class="block px-4 py-2.5 text-slate-600 hover:bg-[#0E7C7B]/5 hover:text-[#0E7C7B] transition-colors duration-200">Contact Us</a>
+                        <a href="{{ url('/gallery') }}" class="block px-4 py-2.5 text-slate-600 hover:bg-[#0E7C7B]/5 hover:text-[#0E7C7B] transition-colors duration-200">Gallery</a>
                     </div>
                 </div>
             </div>
@@ -110,7 +97,7 @@
             <div class="lg:hidden flex items-center gap-4 ml-auto">
                 <a href="{{ route('cart.index') }}" class="relative p-2 text-slate-600 hover:text-[#0E7C7B] transition-colors">
                     <i class="fa-solid fa-cart-shopping text-xl"></i>
-                    <span x-show="totalCount > 0" class="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-[#0E7C7B] ring-2 ring-white"></span>
+                    <span x-show="totalCount > 0" x-cloak class="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-[#0E7C7B] ring-2 ring-white"></span>
                 </a>
                 <button @click="mobileMenuOpen = !mobileMenuOpen" class="p-2 text-slate-800 hover:text-[#0E7C7B] transition-colors focus:outline-none">
                     <i class="fa-solid fa-bars text-2xl" x-show="!mobileMenuOpen"></i>
@@ -121,14 +108,14 @@
     </div>
 
     <div x-show="mobileMenuOpen" 
+         x-cloak
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 -translate-y-4"
          x-transition:enter-end="opacity-100 translate-y-0"
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100 translate-y-0"
          x-transition:leave-end="opacity-0 -translate-y-4"
-         class="lg:hidden absolute top-full left-0 w-full bg-white border-t border-slate-100 shadow-xl py-4 px-6 flex flex-col gap-4 max-h-[80vh] overflow-y-auto"
-         style="display: none;">
+         class="lg:hidden absolute top-full left-0 w-full bg-white border-t border-slate-100 shadow-xl py-4 px-6 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
          
          <a href="{{ url('/') }}" class="text-sm font-medium text-slate-600 hover:text-[#0E7C7B] transition-colors">Home</a>
          <a href="{{ route('search.index') }}" class="text-sm font-medium text-slate-600 hover:text-[#0E7C7B] transition-colors">My Reservations</a>
@@ -137,7 +124,7 @@
             <button @click="subOpen = !subOpen" class="flex items-center justify-between w-full text-sm font-medium text-slate-600 hover:text-[#0E7C7B] transition-colors">
                 About Us <i class="fa-solid fa-caret-down text-xs transition-transform" :class="subOpen ? 'rotate-180' : ''"></i>
             </button>
-            <div x-show="subOpen" class="pl-4 mt-2 flex flex-col gap-3 border-l border-slate-200 ml-1">
+            <div x-show="subOpen" x-cloak class="pl-4 mt-2 flex flex-col gap-3 border-l border-slate-200 ml-1">
                 <a href="{{ route('contact') }}" class="text-sm text-slate-500 hover:text-[#0E7C7B] transition-colors">Contact Us</a>
                 <a href="{{ url('/location') }}" class="text-sm text-slate-500 hover:text-[#0E7C7B] transition-colors">Gallery</a>
             </div>

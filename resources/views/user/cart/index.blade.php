@@ -66,8 +66,7 @@
                                             <!-- Room Image -->
                                             <div class="w-32 h-32 flex-shrink-0 rounded-lg overflow-hidden bg-slate-100">
                                                 <img src="{{ $item['room_image'] ?? asset('images/user/luxury-ocean-view-suite-hotel-room.jpg') }}"
-                                                    alt="{{ $item['room_name'] }}"
-                                                    class="w-full h-full object-cover">
+                                                    alt="{{ $item['room_name'] }}" class="w-full h-full object-cover">
                                             </div>
 
                                             <!-- Room Details -->
@@ -97,8 +96,7 @@
                                                                 class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors">
                                                                 <i class="fas fa-minus text-xs"></i>
                                                             </button>
-                                                            <span
-                                                                class="w-12 text-center font-bold text-slate-800"
+                                                            <span class="w-12 text-center font-bold text-slate-800"
                                                                 id="quantity-{{ $id }}">{{ $item['quantity'] }}</span>
                                                             <button
                                                                 onclick="updateQuantity({{ $id }}, 'increment')"
@@ -152,7 +150,8 @@
                                 <div class="space-y-3 mb-6">
                                     <div class="flex justify-between text-slate-600">
                                         <span>Subtotal</span>
-                                        <span class="font-medium" id="cart-subtotal">₱{{ number_format($subtotal, 2) }}</span>
+                                        <span class="font-medium"
+                                            id="cart-subtotal">₱{{ number_format($subtotal, 2) }}</span>
                                     </div>
                                     <div class="flex justify-between text-slate-600">
                                         <span>Taxes & Fees (12%)</span>
@@ -160,10 +159,10 @@
                                     </div>
                                 </div>
 
-                                <div
-                                    class="flex justify-between items-center py-4 border-t border-b border-slate-200 mb-6">
+                                <div class="flex justify-between items-center py-4 border-t border-b border-slate-200 mb-6">
                                     <span class="font-heading font-bold text-lg text-slate-900">Total</span>
-                                    <span class="font-bold text-2xl text-teal-700" id="cart-total">₱{{ number_format($total, 2) }}</span>
+                                    <span class="font-bold text-2xl text-teal-700"
+                                        id="cart-total">₱{{ number_format($total, 2) }}</span>
                                 </div>
 
                                 <div class="space-y-3">
@@ -206,7 +205,6 @@
     </div>
 
     @push('scripts')
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script>
             function updateQuantity(roomId, action) {
                 const route = action === 'increment' ? '{{ route('cart.increment') }}' : '{{ route('cart.decrement') }}';
