@@ -1,9 +1,7 @@
 @extends('user.layouts.app')
 
 @section('content')
-<script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -504,7 +502,7 @@
                             <div>
                                 <h5 class="font-bold text-teal-900">Contact Us</h5>
                                 <p class="text-slate-600">Globe: (0977) 222 4792<br>Smart: (0963) 003 7629</p>
-                                <p class="text-slate-600 text-sm mt-1 text-teal-600">laiyagrandebr22@gmail.com</p>
+                                <p class="text-slate-600 text-sm mt-1">laiyagrandebr22@gmail.com</p>
                             </div>
                         </div>
 

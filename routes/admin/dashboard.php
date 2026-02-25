@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])
+    ->name('dashboard.analytics');
 Route::get('/dashboard/filter', [DashboardController::class, 'filter'])->name('dashboard.filter');
 Route::get('/dashboard/calendar-events', [DashboardController::class, 'calendarEvents'])->name('dashboard.calendar-events');
 Route::post('/dashboard/check-room-availability', [DashboardController::class, 'checkRoomAvailability'])->name('dashboard.check-room-availability');

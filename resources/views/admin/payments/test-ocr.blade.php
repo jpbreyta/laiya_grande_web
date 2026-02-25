@@ -17,7 +17,8 @@
             </div>
 
             <!-- Quick Instructions Banner -->
-            <div class="bg-gradient-to-r from-teal-50 via-emerald-50 to-teal-50 border border-teal-200 rounded-xl p-4 shadow-sm">
+            <div
+                class="bg-gradient-to-r from-teal-50 via-emerald-50 to-teal-50 border border-teal-200 rounded-xl p-4 shadow-sm">
                 <div class="flex items-start justify-between">
                     <div class="flex-1">
                         <div class="flex items-center mb-2">
@@ -39,7 +40,7 @@
                             </div>
                         </div>
                     </div>
-                    <button type="button" onclick="openInstructionsModal()" 
+                    <button type="button" onclick="openInstructionsModal()"
                         class="ml-4 inline-flex items-center gap-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 text-xs font-semibold shadow-sm hover:shadow-md transition-all duration-200 whitespace-nowrap">
                         <i class="fas fa-info-circle"></i>
                         View Full Guidelines
@@ -58,7 +59,7 @@
                             </h2>
                             <p class="text-sm text-slate-500 mt-1">Upload an image to test OCR extraction</p>
                         </div>
-                    
+
                     </div>
                 </div>
 
@@ -68,7 +69,8 @@
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                             <!-- Upload Section -->
                             <div class="flex flex-col h-full">
-                                <div class="bg-white rounded-xl shadow-lg ring-1 ring-slate-200 overflow-hidden flex flex-col h-full">
+                                <div
+                                    class="bg-white rounded-xl shadow-lg ring-1 ring-slate-200 overflow-hidden flex flex-col h-full">
                                     <div class="border-b border-slate-100 px-6 py-4">
                                         <h3 class="text-base font-semibold text-slate-900 flex items-center">
                                             <i class="fas fa-upload mr-2 text-teal-600"></i>
@@ -80,24 +82,31 @@
                                             class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-teal-400 transition-colors bg-slate-50 flex-1 flex flex-col justify-center">
                                             <div class="space-y-4">
                                                 <div id="uploadArea">
-                                                    <div class="mx-auto w-16 h-16 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-xl flex items-center justify-center mb-4">
+                                                    <div
+                                                        class="mx-auto w-16 h-16 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-xl flex items-center justify-center mb-4">
                                                         <i class="fas fa-cloud-upload-alt text-teal-600 text-2xl"></i>
                                                     </div>
                                                     <div class="mt-4">
                                                         <label for="payment_proof" class="cursor-pointer">
-                                                            <span class="mt-2 block text-sm font-semibold text-slate-900">Click to upload
+                                                            <span
+                                                                class="mt-2 block text-sm font-semibold text-slate-900">Click
+                                                                to upload
                                                                 payment proof image</span>
                                                             <input type="file" id="payment_proof" name="payment_proof"
                                                                 accept="image/*" class="hidden" required>
-                                                            <span class="mt-1 block text-sm text-slate-500">PNG, JPG, GIF up to
+                                                            <span class="mt-1 block text-sm text-slate-500">PNG, JPG, GIF up
+                                                                to
                                                                 5MB</span>
                                                         </label>
                                                     </div>
                                                 </div>
                                                 <div id="imagePreview" class="hidden">
-                                                    <div class="relative rounded-lg overflow-hidden border-2 border-teal-200 bg-white">
-                                                        <img id="previewImage" src="" alt="Payment proof preview" class="w-full h-auto max-h-80 object-contain">
-                                                        <button type="button" id="removeImage" class="absolute top-2 right-2 bg-rose-500 hover:bg-rose-600 text-white rounded-full p-2 shadow-lg transition-colors">
+                                                    <div
+                                                        class="relative rounded-lg overflow-hidden border-2 border-teal-200 bg-white">
+                                                        <img id="previewImage" src="" alt="Payment proof preview"
+                                                            class="w-full h-auto max-h-80 object-contain">
+                                                        <button type="button" id="removeImage"
+                                                            class="absolute top-2 right-2 bg-rose-500 hover:bg-rose-600 text-white rounded-full p-2 shadow-lg transition-colors">
                                                             <i class="fas fa-times"></i>
                                                         </button>
                                                     </div>
@@ -116,7 +125,8 @@
 
                             <!-- Results Section -->
                             <div class="flex flex-col h-full">
-                                <div class="bg-white rounded-xl shadow-lg ring-1 ring-slate-200 overflow-hidden flex flex-col h-full">
+                                <div
+                                    class="bg-white rounded-xl shadow-lg ring-1 ring-slate-200 overflow-hidden flex flex-col h-full">
                                     <div class="border-b border-slate-100 px-6 py-4">
                                         <h3 class="text-base font-semibold text-slate-900 flex items-center">
                                             <i class="fas fa-file-alt mr-2 text-teal-600"></i>
@@ -124,9 +134,11 @@
                                         </h3>
                                     </div>
                                     <div class="flex-1 p-6">
-                                        <div id="resultsContainer" class="bg-slate-50 rounded-xl p-6 min-h-full border border-slate-200 h-full flex flex-col">
+                                        <div id="resultsContainer"
+                                            class="bg-slate-50 rounded-xl p-6 min-h-full border border-slate-200 h-full flex flex-col">
                                             <div class="text-center text-slate-500 flex-1 flex flex-col justify-center">
-                                                <div class="mx-auto w-16 h-16 bg-slate-100 rounded-xl flex items-center justify-center mb-4">
+                                                <div
+                                                    class="mx-auto w-16 h-16 bg-slate-100 rounded-xl flex items-center justify-center mb-4">
                                                     <i class="fas fa-file-alt text-slate-400 text-2xl"></i>
                                                 </div>
                                                 <p class="text-sm font-medium">Upload an image to see OCR results</p>
@@ -141,14 +153,16 @@
             </div>
 
             <!-- Instructions Modal -->
-            <div id="instructionsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent">
+            <div id="instructionsModal"
+                class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-transparent">
                 <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                    <div class="border-b border-slate-100 px-6 py-5 bg-gradient-to-r from-teal-50 to-emerald-50 flex items-center justify-between">
+                    <div
+                        class="border-b border-slate-100 px-6 py-5 bg-gradient-to-r from-teal-50 to-emerald-50 flex items-center justify-between">
                         <h2 class="text-xl font-semibold text-slate-900 flex items-center">
                             <i class="fas fa-info-circle mr-3 text-teal-600"></i>
                             Instructions & Guidelines
                         </h2>
-                        <button type="button" onclick="closeInstructionsModal()" 
+                        <button type="button" onclick="closeInstructionsModal()"
                             class="text-slate-400 hover:text-slate-600 transition-colors">
                             <i class="fas fa-times text-xl"></i>
                         </button>
@@ -165,21 +179,24 @@
                                         <span class="w-3 h-3 bg-teal-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>
                                         <div>
                                             <strong class="text-slate-900 block mb-1">Reference ID</strong>
-                                            <span class="block text-xs text-slate-500">10-digit transaction number that uniquely identifies the payment</span>
+                                            <span class="block text-xs text-slate-500">10-digit transaction number that
+                                                uniquely identifies the payment</span>
                                         </div>
                                     </li>
                                     <li class="flex items-start p-3 bg-amber-50 rounded-lg border border-amber-100">
                                         <span class="w-3 h-3 bg-amber-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>
                                         <div>
                                             <strong class="text-slate-900 block mb-1">Date/Time</strong>
-                                            <span class="block text-xs text-slate-500">Transaction date and time when the payment was made</span>
+                                            <span class="block text-xs text-slate-500">Transaction date and time when the
+                                                payment was made</span>
                                         </div>
                                     </li>
                                     <li class="flex items-start p-3 bg-emerald-50 rounded-lg border border-emerald-100">
                                         <span class="w-3 h-3 bg-emerald-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>
                                         <div>
                                             <strong class="text-slate-900 block mb-1">Total Amount</strong>
-                                            <span class="block text-xs text-slate-500">Amount sent in Philippine Peso (₱) - must be clearly visible</span>
+                                            <span class="block text-xs text-slate-500">Amount sent in Philippine Peso (₱) -
+                                                must be clearly visible</span>
                                         </div>
                                     </li>
                                 </ul>
@@ -194,21 +211,24 @@
                                         <i class="fas fa-check-circle text-emerald-600 mr-3 mt-0.5 flex-shrink-0"></i>
                                         <div>
                                             <strong class="text-slate-900 block mb-1">All fields required</strong>
-                                            <span class="block text-xs text-slate-500">All three fields must be present and non-empty for successful validation</span>
+                                            <span class="block text-xs text-slate-500">All three fields must be present and
+                                                non-empty for successful validation</span>
                                         </div>
                                     </li>
                                     <li class="flex items-start p-3 bg-emerald-50 rounded-lg border border-emerald-100">
                                         <i class="fas fa-check-circle text-emerald-600 mr-3 mt-0.5 flex-shrink-0"></i>
                                         <div>
                                             <strong class="text-slate-900 block mb-1">Reference ID format</strong>
-                                            <span class="block text-xs text-slate-500">Must be exactly 10 digits - no letters or special characters</span>
+                                            <span class="block text-xs text-slate-500">Must be exactly 10 digits - no
+                                                letters or special characters</span>
                                         </div>
                                     </li>
                                     <li class="flex items-start p-3 bg-emerald-50 rounded-lg border border-emerald-100">
                                         <i class="fas fa-check-circle text-emerald-600 mr-3 mt-0.5 flex-shrink-0"></i>
                                         <div>
                                             <strong class="text-slate-900 block mb-1">Image quality</strong>
-                                            <span class="block text-xs text-slate-500">Clear, high-resolution images with good contrast work best for accurate OCR</span>
+                                            <span class="block text-xs text-slate-500">Clear, high-resolution images with
+                                                good contrast work best for accurate OCR</span>
                                         </div>
                                     </li>
                                 </ul>
@@ -217,7 +237,8 @@
                                         <i class="fas fa-lightbulb text-blue-600 mr-3 mt-0.5"></i>
                                         <div>
                                             <strong class="text-blue-900 block mb-1">Pro Tip</strong>
-                                            <p class="text-xs text-blue-700">Ensure the payment proof image is well-lit, in focus, and all text is clearly readable before uploading.</p>
+                                            <p class="text-xs text-blue-700">Ensure the payment proof image is well-lit, in
+                                                focus, and all text is clearly readable before uploading.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -225,7 +246,7 @@
                         </div>
                     </div>
                     <div class="border-t border-slate-100 px-6 py-4 bg-slate-50 flex justify-end">
-                        <button type="button" onclick="closeInstructionsModal()" 
+                        <button type="button" onclick="closeInstructionsModal()"
                             class="inline-flex items-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                             <i class="fas fa-check"></i>
                             Got it!
@@ -236,7 +257,7 @@
         </div>
     </section>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         let uploadedImageBase64 = null;
 
@@ -300,7 +321,7 @@
 
             // Ensure results container maintains full height
             resultsContainer.classList.add('flex', 'flex-col', 'overflow-y-auto');
-            
+
             let html = '<div class="space-y-4 flex-1 overflow-y-auto">';
 
             // Payment Proof Image Section (if available, shown at top)
@@ -310,7 +331,8 @@
                 html += '<i class="fas fa-image mr-2 text-teal-600"></i>';
                 html += 'Payment Proof Image</h4>';
                 html += '<div class="rounded-lg overflow-hidden border border-slate-200 bg-slate-50 p-2">';
-                html += `<img src="${imageBase64 || uploadedImageBase64}" alt="Payment proof" class="w-full h-auto max-h-64 object-contain mx-auto">`;
+                html +=
+                    `<img src="${imageBase64 || uploadedImageBase64}" alt="Payment proof" class="w-full h-auto max-h-64 object-contain mx-auto">`;
                 html += '</div>';
                 html += '</div>';
             }
@@ -323,9 +345,11 @@
 
             // Group 1: Reference ID (typically at top of payment proof)
             html += '<div class="mb-4 pb-4 border-b border-slate-200">';
-            html += '<div class="flex items-center justify-between p-3 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-lg border border-teal-100">';
+            html +=
+                '<div class="flex items-center justify-between p-3 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-lg border border-teal-100">';
             html += '<div class="flex items-center space-x-3">';
-            html += '<div class="w-10 h-10 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">';
+            html +=
+                '<div class="w-10 h-10 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">';
             html += '<i class="fas fa-hashtag text-teal-600"></i>';
             html += '</div>';
             html += '<div>';
@@ -340,15 +364,18 @@
 
             // Group 2: Date/Time (typically in middle section)
             html += '<div class="mb-4 pb-4 border-b border-slate-200">';
-            html += '<div class="flex items-center justify-between p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-100">';
+            html +=
+                '<div class="flex items-center justify-between p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-100">';
             html += '<div class="flex items-center space-x-3">';
-            html += '<div class="w-10 h-10 bg-gradient-to-br from-amber-100 to-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">';
+            html +=
+                '<div class="w-10 h-10 bg-gradient-to-br from-amber-100 to-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">';
             html += '<i class="fas fa-calendar-alt text-amber-600"></i>';
             html += '</div>';
             html += '<div>';
             html += '<p class="text-xs text-slate-500 font-medium">Transaction Date & Time</p>';
             const dateTime = ocrResult['date_time'] || 'Not found';
-            const dateTimeValid = validation.valid || !validation.errors.some(err => err.includes('Date') || err.includes('Time'));
+            const dateTimeValid = validation.valid || !validation.errors.some(err => err.includes('Date') || err.includes(
+                'Time'));
             html += `<p class="text-base font-bold text-slate-900 ${dateTimeValid ? '' : 'text-rose-600'}">${dateTime}</p>`;
             html += '</div>';
             html += '</div>';
@@ -357,16 +384,19 @@
 
             // Group 3: Amount (typically prominent, at bottom or center)
             html += '<div class="mb-4">';
-            html += '<div class="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg border-2 border-emerald-200">';
+            html +=
+                '<div class="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg border-2 border-emerald-200">';
             html += '<div class="flex items-center space-x-3">';
-            html += '<div class="w-12 h-12 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center flex-shrink-0">';
+            html +=
+                '<div class="w-12 h-12 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center flex-shrink-0">';
             html += '<i class="fas fa-peso-sign text-emerald-600 text-lg"></i>';
             html += '</div>';
             html += '<div>';
             html += '<p class="text-xs text-slate-500 font-medium uppercase tracking-wide">Total Amount</p>';
             const amount = ocrResult['total_amount'] || 'Not found';
             const amountValid = validation.valid || !validation.errors.some(err => err.includes('Amount'));
-            html += `<p class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 ${amountValid ? '' : '!text-rose-600'}">₱${amount}</p>`;
+            html +=
+                `<p class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 ${amountValid ? '' : '!text-rose-600'}">₱${amount}</p>`;
             html += '</div>';
             html += '</div>';
             html += '</div>';
@@ -400,7 +430,8 @@
             } else {
                 html += '<div class="flex items-center space-x-2 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">';
                 html += '<i class="fas fa-check-circle text-emerald-600"></i>';
-                html += '<p class="text-sm font-medium text-emerald-700">All validation checks passed! Payment proof is valid.</p>';
+                html +=
+                    '<p class="text-sm font-medium text-emerald-700">All validation checks passed! Payment proof is valid.</p>';
                 html += '</div>';
             }
 
@@ -408,7 +439,7 @@
             html += '</div>'; // Close main space-y-4 div
 
             resultsContainer.innerHTML = html;
-            
+
             // Ensure the results container maintains its height
             resultsContainer.classList.remove('justify-center');
         }

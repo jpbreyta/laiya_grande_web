@@ -1,7 +1,7 @@
 @extends('user.layouts.app')
 
 @push('styles')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href=" /dist/sweetalert2.min.css">
     <style>
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px
@@ -159,7 +159,6 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         function printReservation() {
             window.print();
