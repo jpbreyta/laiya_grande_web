@@ -3,29 +3,39 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\FoodCategory;
+use Illuminate\Support\Facades\DB;
 
 class FoodCategorySeeder extends Seeder
 {
     public function run(): void
     {
-        $foodcategory = [
+        $now = now();
+
+        DB::table('catalog_categories')->upsert([
             [
                 'name' => 'PM Snacks',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'slug' => 'pm-snacks',
+                'description' => 'Afternoon snack selections.',
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
                 'name' => 'Dinner',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'slug' => 'dinner',
+                'description' => 'Dinner meal selections.',
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
                 'name' => 'Breakfast',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'slug' => 'breakfast',
+                'description' => 'Breakfast meal selections.',
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
-        ];
-        FoodCategory::insert($foodcategory);
+        ], ['slug'], ['name', 'description', 'is_active', 'updated_at']);
     }
 }

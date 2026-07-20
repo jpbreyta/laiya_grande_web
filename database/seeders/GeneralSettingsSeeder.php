@@ -3,50 +3,41 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\GeneralSetting;
+use Illuminate\Support\Facades\DB;
 
 class GeneralSettingsSeeder extends Seeder
 {
     public function run(): void
     {
-        if (!GeneralSetting::exists()) {
-
-            GeneralSetting::create([
-                // General Info / Branding
+        DB::table('general_settings')->updateOrInsert(
+            ['singleton_key' => true],
+            [
                 'resort_name' => 'Laiya Grande Beach Resort',
                 'tagline' => 'Your tropical escape in San Juan, Batangas',
-                'description' => 'Experience paradise with pristine beaches, luxury accommodations, and world-class amenities in the heart of Batangas.',
-
-                // Contact Info
+                'description' => 'Experience a relaxing beach getaway with comfortable accommodations and resort activities in San Juan, Batangas.',
                 'contact_email' => 'laiyagrandebr22@gmail.com',
                 'contact_phone' => '0963 033 7629',
-                'contact_address' => 'Laiya, San Juan, Philippines, 4226',
-
-                // Socials (if you don’t have actual links yet, these stay null)
+                'contact_address' => 'Laiya, San Juan, Batangas, Philippines 4226',
                 'social_facebook' => null,
                 'social_instagram' => null,
                 'social_twitter' => null,
                 'social_tripadvisor' => null,
-
-                // Business Hours — set defaults (you can edit later)
-                'reception_hours_start' => '08:00',
-                'reception_hours_end'   => '20:00',
-                'restaurant_hours_start' => '07:00',
-                'restaurant_hours_end'   => '22:00',
-                'pool_hours_start' => '06:00',
-                'pool_hours_end'   => '21:00',
-                'activities_hours_start' => '08:00',
-                'activities_hours_end'   => '17:00',
-
-                // System Preferences
+                'reception_hours_start' => '08:00:00',
+                'reception_hours_end' => '20:00:00',
+                'restaurant_hours_start' => '07:00:00',
+                'restaurant_hours_end' => '22:00:00',
+                'pool_hours_start' => '06:00:00',
+                'pool_hours_end' => '21:00:00',
+                'activities_hours_start' => '08:00:00',
+                'activities_hours_end' => '17:00:00',
                 'currency' => 'PHP',
                 'date_format' => 'd/m/Y',
-                'time_format' => '12',
-
-                // Images (set null, admin can upload later)
+                'time_format' => 'h:i A',
                 'logo_path' => null,
                 'favicon_path' => null,
-            ]);
-        }
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
     }
 }

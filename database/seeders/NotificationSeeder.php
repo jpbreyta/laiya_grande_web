@@ -3,69 +3,74 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Notification;
-use App\Models\Booking;
-use App\Models\Reservation;
+use Illuminate\Support\Facades\DB;
 
 class NotificationSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Create notifications for existing bookings
-        $bookings = Booking::all();
-        foreach ($bookings as $booking) {
-            // Check if notification already exists
-            $existing = Notification::where('type', 'booking')
-                ->where('data->booking_id', $booking->id)
-                ->first();
+        $recipientUserId = DB::table('users')
+            ->join('role_user', 'users.id', '=', 'role_user.user_id')
+            ->join('roles', 'role_user.role_id', '=', 'roles.id')
+            ->where('roles.name', 'admin')
+            ->orderBy('users.id')
+            ->value('users.id');
 
-            if (!$existing) {
-                Notification::create([
+        if ($recipientUserId === null) {
+            return;
+        }
+
+        $bookings = DB::table('bookings')
+            ->join('customers', 'bookings.customer_id', '=', 'customers.id')
+            ->whereNull('bookings.deleted_at')
+            ->whereIn('bookings.status', ['pending', 'confirmed'])
+            ->select([
+                'bookings.id',
+                'bookings.booking_number',
+                'bookings.status',
+                'bookings.check_in',
+                'bookings.check_out',
+                'bookings.number_of_guests',
+                'customers.first_name',
+                'customers.last_name',
+                'customers.email',
+                'customers.phone_number',
+            ])
+            ->orderBy('bookings.id')
+            ->get();
+
+        foreach ($bookings as $booking) {
+            $title = "Booking {$booking->booking_number}";
+            $customerName = trim(
+                "{$booking->first_name} {$booking->last_name}"
+            );
+
+            DB::table('notifications')->updateOrInsert(
+                [
+                    'user_id' => $recipientUserId,
                     'type' => 'booking',
-                    'title' => 'New Booking Request',
-                    'message' => "New booking from {$booking->firstname} {$booking->lastname} for {$booking->number_of_guests} guest(s)",
-                    'data' => [
+                    'title' => $title,
+                ],
+                [
+                    'customer_id' => null,
+                    'is_broadcast' => false,
+                    'message' => "{$customerName} has a {$booking->status} booking for {$booking->number_of_guests} guest(s).",
+                    'data' => json_encode([
                         'booking_id' => $booking->id,
-                        'name' => $booking->firstname . ' ' . $booking->lastname,
+                        'booking_number' => $booking->booking_number,
+                        'customer_name' => $customerName,
                         'email' => $booking->email,
                         'phone' => $booking->phone_number,
                         'check_in' => $booking->check_in,
                         'check_out' => $booking->check_out,
                         'guests' => $booking->number_of_guests,
-                    ],
-                    'read' => false,
-                ]);
-            }
-        }
-
-        // Create notifications for existing reservations
-        $reservations = Reservation::all();
-        foreach ($reservations as $reservation) {
-            // Check if notification already exists
-            $existing = Notification::where('type', 'reservation')
-                ->where('data->reservation_id', $reservation->id)
-                ->first();
-
-            if (!$existing) {
-                Notification::create([
-                    'type' => 'reservation',
-                    'title' => 'New Reservation Request',
-                    'message' => "New reservation from {$reservation->firstname} {$reservation->lastname} for {$reservation->number_of_guests} guest(s)",
-                    'data' => [
-                        'reservation_id' => $reservation->id,
-                        'name' => $reservation->firstname . ' ' . $reservation->lastname,
-                        'email' => $reservation->email,
-                        'phone' => $reservation->phone_number,
-                        'check_in' => $reservation->check_in,
-                        'check_out' => $reservation->check_out,
-                        'guests' => $reservation->number_of_guests,
-                    ],
-                    'read' => false,
-                ]);
-            }
+                        'status' => $booking->status,
+                    ], JSON_THROW_ON_ERROR),
+                    'read_at' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
         }
     }
 }

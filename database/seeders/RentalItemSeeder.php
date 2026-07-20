@@ -3,23 +3,113 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\RentalItem;
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class RentalItemSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->seedCategories();
+
+        $categoryIds = DB::table('catalog_categories')
+            ->whereIn('slug', [
+                'kitchen-rentals',
+                'entertainment-rentals',
+                'toiletry-rentals',
+            ])
+            ->pluck('id', 'slug');
+
         $items = [
-            ['name' => 'Portable Gas Stove', 'category' => 'Kitchen', 'price' => 250.00, 'stock_quantity' => 10],
-            ['name' => 'Extra Plates (Set of 6)', 'category' => 'Kitchen', 'price' => 50.00, 'stock_quantity' => 50],
-            ['name' => 'Karaoke Machine', 'category' => 'Entertainment', 'price' => 1000.00, 'stock_quantity' => 3],
-            ['name' => 'Rice Cooker', 'category' => 'Kitchen', 'price' => 150.00, 'stock_quantity' => 5],
-            ['name' => 'Grill Set', 'category' => 'Kitchen', 'price' => 200.00, 'stock_quantity' => 8],
-            ['name' => 'Towel Rental', 'category' => 'Toiletries', 'price' => 100.00, 'stock_quantity' => 100],
+            ['RENT-GAS-STOVE', 'kitchen-rentals', 'Portable Gas Stove', 250.00, 10],
+            ['RENT-PLATES-6', 'kitchen-rentals', 'Extra Plates (Set of 6)', 50.00, 50],
+            ['RENT-KARAOKE', 'entertainment-rentals', 'Karaoke Machine', 1000.00, 3],
+            ['RENT-RICE-COOKER', 'kitchen-rentals', 'Rice Cooker', 150.00, 5],
+            ['RENT-GRILL-SET', 'kitchen-rentals', 'Grill Set', 200.00, 8],
+            ['RENT-TOWEL', 'toiletry-rentals', 'Towel Rental', 100.00, 100],
         ];
 
-        foreach ($items as $item) {
-            RentalItem::create($item);
+        $rows = [];
+        $now = now();
+
+        foreach ($items as [$sku, $categorySlug, $name, $price, $stock]) {
+            $categoryId = $categoryIds->get($categorySlug);
+
+            if ($categoryId === null) {
+                throw new RuntimeException(
+                    "Rental category '{$categorySlug}' was not seeded."
+                );
+            }
+
+            $rows[] = [
+                'catalog_category_id' => $categoryId,
+                'item_type' => 'rental',
+                'sku' => $sku,
+                'name' => $name,
+                'description' => null,
+                'pricing_details' => 'Rental price per item.',
+                'unit_price' => $price,
+                'pax_capacity' => null,
+                'min_participants' => null,
+                'duration_minutes' => null,
+                'tracks_inventory' => true,
+                'stock_quantity' => $stock,
+                'is_available' => $stock > 0,
+                'metadata' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+                'deleted_at' => null,
+            ];
         }
+
+        DB::table('catalog_items')->upsert(
+            $rows,
+            ['sku'],
+            [
+                'catalog_category_id',
+                'item_type',
+                'name',
+                'description',
+                'pricing_details',
+                'unit_price',
+                'tracks_inventory',
+                'stock_quantity',
+                'is_available',
+                'updated_at',
+                'deleted_at',
+            ]
+        );
+    }
+
+    private function seedCategories(): void
+    {
+        $now = now();
+
+        DB::table('catalog_categories')->upsert([
+            [
+                'name' => 'Kitchen Rentals',
+                'slug' => 'kitchen-rentals',
+                'description' => 'Kitchen equipment and dining-item rentals.',
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'name' => 'Entertainment Rentals',
+                'slug' => 'entertainment-rentals',
+                'description' => 'Entertainment equipment rentals.',
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'name' => 'Toiletry Rentals',
+                'slug' => 'toiletry-rentals',
+                'description' => 'Guest toiletry and linen rentals.',
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+        ], ['slug'], ['name', 'description', 'is_active', 'updated_at']);
     }
 }

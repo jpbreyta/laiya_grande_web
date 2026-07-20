@@ -4,38 +4,90 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class FoodSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get category IDs dynamically (avoids hardcoding)
-        $pmSnacksId = DB::table('food_categories')->where('name', 'PM Snacks')->value('id');
-        $dinnerId   = DB::table('food_categories')->where('name', 'Dinner')->value('id');
-        $breakfastId= DB::table('food_categories')->where('name', 'Breakfast')->value('id');
+        $categoryIds = DB::table('catalog_categories')
+            ->whereIn('slug', ['pm-snacks', 'dinner', 'breakfast'])
+            ->pluck('id', 'slug');
 
-        // Insert foods
-        DB::table('foods')->insert([
-            // PM Snacks
-            ['name' => 'PALABOK', 'price' => 150.00, 'no_of_pax' => 30, 'food_category_id' => $pmSnacksId, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'PUTO AND KAKANIN', 'price' => 120.00, 'no_of_pax' => 30, 'food_category_id' => $pmSnacksId, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'SAGO SULAMAN', 'price' => 100.00, 'no_of_pax' => 30, 'food_category_id' => $pmSnacksId, 'created_at' => now(), 'updated_at' => now()],
+        foreach (['pm-snacks', 'dinner', 'breakfast'] as $requiredSlug) {
+            if (!$categoryIds->has($requiredSlug)) {
+                throw new RuntimeException(
+                    "Catalog category '{$requiredSlug}' is missing. Run FoodCategorySeeder first."
+                );
+            }
+        }
 
-            // Dinner
-            ['name' => 'PORK SINIGANG', 'price' => 250.00, 'no_of_pax' => 30, 'food_category_id' => $dinnerId, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'CHICKEN INASAL', 'price' => 220.00, 'no_of_pax' => 30, 'food_category_id' => $dinnerId, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'INIHAW NA TALONG WITH ALAMANG', 'price' => 180.00, 'no_of_pax' => 30, 'food_category_id' => $dinnerId, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'UNLIMITED RICE', 'price' => 50.00, 'no_of_pax' => 30, 'food_category_id' => $dinnerId, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'FRUIT SALAD', 'price' => 80.00, 'no_of_pax' => 30, 'food_category_id' => $dinnerId, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'DRINKS', 'price' => 60.00, 'no_of_pax' => 30, 'food_category_id' => $dinnerId, 'created_at' => now(), 'updated_at' => now()],
+        $items = [
+            ['FOOD-PALABOK', 'pm-snacks', 'Palabok', 150.00],
+            ['FOOD-PUTO-KAKANIN', 'pm-snacks', 'Puto and Kakanin', 120.00],
+            ['FOOD-SAGO-GULAMAN', 'pm-snacks', 'Sago at Gulaman', 100.00],
+            ['FOOD-PORK-SINIGANG', 'dinner', 'Pork Sinigang', 250.00],
+            ['FOOD-CHICKEN-INASAL', 'dinner', 'Chicken Inasal', 220.00],
+            ['FOOD-TALONG-ALAMANG', 'dinner', 'Inihaw na Talong with Alamang', 180.00],
+            ['FOOD-UNLIMITED-RICE', 'dinner', 'Unlimited Rice', 50.00],
+            ['FOOD-FRUIT-SALAD', 'dinner', 'Fruit Salad', 80.00],
+            ['FOOD-DRINKS', 'dinner', 'Drinks', 60.00],
+            ['FOOD-BEEF-TAPA', 'breakfast', 'Beef Tapa', 200.00],
+            ['FOOD-SMOKED-FISH', 'breakfast', 'Smoked Fish', 180.00],
+            ['FOOD-EGG', 'breakfast', 'Egg', 30.00],
+            ['FOOD-RICE', 'breakfast', 'Rice', 20.00],
+            ['FOOD-KAPENG-BARAKO', 'breakfast', 'Kapeng Barako', 40.00],
+            ['FOOD-BANANA', 'breakfast', 'Banana', 25.00],
+        ];
 
-            // Breakfast
-            ['name' => 'BEEF TAPA', 'price' => 200.00, 'no_of_pax' => 30, 'food_category_id' => $breakfastId, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'SMOKED FISH', 'price' => 180.00, 'no_of_pax' => 30, 'food_category_id' => $breakfastId, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'EGG', 'price' => 30.00, 'no_of_pax' => 30, 'food_category_id' => $breakfastId, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'RICE', 'price' => 20.00, 'no_of_pax' => 30, 'food_category_id' => $breakfastId, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'KAPENG BARAKO', 'price' => 40.00, 'no_of_pax' => 30, 'food_category_id' => $breakfastId, 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'BANANA', 'price' => 25.00, 'no_of_pax' => 30, 'food_category_id' => $breakfastId, 'created_at' => now(), 'updated_at' => now()],
-        ]);
+        $now = now();
+        $rows = [];
+
+        foreach ($items as [$sku, $categorySlug, $name, $price]) {
+            $rows[] = [
+                'catalog_category_id' => $categoryIds[$categorySlug],
+                'item_type' => 'food',
+                'sku' => $sku,
+                'name' => $name,
+                'description' => null,
+                'pricing_details' => 'Price per serving.',
+                'unit_price' => $price,
+                'pax_capacity' => 30,
+                'min_participants' => null,
+                'duration_minutes' => null,
+                'tracks_inventory' => false,
+                'stock_quantity' => null,
+                'is_available' => true,
+                'metadata' => json_encode(
+                    ['legacy_no_of_pax' => 30],
+                    JSON_THROW_ON_ERROR
+                ),
+                'created_at' => $now,
+                'updated_at' => $now,
+                'deleted_at' => null,
+            ];
+        }
+
+        DB::table('catalog_items')->upsert(
+            $rows,
+            ['sku'],
+            [
+                'catalog_category_id',
+                'item_type',
+                'name',
+                'description',
+                'pricing_details',
+                'unit_price',
+                'pax_capacity',
+                'min_participants',
+                'duration_minutes',
+                'tracks_inventory',
+                'stock_quantity',
+                'is_available',
+                'metadata',
+                'updated_at',
+                'deleted_at',
+            ]
+        );
     }
 }
