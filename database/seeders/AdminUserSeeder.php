@@ -18,7 +18,7 @@ class AdminUserSeeder extends Seeder
 
         $superAdminPassword = $this->password(
             'SEED_SUPER_ADMIN_PASSWORD',
-            'SuperAdmin123!'
+            'SuperAdmin123!' 
         );
 
         DB::transaction(function () use ($adminPassword, $superAdminPassword): void {

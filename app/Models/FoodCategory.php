@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class FoodCategory extends Model
+/**
+ * Compatibility model for the removed food_categories table.
+ */
+class FoodCategory extends CatalogCategory
 {
-    use HasFactory;
+    protected $table = 'catalog_categories';
 
-    protected $fillable = ['name'];
-
-    public function foods()
+    public function foods(): HasMany
     {
-        return $this->hasMany(Foods::class, 'food_category_id');
+        return $this->hasMany(Foods::class, 'catalog_category_id');
     }
 }

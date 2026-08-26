@@ -2,13 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 
 class ContactMessage extends Model
 {
+    use HasFactory;
+
     protected $with = ['contactSubject'];
 
     protected $fillable = [
+        'customer_id',
         'name',
         'email',
         'phone',
@@ -19,7 +26,8 @@ class ContactMessage extends Model
         'reply_subject',
         'reply_content',
         'replied_at',
-        'archived_at'
+        'replied_by',
+        'archived_at',
     ];
 
     protected $casts = [
@@ -28,72 +36,92 @@ class ContactMessage extends Model
         'archived_at' => 'datetime',
     ];
 
-    // Relationship with ContactSubject
-    public function contactSubject()
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function contactSubject(): BelongsTo
     {
         return $this->belongsTo(ContactSubject::class);
     }
 
-    // Accessor for subject (for backward compatibility with views)
-    public function getSubjectAttribute()
+    public function repliedBy(): BelongsTo
     {
-        return $this->contactSubject?->classification;
+        return $this->belongsTo(User::class, 'replied_by');
     }
 
-    // Scope for unread messages
-    public function scopeUnread($query)
+    public function scopeUnread(Builder $query): Builder
     {
         return $query->where('status', 'unread');
     }
 
-    // Scope for read messages
-    public function scopeRead($query)
+    public function scopeRead(Builder $query): Builder
     {
         return $query->where('status', 'read');
     }
 
-    // Scope for replied messages
-    public function scopeReplied($query)
+    public function scopeReplied(Builder $query): Builder
     {
         return $query->where('status', 'replied');
     }
 
-    // Mark as read
-    public function markAsRead()
-    {
-        $this->update([
-            'status' => 'read',
-            'read_at' => now()
-        ]);
-    }
-
-    // Mark as replied
-    public function markAsReplied()
-    {
-        $this->update(['status' => 'replied']);
-    }
-
-    // Scope for archived messages
-    public function scopeArchived($query)
+    public function scopeArchived(Builder $query): Builder
     {
         return $query->whereNotNull('archived_at');
     }
 
-    // Scope for non-archived messages
-    public function scopeNotArchived($query)
+    public function scopeNotArchived(Builder $query): Builder
     {
         return $query->whereNull('archived_at');
     }
 
-    // Archive message
-    public function archive()
+    public function getSubjectAttribute(): ?string
     {
-        $this->update(['archived_at' => now()]);
+        return $this->contactSubject?->classification;
     }
 
-    // Unarchive message
-    public function unarchive()
+    public function markAsRead(): bool
     {
-        $this->update(['archived_at' => null]);
+        if ($this->status !== 'unread') {
+            return true;
+        }
+
+        return $this->update([
+            'status' => 'read',
+            'read_at' => now(),
+        ]);
+    }
+
+    public function markAsReplied(string $subject, string $content, ?int $userId = null): bool
+    {
+        return $this->update([
+            'status' => 'replied',
+            'read_at' => $this->read_at ?? now(),
+            'reply_subject' => $subject,
+            'reply_content' => $content,
+            'replied_at' => now(),
+            'replied_by' => $userId ?? Auth::id(),
+        ]);
+    }
+
+    public function archive(): bool
+    {
+        return $this->update([
+            'status' => 'archived',
+            'archived_at' => now(),
+        ]);
+    }
+
+    public function unarchive(): bool
+    {
+        $status = $this->replied_at !== null
+            ? 'replied'
+            : ($this->read_at !== null ? 'read' : 'unread');
+
+        return $this->update([
+            'status' => $status,
+            'archived_at' => null,
+        ]);
     }
 }

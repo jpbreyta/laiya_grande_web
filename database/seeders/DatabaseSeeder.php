@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
             $this->call(HistoricalDataSeeder::class);
         }
 
-        $this->call([
+        $this->call([ 
             GuestStaySeeder::class,
             NotificationSeeder::class,
         ]);

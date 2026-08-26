@@ -3,89 +3,113 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\RoomSearchRequest;
 use App\Models\Room;
-use Illuminate\Http\Request;
+use App\Services\Booking\RoomAvailabilityService;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\View\View;
 
 class RoomController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        private readonly RoomAvailabilityService $availability
+    ) {
+    }
+
+    /**
+     * List rooms using normalized rates and inventory-aware availability.
+     */
+    public function index(RoomSearchRequest $request): View
     {
-        // Store dates in session if provided
-        if ($request->filled('check_in') && $request->filled('check_out')) {
+        if ($request->filled(['check_in', 'check_out'])) {
             session([
-                'booking_check_in' => $request->check_in,
-                'booking_check_out' => $request->check_out
+                'booking_check_in' => $request->date('check_in')->toDateString(),
+                'booking_check_out' => $request->date('check_out')->toDateString(),
             ]);
         }
 
-        // Get dates from session
-        $checkIn = session('booking_check_in');
-        $checkOut = session('booking_check_out');
-        $nights = 1;
+        $checkInValue = session('booking_check_in');
+        $checkOutValue = session('booking_check_out');
+        $checkIn = $checkInValue ? Carbon::parse($checkInValue) : null;
+        $checkOut = $checkOutValue ? Carbon::parse($checkOutValue) : null;
+        $nights = $checkIn && $checkOut ? max(1, $checkIn->diffInDays($checkOut)) : 1;
 
-        // Calculate nights if dates are set
-        if ($checkIn && $checkOut) {
-            $nights = max(1, \Carbon\Carbon::parse($checkIn)->diffInDays(\Carbon\Carbon::parse($checkOut)));
-        }
+        $query = Room::query()
+            ->available()
+            ->with([
+                'activeRates' => function ($rates) use ($checkIn): void {
+                    $rates->when($checkIn, fn ($query) => $query->effectiveOn($checkIn))
+                        ->orderBy('price');
+                },
+                'roomImages',
+                'amenities',
+            ])
+            ->withAvg([
+                'ratings as average_rating' => fn (Builder $ratings) => $ratings->where('is_verified', true),
+            ], 'rating')
+            ->withCount([
+                'ratings as total_ratings' => fn (Builder $ratings) => $ratings->where('is_verified', true),
+            ]);
 
-        $query = Room::query();
-
-        // Filter by number of guests
         if ($request->filled('guests')) {
-            $query->where('capacity', '>=', $request->guests);
+            $query->where('capacity', '>=', $request->integer('guests'));
         }
 
-        // Filter by price range
-        if ($request->filled('min_price') && $request->filled('max_price')) {
-            $query->whereBetween('price', [$request->min_price, $request->max_price]);
+        if ($request->filled('min_price') || $request->filled('max_price') || $request->filled('rate_type')) {
+            $query->whereHas('activeRates', function (Builder $rates) use ($request, $checkIn): void {
+                $rates->when($checkIn, fn (Builder $query) => $query->effectiveOn($checkIn))
+                    ->when($request->filled('min_price'), fn (Builder $query) => $query->where('price', '>=', $request->input('min_price')))
+                    ->when($request->filled('max_price'), fn (Builder $query) => $query->where('price', '<=', $request->input('max_price')))
+                    ->when($request->filled('rate_type'), fn (Builder $query) => $query->where('rate_type', $request->string('rate_type')->toString()));
+            });
         }
 
-        // Filter by availability based on date overlap if dates are set
         if ($checkIn && $checkOut) {
-            $query->whereDoesntHave('bookings', function ($bookingQuery) use ($checkIn, $checkOut) {
-                $bookingQuery->whereIn('status', ['confirmed', 'pending'])
-                    ->where(function ($dateFilter) use ($checkIn, $checkOut) {
-                        $dateFilter
-                            // Booking starts during our stay
-                            ->whereBetween('check_in', [$checkIn, $checkOut])
-                            // Booking ends during our stay
-                            ->orWhereBetween('check_out', [$checkIn, $checkOut])
-                            // Booking completely overlaps our stay
-                            ->orWhere(function ($q) use ($checkIn, $checkOut) {
-                                $q->where('check_in', '<=', $checkIn)
-                                    ->where('check_out', '>=', $checkOut);
-                            });
-                    });
-            });
+            $this->availability->applyAvailableBetween($query, $checkIn, $checkOut);
         }
 
-        // Get rooms with availability > 0
-        $rooms = $query->where('availability', '>', 0)->get();
+        $cartRoomIds = array_map('intval', array_keys(session('cart', [])));
 
-        // Add rating information to each room
-        $rooms = $rooms->map(function ($room) {
-            $room->average_rating = round($room->averageRating(), 1);
-            $room->total_ratings = $room->totalRatings();
-            return $room;
-        });
-
-        // Remove rooms that are already in cart
-        $cart = session('cart', []);
-        if (!empty($cart)) {
-            $rooms = $rooms->filter(function ($room) use ($cart) {
-                return !isset($cart[$room->id]); // hide rooms already in cart
+        $rooms = $query
+            ->whereNotIn('rooms.id', $cartRoomIds)
+            ->orderBy('name')
+            ->get()
+            ->each(function (Room $room): void {
+                $room->setAttribute('average_rating', round((float) $room->average_rating, 1));
             });
-        }
 
-        return view('user.rooms.index', compact('rooms', 'checkIn', 'checkOut', 'nights'));
+        return view('user.rooms.index', compact('rooms', 'checkInValue', 'checkOutValue', 'nights'))
+            ->with('checkIn', $checkInValue)
+            ->with('checkOut', $checkOutValue);
     }
 
-    public function show($id)
+    /**
+     * Show one room with active rates and approved ratings only.
+     */
+    public function show(int $id): View
     {
-        $room = Room::findOrFail($id);
-        $room->average_rating = round($room->averageRating(), 1);
-        $room->total_ratings = $room->totalRatings();
-        $room->ratings = $room->ratings()->latest()->take(10)->get();
+        $room = Room::query()
+            ->available()
+            ->with([
+                'activeRates' => fn ($query) => $query->effectiveOn(today())->orderBy('price'),
+                'roomImages',
+                'amenities',
+            ])
+            ->findOrFail($id);
+
+        $room->setAttribute('average_rating', round($room->averageRating(), 1));
+        $room->setAttribute('total_ratings', $room->totalRatings());
+        $approvedRatings = $room->ratings()
+            ->where('is_verified', true)
+            ->latest('room_ratings.created_at')
+            ->limit(10)
+            ->get(['room_ratings.id', 'room_ratings.booking_id', 'rating', 'comment', 'room_ratings.created_at']);
+
+        // Preserve the old $room->ratings view property with approved records only.
+        $room->setRelation('ratings', $approvedRatings);
+        $room->setAttribute('approved_ratings', $approvedRatings);
+
         return view('user.rooms.show', compact('room'));
     }
 }

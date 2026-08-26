@@ -2,35 +2,61 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class PointOfSale extends Model
+/**
+ * Compatibility alias for the removed point_of_sale table.
+ * POS line items now live in pos_transaction_items.
+ */
+class PointOfSale extends PosTransactionItem
 {
-    use HasFactory;
-    
-    protected $table = 'point_of_sale'; // Explicitly define table name
+    protected $table = 'pos_transaction_items';
 
     protected $fillable = [
-        'guest_stay_id',
+        'pos_transaction_id',
         'transaction_id',
-        'item_name', 
-        'item_type', 
-        'quantity', 
-        'price', 
-        'total_amount', 
-        'discount'
+        'catalog_item_id',
+        'item_name',
+        'item_type',
+        'quantity',
+        'unit_price',
+        'price',
+        'discount',
+        'line_total',
+        'total_amount',
+        'metadata',
     ];
 
-    // Relationship to the Guest (GuestStay)
-    public function guestStay()
+    public function getTransactionIdAttribute(): ?int
     {
-        return $this->belongsTo(GuestStay::class, 'guest_stay_id');
+        return $this->pos_transaction_id;
     }
 
-    // Relationship to transaction
-    public function transaction()
+    public function setTransactionIdAttribute($value): void
     {
-        return $this->belongsTo(PosTransaction::class, 'transaction_id');
+        $this->attributes['pos_transaction_id'] = $value;
+    }
+
+    public function getPriceAttribute(): ?string
+    {
+        return $this->unit_price;
+    }
+
+    public function setPriceAttribute($value): void
+    {
+        $this->attributes['unit_price'] = $value;
+    }
+
+    public function getTotalAmountAttribute(): ?string
+    {
+        return $this->line_total;
+    }
+
+    public function setTotalAmountAttribute($value): void
+    {
+        $this->attributes['line_total'] = $value;
+    }
+
+    public function getGuestStayAttribute(): ?GuestStay
+    {
+        return $this->transaction?->guestStay;
     }
 }

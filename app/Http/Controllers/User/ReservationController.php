@@ -3,414 +3,373 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Reservation;
+use App\Http\Requests\User\BookingSubmissionRequest;
+use App\Http\Requests\User\OtpSendRequest;
+use App\Http\Requests\User\OtpVerifyRequest;
+use App\Http\Requests\User\PaymentContinuationRequest;
+use App\Http\Requests\User\ReservationUpdateRequest;
+use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Room;
+use App\Models\RoomRate;
+use App\Services\Booking\BookingService;
+use App\Services\Booking\CartService;
+use App\Services\Booking\PaymentProofService;
+use App\Services\Booking\RoomAvailabilityService;
+use App\Services\Communication\OnlineBookingOtpService;
+use App\Services\Communication\OtpService;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class ReservationController extends Controller
 {
-    public function index()
+    private const LOOKUP_OTP_PURPOSE = 'booking_lookup';
+
+    public function __construct(
+        private readonly CartService $cart,
+        private readonly BookingService $bookings,
+        private readonly PaymentProofService $paymentProofs,
+        private readonly RoomAvailabilityService $availability,
+        private readonly OtpService $otp,
+        private readonly OnlineBookingOtpService $bookingOtp
+    ) {
+    }
+
+    public function index(): View
     {
         return view('user.reserve.reservation');
     }
 
-    public function create()
+    public function create(): View
     {
-        $rooms = Room::all();
+        $rooms = Room::query()
+            ->available()
+            ->with([
+                'activeRates' => fn ($query) => $query->effectiveOn(today())->orderBy('price'),
+                'roomImages',
+            ])
+            ->orderBy('name')
+            ->get();
+
         return view('user.reservation.create', compact('rooms'));
     }
 
-    public function store(Request $request)
+    /**
+     * Create reservation-style online bookings through the shared service.
+     */
+    public function store(BookingSubmissionRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => ['required', 'regex:/^(09|\+639|639)\d{9}$/'],
-            'check_in' => 'required|date',
-            'check_out' => 'required|date|after:check_in',
-            'guests' => 'required|integer|min:1',
-            'special_requests' => 'nullable|string',
-            'payment_method' => 'required|in:gcash,bank_transfer',
-            'payment_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
-            'otp_verified' => 'required|in:1',
-        ], [
-            'phone.regex' => 'Please enter a valid Philippine mobile number (11 digits starting with 09).',
-            'otp_verified.required' => 'Please verify your email with OTP before proceeding.',
-            'otp_verified.in' => 'Email verification is required.',
-            'payment_proof.required' => 'Payment proof is required.',
-        ]);
-
-        // Handle payment proof upload
-        $paymentPath = null;
-        if ($request->hasFile('payment_proof')) {
-            $paymentPath = $request->file('payment_proof')->store('payments', 'public');
-        }
-
-        $cart = session('cart', []);
-        if (empty($cart)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No rooms selected for reservation.'
+        $email = mb_strtolower($request->string('email')->toString());
+        if (! $this->bookingOtp->isVerified($email)) {
+            throw ValidationException::withMessages([
+                'email' => 'Email OTP verification is missing or has expired.',
             ]);
         }
 
-        $customer = Customer::firstOrCreate(
-            ['email' => $validated['email']],
-            [
-                'firstname' => $validated['first_name'],
-                'lastname' => $validated['last_name'],
-                'phone_number' => $validated['phone'],
-            ]
+        $proof = $request->hasFile('payment_proof')
+            ? $request->file('payment_proof')
+            : $request->string('payment_proof_temp')->toString();
+
+        $created = $this->bookings->createFromCart(
+            cart: $this->cart->all(),
+            customerData: [
+                'first_name' => $request->string('first_name')->toString(),
+                'last_name' => $request->string('last_name')->toString(),
+                'email' => $email,
+                'phone' => $request->string('phone')->toString(),
+                'data_consent' => $request->boolean('data_consent', true),
+            ],
+            checkInDate: $request->date('check_in')->toDateString(),
+            checkOutDate: $request->date('check_out')->toDateString(),
+            totalGuests: $request->integer('guests'),
+            specialRequest: $request->input('special_requests', $request->input('special_request')),
+            paymentMethod: $request->string('payment_method')->toString(),
+            paymentProof: $this->paymentProofs->persist($proof),
+            numberPrefix: 'RSV'
         );
 
-        $totalGuests = $validated['guests'];
-        $totalCapacity = 0;
-        foreach ($cart as $item) {
-            $room = Room::find($item['room_id']);
-            if (!$room) continue;
-            $totalCapacity += $room->capacity * $item['quantity'];
-        }
+        $first = $created->first();
+        $this->otp->grantBookingAccess($first);
 
-        if ($totalGuests > $totalCapacity) {
-            return response()->json([
-                'success' => false,
-                'message' => "Number of guests ({$totalGuests}) exceeds total room capacity ({$totalCapacity}). Please adjust your guest count or select rooms with higher capacity."
-            ]);
-        }
-
-        foreach ($cart as $item) {
-            $room = Room::find($item['room_id']);
-            if (!$room) continue;
-            if ($room->availability < $item['quantity']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Insufficient availability for {$room->name}. Only {$room->availability} room(s) left."
-                ]);
-            }
-        }
-
-        $reservations = collect();
-        // Calculate nights
-        $checkIn = Carbon::parse($request->check_in);
-        $checkOut = Carbon::parse($request->check_out);
-        $nights = max(1, $checkIn->diffInDays($checkOut));
-
-        foreach ($cart as $item) {
-            $room = Room::find($item['room_id']);
-            if (!$room) continue;
-
-            $totalPrice = $room->price * $item['quantity'] * $nights;
-
-            $reservation = Reservation::create([
-                'room_id' => $room->id,
-                'customer_id' => $customer->id,
-                'check_in' => $validated['check_in'],
-                'check_out' => $validated['check_out'],
-                'number_of_guests' => $validated['guests'],
-                'special_request' => $validated['special_requests'] ?? null,
-                'payment_method' => $validated['payment_method'],
-                'first_payment' => $paymentPath,
-                'total_price' => $totalPrice,
-                'status' => 'pending',
-                'expires_at' => Carbon::now()->addHours(24),
-                'reservation_number' => $this->generateReservationNumber(),
-            ]);
-
-            $reservations->push($reservation);
-
-            $room->availability -= $item['quantity'];
-            $room->save();
-        }
-
-        \App\Models\Notification::create([
-            'type' => 'reservation',
-            'title' => 'New Reservation Request',
-            'message' => "New reservation from {$customer->firstname} {$customer->lastname} for {$reservations->count()} room(s)",
-            'data' => [
-                'reservation_id' => $reservations->first()->id,
-                'name' => "{$customer->firstname} {$customer->lastname}",
-                'email' => $customer->email,
-                'phone' => $customer->phone_number,
-                'check_in' => $validated['check_in'],
-                'check_out' => $validated['check_out'],
-                'guests' => $validated['guests'],
-            ],
-            'read' => false,
-        ]);
-
-        // Store reservation data in session for review page
         session([
-            'reservation_number' => $reservations->first()->reservation_number,
+            'reservation_number' => $first->booking_number,
             'reservation_data' => [
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
-                'check_in' => $validated['check_in'],
-                'check_out' => $validated['check_out'],
-                'guests' => $validated['guests'],
-                'special_requests' => $validated['special_requests'],
-                'payment_method' => $validated['payment_method'],
-                'bank_name' => $request->bank_name ?? null,
-                'bank_account_name' => $request->bank_account_name ?? null,
-                'bank_account_number' => $request->bank_account_number ?? null,
-                'bank_reference' => $request->bank_reference ?? null,
-            ]
+                'first_name' => $request->string('first_name')->toString(),
+                'last_name' => $request->string('last_name')->toString(),
+                'email' => $email,
+                'phone' => $request->string('phone')->toString(),
+                'check_in' => $request->date('check_in')->toDateString(),
+                'check_out' => $request->date('check_out')->toDateString(),
+                'guests' => $request->integer('guests'),
+                'special_requests' => $request->input('special_requests', $request->input('special_request')),
+                'payment_method' => $request->string('payment_method')->toString(),
+            ],
         ]);
 
-        // Keep cart in session for review page
-        $cartForReview = session('cart');
-        session()->forget('cart');
-        session(['cart' => $cartForReview]);
+        $this->cart->clear();
 
         return response()->json([
             'success' => true,
-            'reservation_id' => $reservations->first()->id,
-            'reservation_number' => $reservations->first()->reservation_number,
-            'message' => 'Reservation submitted successfully! You have 24 hours to complete payment.',
-            'redirect_url' => route('user.reservation.review')
+            'reservation_id' => $first->id,
+            'reservation_number' => $first->booking_number,
+            'message' => 'Reservation submitted successfully. Payment verification is pending.',
+            'redirect_url' => route('user.reservation.review'),
         ]);
     }
 
-    /**
-     * Show reservation review page
-     */
-    public function review()
+    public function review(): View|RedirectResponse
     {
-        // Check if reservation data exists in session
-        if (!session()->has('reservation_number')) {
-            return redirect()->route('booking.index')->with('error', 'No reservation found.');
+        if (! session()->has('reservation_number')) {
+            return redirect()->route('booking.index')->with('error', 'No reservation was found.');
         }
 
         return view('user.reserve.review');
     }
 
-    /**
-     * Send OTP to email for verification
-     */
-    public function sendOTP(Request $request)
+    public function sendOTP(OtpSendRequest $request): JsonResponse
     {
-        $request->validate([
-            'email' => 'required|email'
-        ]);
-
-        try {
-            $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            
-            $expiryTime = now()->addMinute();
-            session([
-                'reservation_otp_code' => $otp,
-                'reservation_otp_email' => $request->email,
-                'reservation_otp_expiry' => $expiryTime,
-                'reservation_otp_sent_at' => now()->timestamp
-            ]);
-
-            Mail::raw("Your OTP code for Laiya Grande reservation is: {$otp}\n\nThis code will expire in 1 minute.", function ($message) use ($request) {
-                $message->to($request->email)
-                    ->subject('Email Verification - Laiya Grande Resort');
-            });
-
-            Log::info('Reservation OTP sent', ['email' => $request->email, 'otp' => $otp, 'expiry' => $expiryTime]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'OTP sent successfully to your email',
-                'sent_at' => now()->timestamp
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to send reservation OTP', ['error' => $e->getMessage()]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to send OTP. Please try again.'
-            ], 500);
-        }
-    }
-
-    /**
-     * Verify OTP code
-     */
-    public function verifyOTP(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'otp' => 'required|string|size:6'
-        ]);
-
-        $sessionOtp = session('reservation_otp_code');
-        $sessionEmail = session('reservation_otp_email');
-        $otpExpiry = session('reservation_otp_expiry');
-
-        Log::info('Reservation OTP Verification Attempt', [
-            'input_email' => $request->email,
-            'input_otp' => $request->otp,
-            'session_email' => $sessionEmail,
-            'session_otp' => $sessionOtp,
-            'expiry' => $otpExpiry
-        ]);
-
-        if (!$sessionOtp || !$sessionEmail || !$otpExpiry) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No OTP found. Please request a new one.'
-            ]);
-        }
-
-        if (now()->greaterThan($otpExpiry)) {
-            session()->forget(['reservation_otp_code', 'reservation_otp_email', 'reservation_otp_expiry', 'reservation_otp_sent_at']);
-            return response()->json([
-                'success' => false,
-                'message' => 'OTP has expired. Please request a new one.'
-            ]);
-        }
-
-        if ($sessionEmail !== $request->email) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Email does not match.'
-            ]);
-        }
-
-        if ($sessionOtp === $request->otp) {
-            session(['reservation_email_verified' => true]);
-            session()->forget(['reservation_otp_code', 'reservation_otp_email', 'reservation_otp_expiry']);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Email verified successfully!'
-            ]);
-        }
+        $this->bookingOtp->send(
+            email: $request->string('email')->toString(),
+            firstName: $request->input('first_name'),
+            lastName: $request->input('last_name'),
+            phone: $request->input('phone'),
+            ipAddress: (string) $request->ip()
+        );
 
         return response()->json([
-            'success' => false,
-            'message' => 'Invalid OTP code.'
+            'success' => true,
+            'message' => 'OTP sent successfully to your email.',
         ]);
     }
 
-    public function show($id)
+    public function verifyOTP(OtpVerifyRequest $request): JsonResponse
     {
-        $reservation = Reservation::with('room')->findOrFail($id);
+        $this->bookingOtp->verify(
+            email: (string) $request->input('email'),
+            code: $request->string('otp')->toString()
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email verified successfully.',
+        ]);
+    }
+
+    public function show(int $id): View
+    {
+        $reservation = $this->findReservation($id)->load(['room', 'roomRate', 'payments', 'customer']);
+        $this->ensureVerified($reservation);
+
         return view('user.reservation.show', compact('reservation'));
     }
 
-    public function edit($id)
+    public function edit(int $id): View
     {
-        $reservation = Reservation::findOrFail($id);
-        $rooms = Room::all();
+        $reservation = $this->findReservation($id)->load(['room', 'roomRate', 'customer']);
+        $this->ensureVerified($reservation);
+
+        $rooms = Room::query()
+            ->available()
+            ->with(['activeRates' => fn ($query) => $query->effectiveOn(today())->orderBy('price')])
+            ->orderBy('name')
+            ->get();
+
         return view('user.reservation.edit', compact('reservation', 'rooms'));
     }
 
-    public function update(Request $request, $id)
+    /**
+     * Update a pending reservation after OTP-based ownership verification.
+     */
+    public function update(ReservationUpdateRequest $request, int $id): RedirectResponse
     {
-        $customer = Customer::updateOrCreate(
-            ['email' => $request->email],
-            [
-                'firstname' => $request->first_name,
-                'lastname' => $request->last_name,
-                'phone_number' => $request->phone
-            ]
-        );
+        $reservation = $this->findReservation($id);
+        $this->ensureVerified($reservation);
 
-        $reservation = Reservation::findOrFail($id);
-
-        $validated = $request->validate([
-            'room_id' => 'required|exists:rooms,id',
-            'check_in' => 'required|date',
-            'check_out' => 'required|date|after:check_in',
-            'number_of_guests' => 'required|integer|min:1',
-            'special_request' => 'nullable|string',
-            'payment' => 'nullable|image|max:2048',
-        ]);
-
-        $validated['customer_id'] = $customer->id;
-
-        if ($request->hasFile('payment')) {
-            $validated['payment'] = $request->file('payment')->store('payments', 'public');
+        if ($reservation->status !== 'pending') {
+            throw ValidationException::withMessages([
+                'reservation' => 'Only pending reservations can be edited.',
+            ]);
         }
 
-        $room = Room::findOrFail($validated['room_id']);
-        $days = max(1, (strtotime($validated['check_out']) - strtotime($validated['check_in'])) / 86400);
-        $validated['total_price'] = $room->price * $days;
+        DB::transaction(function () use ($request, $reservation): void {
+            $lockedReservation = Booking::query()->lockForUpdate()->findOrFail($reservation->id);
+            $room = Room::query()->lockForUpdate()->findOrFail($request->integer('room_id'));
+            $checkIn = Carbon::parse($request->input('check_in'));
+            $checkOut = Carbon::parse($request->input('check_out'));
 
-        $reservation->update($validated);
-
-        return redirect()->route('user.reservation.index')->with('success', 'Reservation updated successfully!');
-    }
-
-    public function destroy($id)
-    {
-        $reservation = Reservation::findOrFail($id);
-        $reservation->delete();
-
-        return redirect()->route('user.reservation.index')->with('success', 'Reservation deleted successfully!');
-    }
-
-    public function continuePaying(Request $request, $id)
-    {
-        $reservation = Reservation::with('room')->findOrFail($id);
-
-        if ($request->isMethod('POST')) {
-            $request->validate([
-                'email' => 'required|email',
-                'phone_number' => 'required|string|max:15',
-            ]);
-
-            if ($request->email !== $reservation->email || $request->phone_number != $reservation->phone_number) {
-                return back()->withErrors(['Invalid credentials to access this reservation.']);
+            if (! $this->availability->hasUnits($room, $checkIn, $checkOut, 1, $lockedReservation->id)) {
+                throw ValidationException::withMessages([
+                    'room_id' => 'The selected room is unavailable for these dates.',
+                ]);
             }
 
-            session(['reservation_verified_' . $id => true]);
-            return redirect()->route('user.reservation.continue', $id);
+            if ($request->integer('number_of_guests') > $room->capacity) {
+                throw ValidationException::withMessages([
+                    'number_of_guests' => "This room can accommodate only {$room->capacity} guest(s).",
+                ]);
+            }
+
+            $rate = RoomRate::query()
+                ->whereKey($request->integer('room_rate_id'))
+                ->where('room_id', $room->id)
+                ->active()
+                ->effectiveOn($checkIn)
+                ->first();
+
+            if (! $rate) {
+                throw ValidationException::withMessages([
+                    'room_rate_id' => 'The selected room rate is invalid or inactive.',
+                ]);
+            }
+
+            $nights = max(1, $checkIn->diffInDays($checkOut));
+            if ($nights < $rate->minimum_nights) {
+                throw ValidationException::withMessages([
+                    'check_out' => "This rate requires at least {$rate->minimum_nights} night(s).",
+                ]);
+            }
+
+            $customer = $lockedReservation->customer;
+            $email = mb_strtolower($request->string('email')->toString());
+
+            $emailInUse = Customer::query()
+                ->where('email', $email)
+                ->where('id', '<>', $customer->id)
+                ->exists();
+
+            if ($emailInUse) {
+                throw ValidationException::withMessages([
+                    'email' => 'This email address belongs to another customer.',
+                ]);
+            }
+
+            $customer->update([
+                'first_name' => $request->string('first_name')->toString(),
+                'last_name' => $request->string('last_name')->toString(),
+                'email' => $email,
+                'phone_number' => $request->string('phone')->toString(),
+            ]);
+
+            $lockedReservation->update([
+                'room_id' => $room->id,
+                'room_rate_id' => $rate->id,
+                'check_in' => $checkIn->toDateString(),
+                'check_out' => $checkOut->toDateString(),
+                'number_of_guests' => $request->integer('number_of_guests'),
+                'special_request' => $request->input('special_request'),
+                'quoted_total' => (float) $rate->price * $nights,
+            ]);
+        }, 3);
+
+        return redirect()->route('user.reservation.index')
+            ->with('success', 'Reservation updated successfully.');
+    }
+
+    /**
+     * Cancel instead of deleting financial and audit records.
+     */
+    public function destroy(int $id): RedirectResponse
+    {
+        $reservation = $this->findReservation($id);
+        $this->ensureVerified($reservation);
+
+        if (! in_array($reservation->status, ['pending', 'confirmed'], true)) {
+            throw ValidationException::withMessages([
+                'reservation' => 'This reservation can no longer be cancelled.',
+            ]);
         }
+
+        $reservation->update(['status' => 'cancelled']);
+
+        return redirect()->route('user.reservation.index')
+            ->with('success', 'Reservation cancelled successfully.');
+    }
+
+    /**
+     * Validate booking contact details, then send an OTP for payment access.
+     */
+    public function continuePaying(Request $request, int $id): View|RedirectResponse
+    {
+        $reservation = $this->findReservation($id)->load('customer');
+
+        if ($request->isMethod('post')) {
+            $validated = $request->validate([
+                'email' => ['required', 'email:rfc'],
+                'phone_number' => ['required', 'string', 'max:30'],
+            ]);
+
+            if (
+                mb_strtolower($validated['email']) !== mb_strtolower($reservation->customer->email)
+                || $this->normalizePhone($validated['phone_number']) !== $this->normalizePhone($reservation->customer->phone_number)
+            ) {
+                throw ValidationException::withMessages([
+                    'email' => 'The contact information does not match this reservation.',
+                ]);
+            }
+
+            $this->otp->sendForBooking(
+                $reservation,
+                self::LOOKUP_OTP_PURPOSE,
+                'email',
+                hash('sha256', $reservation->id . '|' . $request->ip())
+            );
+
+            return redirect()->route('search.verifyOtpForm', [
+                'reservation_code' => $reservation->booking_number,
+                'method' => 'email',
+            ])->with('alert', [
+                'type' => 'success',
+                'message' => 'An OTP was sent to the booking email.',
+            ]);
+        }
+
+        $this->ensureVerified($reservation);
 
         return view('user.search.continue', compact('reservation'));
     }
 
-    public function updatePayment(Request $request, $id)
+    /**
+     * Submit a new payment without changing booking status prematurely.
+     */
+    public function updatePayment(PaymentContinuationRequest $request, int $id): JsonResponse
     {
-        $reservation = Reservation::findOrFail($id);
+        $reservation = $this->findReservation($id);
+        $this->ensureVerified($reservation);
 
-        $validated = $request->validate([
-            'payment_method' => 'required|in:gcash,paymaya,bank_transfer',
-            'payment' => 'nullable|image|max:2048'
-        ]);
-
-        if ($request->hasFile('payment')) {
-            $validated['second_payment'] = $request->file('payment')->store('payments', 'public');
-        }
-
-        $validated['status'] = 'paid';
-        $reservation->update($validated);
-
-        session()->forget('reservation_verified_' . $id);
+        $payment = $this->bookings->submitAdditionalPayment(
+            booking: $reservation,
+            paymentMethod: $request->string('payment_method')->toString(),
+            requestedAmount: $request->filled('amount_paid') ? (float) $request->input('amount_paid') : null,
+            paymentProof: $this->paymentProofs->persist($request->file('payment_proof'))
+        );
 
         return response()->json([
             'success' => true,
-            'message' => 'Payment submitted successfully! Your reservation is now being processed.',
-            'redirect' => route('home')
+            'message' => 'Payment submitted successfully and is awaiting verification.',
+            'payment_id' => $payment->id,
+            'redirect' => route('home'),
         ]);
     }
 
-    private function generateReservationNumber(): string
+    private function findReservation(int $id): Booking
     {
-        do {
-            $date = Carbon::now()->format('YmdHis');
-            $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
-            $reservationNumber = "RSV-{$date}-{$random}";
-        } while (\App\Models\Booking::where('reservation_number', $reservationNumber)->exists() ||
-                 Reservation::where('reservation_number', $reservationNumber)->exists());
-
-        return $reservationNumber;
+        return Booking::query()
+            ->where('source', 'online')
+            ->findOrFail($id);
     }
 
-    protected $casts = [
-        'check_in' => 'datetime',
-        'check_out' => 'datetime',
-        'expires_at' => 'datetime',
-    ];
+    private function ensureVerified(Booking $booking): void
+    {
+        abort_unless($this->otp->hasBookingAccess($booking), 403, 'OTP verification is required.');
+    }
+
+    private function normalizePhone(?string $phone): string
+    {
+        return preg_replace('/\D+/', '', (string) $phone) ?? '';
+    }
 }
