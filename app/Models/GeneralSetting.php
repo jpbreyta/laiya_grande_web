@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class GeneralSetting extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'resort_name',
         'tagline',
@@ -31,4 +34,18 @@ class GeneralSetting extends Model
         'logo_path',
         'favicon_path',
     ];
+
+    protected $casts = [
+        'singleton_key' => 'boolean',
+    ];
+
+    protected static function booted(): void
+    {
+        static::creating(fn (self $setting) => $setting->singleton_key = true);
+    }
+
+    public static function instance(): self
+    {
+        return static::query()->firstOrCreate(['singleton_key' => true]);
+    }
 }

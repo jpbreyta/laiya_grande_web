@@ -2,280 +2,245 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Booking;
-use App\Models\Reservation;
-use App\Models\GuestStay;
-use App\Models\Room;
-use App\Models\Customer;
-use App\Models\Payment;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class HistoricalDataSeeder extends Seeder
 {
-    /**
-     * Run the database seeds - Creates historical data from January 2025 to today
-     */
     public function run(): void
     {
-        $this->command->info('Starting Historical Data Seeding...');
+        DB::transaction(function (): void {
+            $rooms = $this->loadRooms();
 
-        // Get all rooms
-        $rooms = Room::all();
-        if ($rooms->isEmpty()) {
-            $this->command->error('No rooms found! Please seed rooms first.');
-            return;
-        }
-
-        // Sample customer data
-        $customerData = [
-            ['firstname' => 'Juan', 'lastname' => 'Dela Cruz', 'email' => 'juan.delacruz@example.com', 'phone_number' => '09171234567'],
-            ['firstname' => 'Maria', 'lastname' => 'Santos', 'email' => 'maria.santos@example.com', 'phone_number' => '09181234567'],
-            ['firstname' => 'Pedro', 'lastname' => 'Reyes', 'email' => 'pedro.reyes@example.com', 'phone_number' => '09191234567'],
-            ['firstname' => 'Ana', 'lastname' => 'Garcia', 'email' => 'ana.garcia@example.com', 'phone_number' => '09201234567'],
-            ['firstname' => 'Jose', 'lastname' => 'Martinez', 'email' => 'jose.martinez@example.com', 'phone_number' => '09211234567'],
-            ['firstname' => 'Carmen', 'lastname' => 'Lopez', 'email' => 'carmen.lopez@example.com', 'phone_number' => '09221234567'],
-            ['firstname' => 'Miguel', 'lastname' => 'Fernandez', 'email' => 'miguel.fernandez@example.com', 'phone_number' => '09231234567'],
-            ['firstname' => 'Sofia', 'lastname' => 'Gonzalez', 'email' => 'sofia.gonzalez@example.com', 'phone_number' => '09241234567'],
-            ['firstname' => 'Luis', 'lastname' => 'Rodriguez', 'email' => 'luis.rodriguez@example.com', 'phone_number' => '09251234567'],
-            ['firstname' => 'Isabel', 'lastname' => 'Hernandez', 'email' => 'isabel.hernandez@example.com', 'phone_number' => '09261234567'],
-            ['firstname' => 'Carlos', 'lastname' => 'Diaz', 'email' => 'carlos.diaz@example.com', 'phone_number' => '09271234567'],
-            ['firstname' => 'Elena', 'lastname' => 'Morales', 'email' => 'elena.morales@example.com', 'phone_number' => '09281234567'],
-            ['firstname' => 'Roberto', 'lastname' => 'Jimenez', 'email' => 'roberto.jimenez@example.com', 'phone_number' => '09291234567'],
-            ['firstname' => 'Patricia', 'lastname' => 'Ruiz', 'email' => 'patricia.ruiz@example.com', 'phone_number' => '09301234567'],
-            ['firstname' => 'Fernando', 'lastname' => 'Torres', 'email' => 'fernando.torres@example.com', 'phone_number' => '09311234567'],
-        ];
-
-        // Create or get customers
-        $customers = [];
-        foreach ($customerData as $data) {
-            $customer = Customer::firstOrCreate(
-                ['email' => $data['email']],
-                $data
-            );
-            $customers[] = $customer;
-        }
-
-        $this->command->info('Created ' . count($customers) . ' customers');
-
-        // Payment methods (for bookings - includes cash)
-        $bookingPaymentMethods = ['gcash', 'paymaya', 'bank_transfer', 'cash'];
-        // Payment methods (for reservations - no cash)
-        $reservationPaymentMethods = ['gcash', 'paymaya', 'bank_transfer'];
-        $specialRequests = [
-            'Late check-in requested',
-            'Extra towels needed',
-            'Quiet room preferred',
-            'Birthday celebration setup',
-            'Anniversary package',
-            'Early check-in if possible',
-            'High floor preferred',
-            'Near elevator',
-            null,
-            null,
-        ];
-
-        // Generate data from January 1, 2025 to today
-        $startDate = Carbon::create(2025, 1, 1);
-        $endDate = Carbon::today();
-        
-        $bookingCount = 0;
-        $reservationCount = 0;
-        $guestStayCount = 0;
-
-        // Generate bookings (3-5 per week on average)
-        $currentDate = $startDate->copy();
-        while ($currentDate->lte($endDate)) {
-            // Random number of bookings per week (3-5)
-            $bookingsThisWeek = rand(3, 5);
-            
-            for ($i = 0; $i < $bookingsThisWeek; $i++) {
-                // Random check-in date within this week
-                $checkIn = $currentDate->copy()->addDays(rand(0, 6));
-                
-                // Skip if check-in is in the future
-                if ($checkIn->gt($endDate)) {
-                    continue;
-                }
-                
-                // Random stay duration (1-4 nights)
-                $nights = rand(1, 4);
-                $checkOut = $checkIn->copy()->addDays($nights);
-                
-                // Random customer and room
-                $customer = $customers[array_rand($customers)];
-                $room = $rooms->random();
-                
-                // Random number of guests (1-6)
-                $numberOfGuests = rand(1, 6);
-                
-                // Calculate price (room price * nights)
-                $totalPrice = $room->price * $nights;
-                
-                // Determine booking source (70% online, 30% walk-in/POS)
-                $source = rand(1, 10) <= 7 ? 'online' : 'pos';
-                
-                // Create booking
-                $paymentMethod = $bookingPaymentMethods[array_rand($bookingPaymentMethods)];
-                $booking = Booking::create([
-                    'room_id' => $room->id,
-                    'customer_id' => $customer->id,
-                    'check_in' => $checkIn,
-                    'check_out' => $checkOut,
-                    'number_of_guests' => $numberOfGuests,
-                    'special_request' => $specialRequests[array_rand($specialRequests)],
-                    'payment_method' => $paymentMethod,
-                    'total_price' => $totalPrice,
-                    'status' => 'confirmed',
-                    'source' => $source,
-                    'reservation_number' => $this->generateReservationNumber('BK'),
-                    'actual_check_in_time' => $checkIn->copy()->setTime(14, rand(0, 59)),
-                    'actual_check_out_time' => $checkOut->copy()->setTime(11, rand(0, 59)),
-                    'created_at' => $checkIn->copy()->subDays(rand(3, 14)),
-                ]);
-                
-                // Create payment record
-                Payment::create([
-                    'booking_id' => $booking->id,
-                    'customer_name' => $customer->firstname . ' ' . $customer->lastname,
-                    'contact_number' => $customer->phone_number,
-                    'payment_date' => $booking->created_at,
-                    'amount_paid' => $totalPrice,
-                    'payment_stage' => 'full',
-                    'status' => 'verified',
-                    'payment_method' => $paymentMethod,
-                    'verified_at' => $booking->created_at,
-                ]);
-                
-                $bookingCount++;
-                
-                // Create corresponding guest stay (checked out)
-                GuestStay::create([
-                    'booking_id' => $booking->id,
-                    'room_id' => $room->id,
-                    'guest_name' => $customer->firstname . ' ' . $customer->lastname,
-                    'status' => 'checked-out',
-                    'check_in_time' => $booking->actual_check_in_time,
-                    'check_out_time' => $booking->actual_check_out_time,
-                    'created_at' => $booking->actual_check_in_time,
-                    'updated_at' => $booking->actual_check_out_time,
-                ]);
-                
-                $guestStayCount++;
+            if ($rooms === []) {
+                throw new RuntimeException(
+                    'No rooms with active rates were found. Run RoomSeeder first.'
+                );
             }
-            
-            // Move to next week
-            $currentDate->addWeek();
-        }
 
-        // Generate reservations (2-4 per week on average) - also checked out
-        $currentDate = $startDate->copy();
-        while ($currentDate->lte($endDate)) {
-            // Random number of reservations per week (2-4)
-            $reservationsThisWeek = rand(2, 4);
-            
-            for ($i = 0; $i < $reservationsThisWeek; $i++) {
-                // Random check-in date within this week
-                $checkIn = $currentDate->copy()->addDays(rand(0, 6));
-                
-                // Skip if check-in is in the future
-                if ($checkIn->gt($endDate)) {
-                    continue;
+            $customers = $this->seedCustomers();
+            $staffUserId = DB::table('users')
+                ->join('role_user', 'users.id', '=', 'role_user.user_id')
+                ->join('roles', 'role_user.role_id', '=', 'roles.id')
+                ->whereIn('roles.name', ['admin', 'manager'])
+                ->orderBy('users.id')
+                ->value('users.id');
+
+            mt_srand(20250720);
+
+            $startDate = Carbon::create(2025, 1, 1)->startOfDay();
+            $endDate = Carbon::today();
+            $currentWeek = $startDate->copy();
+            while ($currentWeek->lte($endDate)) {
+                $bookingsThisWeek = mt_rand(3, 5);
+
+                for ($index = 0; $index < $bookingsThisWeek; $index++) {
+                    $checkIn = $currentWeek
+                        ->copy()
+                        ->addDays(mt_rand(0, 6));
+                    $checkOut = $checkIn
+                        ->copy()
+                        ->addDays(mt_rand(1, 4));
+
+                    if ($checkOut->gt($endDate)) {
+                        continue;
+                    }
+
+                    $room = $rooms[array_rand($rooms)];
+                    $customer = $customers[array_rand($customers)];
+                    $guestLimit = max(1, min(6, $room['capacity']));
+                    $numberOfGuests = mt_rand(1, $guestLimit);
+                    $nights = $checkIn->diffInDays($checkOut);
+                    $quotedTotal = $room['price'] * $nights;
+                    $bookingNumber = sprintf(
+                        'HIST-%s-%02d',
+                        $currentWeek->format('Ymd'),
+                        $index + 1
+                    );
+                    $paymentMethod = [
+                        'gcash',
+                        'paymaya',
+                        'bank_transfer',
+                        'cash',
+                    ][mt_rand(0, 3)];
+                    $source = mt_rand(1, 10) <= 7
+                        ? 'online'
+                        : 'pos';
+                    $createdAt = $checkIn
+                        ->copy()
+                        ->subDays(mt_rand(3, 30));
+                    $actualCheckIn = $checkIn
+                        ->copy()
+                        ->setTime(14, mt_rand(0, 45));
+                    $actualCheckOut = $checkOut
+                        ->copy()
+                        ->setTime(11, mt_rand(0, 30));
+
+                    DB::table('bookings')->updateOrInsert(
+                        ['booking_number' => $bookingNumber],
+                        [
+                            'customer_id' => $customer['id'],
+                            'room_id' => $room['id'],
+                            'room_rate_id' => $room['room_rate_id'],
+                            'source' => $source,
+                            'check_in' => $checkIn->toDateString(),
+                            'check_out' => $checkOut->toDateString(),
+                            'number_of_guests' => $numberOfGuests,
+                            'special_request' => $this->specialRequest(),
+                            'status' => 'completed',
+                            'quoted_total' => $quotedTotal,
+                            'expires_at' => null,
+                            'actual_check_in_time' => $actualCheckIn,
+                            'actual_check_out_time' => $actualCheckOut,
+                            'created_by' => $staffUserId,
+                            'updated_by' => $staffUserId,
+                            'created_at' => $createdAt,
+                            'updated_at' => $actualCheckOut,
+                            'deleted_at' => null,
+                        ]
+                    );
+
+                    $bookingId = DB::table('bookings')
+                        ->where('booking_number', $bookingNumber)
+                        ->value('id');
+
+                    DB::table('payments')->updateOrInsert(
+                        ['reference_id' => 'PAY-' . $bookingNumber],
+                        [
+                            'booking_id' => $bookingId,
+                            'amount_paid' => $quotedTotal,
+                            'payment_stage' => 'full',
+                            'status' => 'verified',
+                            'payment_method' => $paymentMethod,
+                            'paid_at' => $createdAt,
+                            'verified_at' => $createdAt,
+                            'verified_by' => $staffUserId,
+                            'notes' => 'Seeded historical payment.',
+                            'metadata' => json_encode([
+                                'seed_source' => 'historical',
+                            ], JSON_THROW_ON_ERROR),
+                            'created_at' => $createdAt,
+                            'updated_at' => $createdAt,
+                        ]
+                    );
+
+                    DB::table('guest_stays')->updateOrInsert(
+                        ['booking_id' => $bookingId],
+                        [
+                            'status' => 'checked_out',
+                            'check_in_time' => $actualCheckIn,
+                            'checked_in_by' => $staffUserId,
+                            'check_out_time' => $actualCheckOut,
+                            'checked_out_by' => $staffUserId,
+                            'notes' => 'Seeded historical guest stay.',
+                            'created_at' => $actualCheckIn,
+                            'updated_at' => $actualCheckOut,
+                        ]
+                    );
+
                 }
-                
-                // Random stay duration (1-4 nights)
-                $nights = rand(1, 4);
-                $checkOut = $checkIn->copy()->addDays($nights);
-                
-                // Random customer and room
-                $customer = $customers[array_rand($customers)];
-                $room = $rooms->random();
-                
-                // Random number of guests (1-6)
-                $numberOfGuests = rand(1, 6);
-                
-                // Calculate price (room price * nights)
-                $totalPrice = $room->price * $nights;
-                
-                // Create reservation
-                $paymentMethod = $reservationPaymentMethods[array_rand($reservationPaymentMethods)];
-                $reservation = Reservation::create([
-                    'room_id' => $room->id,
-                    'customer_id' => $customer->id,
-                    'check_in' => $checkIn,
-                    'check_out' => $checkOut,
-                    'number_of_guests' => $numberOfGuests,
-                    'special_request' => $specialRequests[array_rand($specialRequests)],
-                    'payment_method' => $paymentMethod,
-                    'total_price' => $totalPrice,
-                    'status' => rand(0, 10) > 2 ? 'confirmed' : 'paid', // 80% confirmed, 20% paid
-                    'expires_at' => $checkIn->copy()->subDays(1),
-                    'reservation_number' => $this->generateReservationNumber('RSV'),
-                    'created_at' => $checkIn->copy()->subDays(rand(7, 30)),
-                ]);
-                
-                // Create payment records (partial + final)
-                $firstPayment = $totalPrice * 0.5;
-                $secondPayment = $totalPrice * 0.5;
-                
-                Payment::create([
-                    'reservation_id' => $reservation->id,
-                    'customer_name' => $customer->firstname . ' ' . $customer->lastname,
-                    'contact_number' => $customer->phone_number,
-                    'payment_date' => $reservation->created_at,
-                    'amount_paid' => $firstPayment,
-                    'payment_stage' => 'partial',
-                    'status' => 'verified',
-                    'payment_method' => $paymentMethod,
-                    'verified_at' => $reservation->created_at,
-                ]);
-                
-                Payment::create([
-                    'reservation_id' => $reservation->id,
-                    'customer_name' => $customer->firstname . ' ' . $customer->lastname,
-                    'contact_number' => $customer->phone_number,
-                    'payment_date' => $reservation->created_at->copy()->addDays(1),
-                    'amount_paid' => $secondPayment,
-                    'payment_stage' => 'final',
-                    'status' => 'verified',
-                    'payment_method' => $paymentMethod,
-                    'verified_at' => $reservation->created_at->copy()->addDays(1),
-                ]);
-                
-                $reservationCount++;
-                
-                // Create corresponding guest stay (checked out)
-                GuestStay::create([
-                    'reservation_id' => $reservation->id,
-                    'room_id' => $room->id,
-                    'guest_name' => $customer->firstname . ' ' . $customer->lastname,
-                    'status' => 'checked-out',
-                    'check_in_time' => $checkIn->copy()->setTime(14, rand(0, 59)),
-                    'check_out_time' => $checkOut->copy()->setTime(11, rand(0, 59)),
-                    'created_at' => $checkIn->copy()->setTime(14, rand(0, 59)),
-                    'updated_at' => $checkOut->copy()->setTime(11, rand(0, 59)),
-                ]);
-                
-                $guestStayCount++;
-            }
-            
-            // Move to next week
-            $currentDate->addWeek();
-        }
 
-        $this->command->info("✓ Created {$bookingCount} bookings");
-        $this->command->info("✓ Created {$reservationCount} reservations");
-        $this->command->info("✓ Created {$guestStayCount} guest stays (all checked out)");
-        $this->command->info('Historical data seeding completed successfully!');
+                $currentWeek->addWeek();
+            }
+        });
     }
 
-    /**
-     * Generate a unique reservation number
-     */
-    private function generateReservationNumber($prefix = 'RSV'): string
+    private function loadRooms(): array
     {
-        $date = Carbon::now()->format('YmdHis');
-        $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
-        return "{$prefix}-{$date}-{$random}";
+        $rooms = DB::table('rooms')
+            ->whereNull('deleted_at')
+            ->where('status', 'available')
+            ->orderBy('id')
+            ->get();
+
+        $result = [];
+
+        foreach ($rooms as $room) {
+            $roomRate = DB::table('room_rates')
+                ->where('room_id', $room->id)
+                ->where('is_active', true)
+                ->orderBy('id')
+                ->first();
+
+            if ($roomRate === null) {
+                continue;
+            }
+
+            $result[] = [
+                'id' => (int) $room->id,
+                'room_rate_id' => (int) $roomRate->id,
+                'capacity' => (int) $room->capacity,
+                'price' => (float) $roomRate->price,
+            ];
+        }
+
+        return $result;
+    }
+
+    private function seedCustomers(): array
+    {
+        $customerData = [
+            ['Juan', 'Dela Cruz', 'juan.delacruz@example.com', '09171234567'],
+            ['Maria', 'Santos', 'maria.santos@example.com', '09181234567'],
+            ['Pedro', 'Reyes', 'pedro.reyes@example.com', '09191234567'],
+            ['Ana', 'Garcia', 'ana.garcia@example.com', '09201234567'],
+            ['Jose', 'Martinez', 'jose.martinez@example.com', '09211234567'],
+            ['Carmen', 'Lopez', 'carmen.lopez@example.com', '09221234567'],
+            ['Miguel', 'Fernandez', 'miguel.fernandez@example.com', '09231234567'],
+            ['Sofia', 'Gonzalez', 'sofia.gonzalez@example.com', '09241234567'],
+            ['Luis', 'Rodriguez', 'luis.rodriguez@example.com', '09251234567'],
+            ['Isabel', 'Hernandez', 'isabel.hernandez@example.com', '09261234567'],
+            ['Carlos', 'Diaz', 'carlos.diaz@example.com', '09271234567'],
+            ['Elena', 'Morales', 'elena.morales@example.com', '09281234567'],
+            ['Roberto', 'Jimenez', 'roberto.jimenez@example.com', '09291234567'],
+            ['Patricia', 'Ruiz', 'patricia.ruiz@example.com', '09301234567'],
+            ['Fernando', 'Torres', 'fernando.torres@example.com', '09311234567'],
+        ];
+
+        foreach ($customerData as [$firstName, $lastName, $email, $phone]) {
+            DB::table('customers')->updateOrInsert(
+                ['email' => $email],
+                [
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'phone_number' => $phone,
+                    'data_consent' => true,
+                    'consent_given_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                    'deleted_at' => null,
+                ]
+            );
+        }
+
+        return DB::table('customers')
+            ->whereIn(
+                'email',
+                array_column($customerData, 2)
+            )
+            ->get()
+            ->map(static fn ($customer): array => [
+                'id' => (int) $customer->id,
+                'email' => $customer->email,
+            ])
+            ->all();
+    }
+
+    private function specialRequest(): ?string
+    {
+        $requests = [
+            'Late check-in requested.',
+            'Extra towels requested.',
+            'Quiet room preferred.',
+            'Birthday setup requested.',
+            'Anniversary package requested.',
+            'Early check-in requested if available.',
+            null,
+            null,
+        ];
+
+        return $requests[mt_rand(0, count($requests) - 1)];
     }
 }

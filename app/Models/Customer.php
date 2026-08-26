@@ -2,129 +2,131 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
-use App\Traits\LogsDataAccess;
-use App\Traits\EncryptsData;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
 {
-    use HasFactory, LogsDataAccess, EncryptsData;
+    use HasFactory, SoftDeletes;
 
-    // Customer data is READ-ONLY after creation for security and legal compliance
     protected $fillable = [
+        'auth_user_id',
+        'first_name',
+        'last_name',
         'firstname',
         'lastname',
         'email',
         'phone_number',
         'data_consent',
         'consent_given_at',
-        'last_accessed_at',
-        'last_accessed_by',
-    ];
-
-    // Fields that can be updated after creation (only internal tracking)
-    protected $guarded = [
-        'firstname',
-        'lastname', 
-        'email',
-        'phone_number',
     ];
 
     protected $casts = [
         'data_consent' => 'boolean',
         'consent_given_at' => 'datetime',
-        'last_accessed_at' => 'datetime',
     ];
 
-    // Sensitive fields to encrypt (optional - enable if needed)
-    // protected $encrypted = ['phone_number'];
-
-    // Hidden fields - never expose in API/JSON responses
-    protected $hidden = [
-        'last_accessed_at',
-        'last_accessed_by',
-    ];
-
-    public function bookings()
+    public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
     }
-    
-    public function reservations()
+
+    public function reservations(): HasMany
     {
-        return $this->hasMany(Reservation::class);
+        return $this->hasMany(Reservation::class, 'customer_id');
     }
 
-    public function guestStays()
+    public function guestStays(): HasManyThrough
     {
-        return $this->hasMany(GuestStay::class);
+        return $this->hasManyThrough(
+            GuestStay::class,
+            Booking::class,
+            'customer_id',
+            'booking_id',
+            'id',
+            'id'
+        );
     }
 
-    /**
-     * Get full name
-     */
-    public function getFullNameAttribute(): string
+    public function ratings(): HasManyThrough
     {
-        return "{$this->firstname} {$this->lastname}";
+        return $this->hasManyThrough(
+            RoomRating::class,
+            Booking::class,
+            'customer_id',
+            'booking_id',
+            'id',
+            'id'
+        );
     }
 
-    /**
-     * Scope: Only customers who gave consent
-     */
-    public function scopeWithConsent($query)
+    public function otpChallenges(): HasMany
+    {
+        return $this->hasMany(Otp::class);
+    }
+
+    public function posTransactions(): HasMany
+    {
+        return $this->hasMany(PosTransaction::class);
+    }
+
+    public function contactMessages(): HasMany
+    {
+        return $this->hasMany(ContactMessage::class);
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function dataAccessLogs(): HasMany
+    {
+        return $this->hasMany(DataAccessLog::class);
+    }
+
+    public function scopeWithConsent(Builder $query): Builder
     {
         return $query->where('data_consent', true);
     }
 
-    /**
-     * Check if customer data can be accessed
-     */
-    public function canAccess(): bool
+    public function getFullNameAttribute(): string
     {
-        return $this->data_consent === true;
+        return trim("{$this->first_name} {$this->last_name}");
     }
 
-    /**
-     * Update last accessed timestamp (internal tracking only)
-     */
-    public function recordAccess(): void
+    public function getFirstnameAttribute(): string
     {
-        $this->update([
-            'last_accessed_at' => now(),
-            'last_accessed_by' => Auth::id(),
-        ]);
+        return (string) $this->first_name;
     }
 
-    /**
-     * Prevent updating customer personal data after creation
-     */
-    protected static function boot()
+    public function setFirstnameAttribute(?string $value): void
     {
-        parent::boot();
+        $this->attributes['first_name'] = $value;
+    }
 
-        static::updating(function ($model) {
-            // Only allow updating internal tracking fields and consent
-            $allowedFields = ['data_consent', 'consent_given_at', 'last_accessed_at', 'last_accessed_by', 'updated_at'];
-            
-            $dirtyFields = array_keys($model->getDirty());
-            $restrictedFields = array_diff($dirtyFields, $allowedFields);
-            
-            if (!empty($restrictedFields)) {
-                // Log attempt to modify restricted fields
-                DataAccessLog::logAccess(
-                    self::class,
-                    $model->id,
-                    'update_blocked',
-                    'Attempted to modify read-only fields: ' . implode(', ', $restrictedFields)
-                );
-                
-                // Prevent the update of restricted fields
-                foreach ($restrictedFields as $field) {
-                    $model->{$field} = $model->getOriginal($field);
-                }
-            }
-        });
+    public function getLastnameAttribute(): string
+    {
+        return (string) $this->last_name;
+    }
+
+    public function setLastnameAttribute(?string $value): void
+    {
+        $this->attributes['last_name'] = $value;
+    }
+
+    public function recordAccess(string $action = 'view', ?string $reason = null): void
+    {
+        DataAccessLog::logAccess(
+            static::class,
+            $this->getKey(),
+            $action,
+            $reason,
+            $this->getKey()
+        );
     }
 }

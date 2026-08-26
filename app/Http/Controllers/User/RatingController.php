@@ -3,64 +3,93 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\RatingStoreRequest;
+use App\Models\Booking;
 use App\Models\Room;
 use App\Models\RoomRating;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 
 class RatingController extends Controller
 {
-    public function store(Request $request)
+    /**
+     * Accept one rating from the customer who completed the booking.
+     */
+    public function store(RatingStoreRequest $request): JsonResponse
     {
-        $request->validate([
-            'room_id' => 'required|exists:rooms,id',
-            'guest_email' => 'required|email',
-            'guest_name' => 'nullable|string|max:255',
-            'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'nullable|string|max:1000',
-        ]);
+        $booking = Booking::query()
+            ->with('customer')
+            ->where('booking_number', $request->string('booking_number')->toString())
+            ->where('status', 'completed')
+            ->firstOrFail();
 
-        // Check if user already rated this room
-        $existingRating = RoomRating::where('room_id', $request->room_id)
-            ->where('guest_email', $request->guest_email)
-            ->first();
+        $emailMatches = mb_strtolower($booking->customer->email)
+            === mb_strtolower($request->string('guest_email')->toString());
 
-        if ($existingRating) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You have already rated this room. You can only rate once per room.',
-            ], 422);
+        $phoneMatches = ! $request->filled('phone')
+            || $this->normalizePhone($booking->customer->phone_number)
+                === $this->normalizePhone($request->string('phone')->toString());
+
+        if (! $emailMatches || ! $phoneMatches) {
+            throw ValidationException::withMessages([
+                'guest_email' => 'The booking contact information does not match.',
+            ]);
         }
 
-        $rating = RoomRating::create([
-            'room_id' => $request->room_id,
-            'guest_email' => $request->guest_email,
-            'guest_name' => $request->guest_name,
-            'rating' => $request->rating,
-            'comment' => $request->comment,
-            'ip_address' => $request->ip(),
+        $rateKey = 'rating:' . $booking->id . ':' . $request->ip();
+        if (RateLimiter::tooManyAttempts($rateKey, 3)) {
+            throw ValidationException::withMessages([
+                'rating' => 'Too many rating attempts were made. Please try again later.',
+            ]);
+        }
+        RateLimiter::hit($rateKey, 3600);
+
+        if (RoomRating::query()->where('booking_id', $booking->id)->exists()) {
+            throw ValidationException::withMessages([
+                'booking_number' => 'This booking already has a rating.',
+            ]);
+        }
+
+        RoomRating::create([
+            'booking_id' => $booking->id,
+            'rating' => $request->integer('rating'),
+            'comment' => $request->filled('comment')
+                ? trim($request->string('comment')->toString())
+                : null,
             'is_verified' => false,
         ]);
 
-        $room = Room::find($request->room_id);
-        $avgRating = $room->averageRating();
-        $totalRatings = $room->totalRatings();
-
         return response()->json([
             'success' => true,
-            'message' => 'Thank you for your rating!',
-            'average_rating' => round($avgRating, 1),
-            'total_ratings' => $totalRatings,
+            'message' => 'Thank you. Your rating is awaiting moderation.',
+            'average_rating' => round($booking->room->averageRating(), 1),
+            'total_ratings' => $booking->room->totalRatings(),
         ]);
     }
 
-    public function getRoomRatings($roomId)
+    /**
+     * Return approved ratings without exposing customer contact details.
+     */
+    public function getRoomRatings(int $roomId): JsonResponse
     {
-        $room = Room::findOrFail($roomId);
-        
+        $room = Room::query()->available()->findOrFail($roomId);
+
+        $ratings = $room->ratings()
+            ->where('is_verified', true)
+            ->latest('room_ratings.created_at')
+            ->limit(10)
+            ->get(['room_ratings.id', 'rating', 'comment', 'room_ratings.created_at']);
+
         return response()->json([
             'average_rating' => round($room->averageRating(), 1),
             'total_ratings' => $room->totalRatings(),
-            'ratings' => $room->ratings()->latest()->take(10)->get(),
+            'ratings' => $ratings,
         ]);
+    }
+
+    private function normalizePhone(?string $phone): string
+    {
+        return preg_replace('/\D+/', '', (string) $phone) ?? '';
     }
 }

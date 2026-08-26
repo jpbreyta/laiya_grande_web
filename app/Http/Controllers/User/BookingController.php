@@ -3,448 +3,297 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\BookingPreviewRequest;
+use App\Http\Requests\User\BookingSubmissionRequest;
+use App\Http\Requests\User\CartAddRequest;
+use App\Http\Requests\User\OtpSendRequest;
+use App\Http\Requests\User\OtpVerifyRequest;
+use App\Mail\BookingConfirmationMail;
+use App\Models\Booking;
+use App\Models\CommunicationSetting;
+use App\Models\Customer;
+use App\Models\Room;
+use App\Services\Booking\BookingService;
+use App\Services\Booking\CartService;
+use App\Services\Booking\PaymentProofService;
+use App\Services\Communication\OnlineBookingOtpService;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use App\Models\Room;
-use App\Models\Booking;
-use App\Models\Customer;
-use App\Mail\BookingConfirmationMail;
-use Carbon\Carbon;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class BookingController extends Controller
 {
-    public function view($id)
+    public function __construct(
+        private readonly CartService $cart,
+        private readonly BookingService $bookings,
+        private readonly PaymentProofService $paymentProofs,
+        private readonly OnlineBookingOtpService $bookingOtp
+    ) {
+    }
+
+    public function view(int $id): View
     {
-        $room = Room::findOrFail($id);
+        $room = Room::query()
+            ->available()
+            ->with([
+                'activeRates' => fn ($query) => $query->effectiveOn(today())->orderBy('price'),
+                'roomImages',
+                'amenities',
+            ])
+            ->findOrFail($id);
+
         return view('user.booking.view', compact('room'));
     }
 
-    public function index(Request $request)
+    public function index(): RedirectResponse
     {
         return redirect()->route('user.rooms.index');
     }
 
-    public function addToCart(Request $request)
+    /**
+     * Compatibility endpoint for older booking pages that add cart items here.
+     */
+    public function addToCart(CartAddRequest $request): JsonResponse
     {
-        $cart = session()->get('cart', []);
-        $roomId = $request->room_id;
-
-        if (isset($cart[$roomId])) {
-            $cart[$roomId]['quantity'] += $request->quantity;
-        } else {
-            $cart[$roomId] = [
-                'room_id' => $roomId,
-                'room_name' => $request->room_name,
-                'room_price' => $request->room_price,
-                'quantity' => $request->quantity,
-            ];
-        }
-
-        session(['cart' => $cart]);
-        return response()->json(['success' => true, 'cart' => $cart]);
-    }
-
-    public function removeFromCart(Request $request, $roomId = null)
-    {
-        $cart = session()->get('cart', []);
-        $id = $roomId ?? $request->room_id;
-
-        if (isset($cart[$id])) {
-            unset($cart[$id]);
-            session()->put('cart', $cart);
-        }
-
-        return response()->json(['success' => true, 'cart' => $cart]);
-    }
-
-    public function clearCart()
-    {
-        session()->forget('cart');
-        return response()->json(['success' => true]);
-    }
-
-    public function book()
-    {
-        $cart = session()->get('cart', []);
-        $checkIn = session('booking_check_in');
-        $checkOut = session('booking_check_out');
-
-        if (!$checkIn || !$checkOut) {
-            return redirect()->route('user.rooms.index')->with('error', 'Please select your booking dates first.');
-        }
-
-        if (empty($cart)) {
-            return redirect()->route('user.rooms.index')->with('error', 'Please select at least one room.');
-        }
-
-        $nights = max(1, Carbon::parse($checkIn)->diffInDays(Carbon::parse($checkOut)));
-
-        $totalCapacity = 0;
-        foreach ($cart as $item) {
-            $room = Room::find($item['room_id']);
-            if ($room) {
-                $totalCapacity += $room->capacity * $item['quantity'];
-            }
-        }
-
-        $cartSubtotal = collect($cart)->sum(fn($item) => $item['room_price'] * $item['quantity']);
-        $cartTotal = $cartSubtotal * $nights;
-
-        return view('user.booking.book', compact('cart', 'totalCapacity', 'cartTotal', 'cartSubtotal', 'checkIn', 'checkOut', 'nights'));
-    }
-
-    public function showConfirmBooking(Request $request)
-    {
-        $request->validate([
-            'otp_verified' => 'required|in:1',
-            'phone' => ['required', 'regex:/^(09|\+639|639)\d{9}$/'],
-            'payment_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
-        ], [
-            'otp_verified.required' => 'Please verify your email with OTP before proceeding.',
-            'otp_verified.in' => 'Email verification is required.',
-            'phone.regex' => 'Please enter a valid Philippine mobile number (11 digits starting with 09).',
-        ]);
-
-        $cart = session()->get('cart', []);
-        $totalGuests = $request->guests ?? 0;
-        $totalCapacity = 0;
-
-        foreach ($cart as $item) {
-            $room = Room::find($item['room_id']);
-            if ($room) {
-                $totalCapacity += $room->capacity * $item['quantity'];
-            }
-        }
-
-        if ($totalGuests > $totalCapacity) {
-            return back()->withErrors([
-                'guests' => "Number of guests ({$totalGuests}) exceeds total room capacity ({$totalCapacity}). Please adjust your guest count or select rooms with higher capacity."
-            ])->withInput();
-        }
-
-        $checkIn = Carbon::parse(session('booking_check_in', $request->check_in));
-        $checkOut = Carbon::parse(session('booking_check_out', $request->check_out));
-        $nights = max(1, $checkIn->diffInDays($checkOut));
-
-        $cartSubtotal = collect($cart)->sum(fn($item) => $item['room_price'] * $item['quantity']);
-        $total = $cartSubtotal * $nights;
-
-        $paymentProofPath = null;
-        $paymentProofUrl = null;
-
-        if ($request->hasFile('payment_proof')) {
-            $path = $request->file('payment_proof')->store('temp/payments', 'public');
-            $paymentProofPath = $path;
-            $paymentProofUrl = asset("storage/{$path}");
-        }
-
-        return view('user.booking.confirmbooking', compact(
-            'request',
-            'cart',
-            'cartSubtotal',
-            'total',
-            'nights',
-            'paymentProofPath',
-            'paymentProofUrl'
-        ));
-    }
-
-    public function confirmBooking(Request $request)
-    {
-        $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => ['required', 'regex:/^(09|\+639|639)\d{9}$/'],
-            'check_in' => 'required|date',
-            'check_out' => 'required|date|after:check_in',
-            'guests' => 'required|integer|min:1',
-            'total_price' => 'required|numeric|min:0',
-            'agree_terms' => 'required|accepted',
-            'payment_method' => 'required|string|in:gcash,paymaya,bank_transfer',
-        ], [
-            'phone.regex' => 'Please enter a valid Philippine mobile number (11 digits starting with 09).',
-        ]);
-
-        if (!$request->hasFile('payment_proof') && !$request->filled('payment_proof_temp')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'The payment proof field is required.'
-            ]);
-        }
-
-        if ($request->hasFile('payment_proof')) {
-            $request->validate([
-                'payment_proof' => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
-            ]);
-        }
-
-        $cart = session()->get('cart', []);
-        if (empty($cart)) {
-            return response()->json(['success' => false, 'message' => 'Cart is empty.']);
-        }
-
-        $checkInDate = session('booking_check_in', $request->check_in);
-        $checkOutDate = session('booking_check_out', $request->check_out);
-
-        $checkIn = Carbon::parse($checkInDate);
-        $checkOut = Carbon::parse($checkOutDate);
-        $nights = max(1, $checkIn->diffInDays($checkOut));
-
-        foreach ($cart as $item) {
-            $room = Room::findOrFail($item['room_id']);
-
-            $conflictingBookings = Booking::where('room_id', $room->id)
-                ->whereIn('status', ['confirmed', 'pending'])
-                ->where(function ($query) use ($checkInDate, $checkOutDate) {
-                    $query->whereBetween('check_in', [$checkInDate, $checkOutDate])
-                        ->orWhereBetween('check_out', [$checkInDate, $checkOutDate])
-                        ->orWhere(function ($q) use ($checkInDate, $checkOutDate) {
-                            $q->where('check_in', '<=', $checkInDate)
-                                ->where('check_out', '>=', $checkOutDate);
-                        });
-                })
-                ->exists();
-
-            if ($conflictingBookings) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Room {$room->name} is no longer available for the selected dates. Please select different dates or rooms."
-                ]);
-            }
-
-            if ($room->availability < $item['quantity']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Insufficient availability for {$room->name}. Only {$room->availability} room(s) left."
-                ]);
-            }
-        }
-
-        $createdBookings = collect();
-        $paymentPath = null;
-
-        if ($request->hasFile('payment_proof')) {
-            $path = $request->file('payment_proof')->store('payments', 'public');
-            $paymentPath = $path;
-        } elseif ($request->filled('payment_proof_temp')) {
-            $tempPath = $request->payment_proof_temp;
-            if (Storage::disk('public')->exists($tempPath)) {
-                $filename = basename($tempPath);
-                $newPath = "payments/{$filename}";
-                Storage::disk('public')->move($tempPath, $newPath);
-                $paymentPath = $newPath;
-            }
-        }
-
-        $customer = Customer::updateOrCreate(
-            ['email' => $request->email],
-            [
-                'firstname' => $request->first_name,
-                'lastname' => $request->last_name,
-                'phone_number' => $request->phone
-            ]
+        $cart = $this->cart->add(
+            roomId: $request->integer('room_id'),
+            roomRateId: $request->filled('room_rate_id') ? $request->integer('room_rate_id') : null,
+            quantity: $request->integer('quantity', 1)
         );
 
-        foreach ($cart as $item) {
-            $itemTotal = $item['room_price'] * $item['quantity'] * $nights;
+        return response()->json(['success' => true, 'cart' => $cart]);
+    }
 
-            $booking = Booking::create([
-                'room_id' => $item['room_id'],
-                'customer_id' => $customer->id,
-                'check_in' => $checkInDate,
-                'check_out' => $checkOutDate,
-                'number_of_guests' => $request->guests,
-                'special_request' => $request->special_request ?? null,
-                'payment_method' => $request->payment_method ?? null,
-                'payment' => $paymentPath,
-                'total_price' => $itemTotal,
-                'status' => 'pending',
-                'reservation_number' => $this->generateReservationNumber(),
-            ]);
-
-            \App\Models\Payment::create([
-                'booking_id' => $booking->id,
-                'reference_id' => null,
-                'customer_name' => "{$request->first_name} {$request->last_name}",
-                'contact_number' => $request->phone,
-                'payment_date' => now(),
-                'amount' => $itemTotal,
-                'status' => 'pending',
-                'payment_method' => $request->payment_method,
-                'notes' => 'Payment proof uploaded'
-            ]);
-
-            $createdBookings->push($booking);
-
-            $room = Room::findOrFail($item['room_id']);
-            $room->availability -= $item['quantity'];
-            $room->save();
-        }
-
-        \App\Models\Notification::create([
-            'type' => 'booking',
-            'title' => 'New Booking Request',
-            'message' => "New booking from {$request->first_name} {$request->last_name} for {$createdBookings->count()} room(s)",
-            'data' => [
-                'booking_id' => $createdBookings->first()->id,
-                'name' => "{$request->first_name} {$request->last_name}",
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'check_in' => $request->check_in,
-                'check_out' => $request->check_out,
-                'guests' => $request->guests,
-            ],
-            'read' => false,
+    public function removeFromCart(Request $request, ?int $roomId = null): JsonResponse
+    {
+        $validated = $request->validate([
+            'room_id' => ['nullable', 'integer'],
         ]);
 
-        session()->forget('cart');
+        $id = $roomId ?? (int) ($validated['room_id'] ?? 0);
 
         return response()->json([
             'success' => true,
-            'message' => 'Booking submitted successfully! Please wait for admin confirmation via email or SMS.',
-            'booking_id' => $createdBookings->first()->id,
-            'reservation_number' => $createdBookings->first()->reservation_number,
+            'cart' => $this->cart->remove($id),
         ]);
     }
 
-    private function sendBookingConfirmationEmail(Booking $booking, Request $request)
+    public function clearCart(): JsonResponse
     {
-        try {
-            $bookingDetails = [
-                'guest_name' => trim(($request->first_name ?? 'Guest') . ' ' . ($request->last_name ?? '')),
-                'guest_email' => $request->email ?? 'guest@example.com',
-                'guest_phone' => $request->phone ?? 'N/A',
-                'guests' => $request->guests ?? 1,
-            ];
+        $this->cart->clear();
 
-            Mail::to($bookingDetails['guest_email'])->send(
-                new BookingConfirmationMail($booking, $bookingDetails)
-            );
-
-            Log::info('Booking confirmation email sent successfully', [
-                'booking_id' => $booking->id,
-                'email' => $bookingDetails['guest_email'],
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to send booking confirmation email', [
-                'booking_id' => $booking->id,
-                'email' => $bookingDetails['guest_email'] ?? 'unknown',
-                'error' => $e->getMessage(),
-            ]);
-        }
+        return response()->json(['success' => true]);
     }
 
-    public function sendOTP(Request $request)
+    /**
+     * Display the checkout form using prices saved by the server.
+     */
+    public function book(): View|RedirectResponse
     {
-        $request->validate([
-            'email' => 'required|email'
-        ]);
+        $cart = $this->cart->all();
+        $checkIn = session('booking_check_in');
+        $checkOut = session('booking_check_out');
 
-        try {
-            $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-
-            $expiryTime = now()->addMinute();
-            session([
-                'otp_code' => $otp,
-                'otp_email' => $request->email,
-                'otp_expiry' => $expiryTime,
-                'otp_sent_at' => now()->timestamp
-            ]);
-
-            Mail::raw("Your OTP code for Laiya Grande booking is: {$otp}\n\nThis code will expire in 1 minute.", function ($message) use ($request) {
-                $message->to($request->email)
-                    ->subject('Email Verification - Laiya Grande Resort');
-            });
-
-            Log::info('OTP sent', ['email' => $request->email, 'otp' => $otp, 'expiry' => $expiryTime]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'OTP sent successfully to your email',
-                'sent_at' => now()->timestamp
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to send OTP', ['error' => $e->getMessage()]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to send OTP. Please try again.'
-            ], 500);
+        if (! $checkIn || ! $checkOut) {
+            return redirect()->route('user.rooms.index')
+                ->with('error', 'Please select your booking dates first.');
         }
+
+        if ($cart === []) {
+            return redirect()->route('user.rooms.index')
+                ->with('error', 'Please select at least one room.');
+        }
+
+        $nights = max(1, Carbon::parse($checkIn)->diffInDays(Carbon::parse($checkOut)));
+        $totalCapacity = collect($cart)->sum(function (array $item): int {
+            $room = Room::query()->find($item['room_id']);
+            return $room ? $room->capacity * (int) $item['quantity'] : 0;
+        });
+        $cartSubtotal = collect($cart)->sum(
+            fn (array $item): float => (float) $item['room_price'] * (int) $item['quantity']
+        );
+        $cartTotal = $cartSubtotal * $nights;
+
+        return view('user.booking.book', compact(
+            'cart',
+            'totalCapacity',
+            'cartTotal',
+            'cartSubtotal',
+            'checkIn',
+            'checkOut',
+            'nights'
+        ));
     }
 
-    public function verifyOTP(Request $request)
+    /**
+     * Validate checkout details and move the proof to private temporary storage.
+     */
+    public function showConfirmBooking(BookingPreviewRequest $request): View
     {
-        $request->validate([
-            'email' => 'required|email',
-            'otp' => 'required|string|size:6'
-        ]);
+        $cart = $this->cart->all();
+        if ($cart === []) {
+            throw ValidationException::withMessages(['cart' => 'The cart is empty.']);
+        }
 
-        $sessionOtp = session('otp_code');
-        $sessionEmail = session('otp_email');
-        $otpExpiry = session('otp_expiry');
-
-        Log::info('OTP Verification Attempt', [
-            'input_email' => $request->email,
-            'input_otp' => $request->otp,
-            'session_email' => $sessionEmail,
-            'session_otp' => $sessionOtp,
-            'expiry' => $otpExpiry
-        ]);
-
-        if (!$sessionOtp || !$sessionEmail || !$otpExpiry) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No OTP found. Please request a new one.'
+        if (! $this->bookingOtp->isVerified($request->string('email')->toString())) {
+            throw ValidationException::withMessages([
+                'email' => 'Verify this email address with an OTP before continuing.',
             ]);
         }
 
-        if (now()->greaterThan($otpExpiry)) {
-            session()->forget(['otp_code', 'otp_email', 'otp_expiry', 'otp_sent_at']);
-            return response()->json([
-                'success' => false,
-                'message' => 'OTP has expired. Please request a new one.'
+        $checkInValue = session('booking_check_in', $request->input('check_in'));
+        $checkOutValue = session('booking_check_out', $request->input('check_out'));
+
+        if (! $checkInValue || ! $checkOutValue) {
+            throw ValidationException::withMessages([
+                'check_in' => 'Select valid check-in and check-out dates.',
             ]);
         }
 
-        if ($sessionEmail !== $request->email) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Email does not match.'
+        $checkIn = Carbon::parse($checkInValue);
+        $checkOut = Carbon::parse($checkOutValue);
+        $nights = max(1, $checkIn->diffInDays($checkOut));
+        $totalCapacity = collect($cart)->sum(function (array $item): int {
+            $room = Room::query()->find($item['room_id']);
+            return $room ? $room->capacity * (int) $item['quantity'] : 0;
+        });
+
+        if ($request->integer('guests') > $totalCapacity) {
+            throw ValidationException::withMessages([
+                'guests' => "The selected rooms can accommodate only {$totalCapacity} guest(s).",
             ]);
         }
 
-        if ($sessionOtp === $request->otp) {
-            session(['email_verified' => true]);
-            session()->forget(['otp_code', 'otp_email', 'otp_expiry']);
+        $cartSubtotal = collect($cart)->sum(
+            fn (array $item): float => (float) $item['room_price'] * (int) $item['quantity']
+        );
+        $total = $cartSubtotal * $nights;
+        $temporaryProof = $this->paymentProofs->storeTemporary($request->file('payment_proof'));
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Email verified successfully!'
-            ]);
-        }
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid OTP code.'
+        return view('user.booking.confirmbooking', [
+            'request' => $request,
+            'cart' => $cart,
+            'cartSubtotal' => $cartSubtotal,
+            'total' => $total,
+            'nights' => $nights,
+            'paymentProofPath' => $temporaryProof['path'],
+            // Payment proofs are private and must not be exposed with asset().
+            'paymentProofUrl' => null,
         ]);
     }
 
-    private function generateReservationNumber(): string
+    /**
+     * Create bookings and pending payments in one atomic transaction.
+     */
+    public function confirmBooking(BookingSubmissionRequest $request): JsonResponse
     {
-        do {
-            $date = Carbon::now()->format('YmdHis');
-            $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
-            $reservationNumber = "BK-{$date}-{$random}";
-        } while (
-            Booking::where('reservation_number', $reservationNumber)->exists() ||
-            \App\Models\Reservation::where('reservation_number', $reservationNumber)->exists()
+        $email = mb_strtolower($request->string('email')->toString());
+
+        if (! $this->bookingOtp->isVerified($email)) {
+            throw ValidationException::withMessages([
+                'email' => 'Email OTP verification is missing or has expired.',
+            ]);
+        }
+
+        $proof = $request->hasFile('payment_proof')
+            ? $request->file('payment_proof')
+            : $request->string('payment_proof_temp')->toString();
+        $proofMetadata = $this->paymentProofs->persist($proof);
+
+        $createdBookings = $this->bookings->createFromCart(
+            cart: $this->cart->all(),
+            customerData: [
+                'first_name' => $request->string('first_name')->toString(),
+                'last_name' => $request->string('last_name')->toString(),
+                'email' => $email,
+                'phone' => $request->string('phone')->toString(),
+                'data_consent' => $request->boolean('data_consent', true),
+            ],
+            checkInDate: $request->date('check_in')->toDateString(),
+            checkOutDate: $request->date('check_out')->toDateString(),
+            totalGuests: $request->integer('guests'),
+            specialRequest: $request->input('special_request'),
+            paymentMethod: $request->string('payment_method')->toString(),
+            paymentProof: $proofMetadata,
+            numberPrefix: 'BKG'
         );
 
-        return $reservationNumber;
+        $this->cart->clear();
+        $firstBooking = $createdBookings->first();
+        $this->sendBookingConfirmationEmail($firstBooking, $createdBookings->count());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking submitted successfully. Payment verification is pending.',
+            'booking_id' => $firstBooking->id,
+            'booking_number' => $firstBooking->booking_number,
+            'reservation_number' => $firstBooking->booking_number,
+            'bookings_created' => $createdBookings->count(),
+        ]);
+    }
+
+    /**
+     * Send a hashed OTP linked to the customer record.
+     */
+    public function sendOTP(OtpSendRequest $request): JsonResponse
+    {
+        $this->bookingOtp->send(
+            email: $request->string('email')->toString(),
+            firstName: $request->input('first_name'),
+            lastName: $request->input('last_name'),
+            phone: $request->input('phone'),
+            ipAddress: (string) $request->ip()
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP sent successfully to your email.',
+        ]);
+    }
+
+    /**
+     * Verify the hashed customer OTP and grant a short checkout session.
+     */
+    public function verifyOTP(OtpVerifyRequest $request): JsonResponse
+    {
+        $this->bookingOtp->verify(
+            email: (string) $request->input('email'),
+            code: $request->string('otp')->toString()
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email verified successfully.',
+        ]);
+    }
+
+    private function sendBookingConfirmationEmail(Booking $booking, int $roomUnits): void
+    {
+        if (! CommunicationSetting::instance()->email_booking_confirmation_enabled) {
+            return;
+        }
+
+        try {
+            Mail::to($booking->customer->email)->send(
+                new BookingConfirmationMail($booking, [
+                    'guest_name' => $booking->customer->full_name,
+                    'guest_email' => $booking->customer->email,
+                    'guest_phone' => $booking->customer->phone_number,
+                    'guests' => $booking->number_of_guests,
+                    'room_units' => $roomUnits,
+                ])
+            );
+        } catch (\Throwable $exception) {
+            // Email failure must not roll back an already committed booking.
+            Log::error('Booking confirmation email failed.', [
+                'booking_id' => $booking->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 }

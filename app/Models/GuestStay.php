@@ -2,89 +2,90 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 
 class GuestStay extends Model
 {
     use HasFactory;
 
-    protected $table = 'guest_stays'; // your table name
-
     protected $fillable = [
         'booking_id',
-        'reservation_id',
-        'room_id',
-        'customer_id',
         'status',
         'check_in_time',
-        'check_out_time',
         'checked_in_by',
+        'check_out_time',
         'checked_out_by',
+        'notes',
     ];
-
-    // Relationships
-    public function booking()
-    {
-        return $this->belongsTo(Booking::class);
-    }
-
-    public function reservation()
-    {
-        return $this->belongsTo(Reservation::class);
-    }
-
-    public function room()
-    {
-        return $this->belongsTo(Room::class);
-    }
-
-    public function customer()
-    {
-        return $this->belongsTo(Customer::class);
-    }
-
-    public function checkedInBy()
-    {
-        return $this->belongsTo(User::class, 'checked_in_by');
-    }
-
-    public function checkedOutBy()
-    {
-        return $this->belongsTo(User::class, 'checked_out_by');
-    }
-
-    // Accessor for guest name (fetched from customer via booking)
-    public function getGuestNameAttribute()
-    {
-        return $this->customer 
-            ? "{$this->customer->firstname} {$this->customer->lastname}" 
-            : ($this->booking && $this->booking->customer 
-                ? "{$this->booking->customer->firstname} {$this->booking->customer->lastname}"
-                : 'Unknown Guest');
-    }
-
-    // Boot method to auto-track who checked in/out
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (Auth::check() && $model->status === 'checked-in') {
-                $model->checked_in_by = Auth::id();
-            }
-        });
-
-        static::updating(function ($model) {
-            if (Auth::check() && $model->isDirty('status') && $model->status === 'checked-out') {
-                $model->checked_out_by = Auth::id();
-            }
-        });
-    }
 
     protected $casts = [
         'check_in_time' => 'datetime',
         'check_out_time' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $stay): void {
+            if (Auth::check() && $stay->status === 'checked_in') {
+                $stay->checked_in_by ??= Auth::id();
+            }
+        });
+
+        static::updating(function (self $stay): void {
+            if (Auth::check() && $stay->isDirty('status') && $stay->status === 'checked_out') {
+                $stay->checked_out_by ??= Auth::id();
+                $stay->check_out_time ??= now();
+            }
+        });
+    }
+
+    public function booking(): BelongsTo
+    {
+        return $this->belongsTo(Booking::class);
+    }
+
+    public function checkedInBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'checked_in_by');
+    }
+
+    public function checkedOutBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'checked_out_by');
+    }
+
+    public function posTransactions(): HasMany
+    {
+        return $this->hasMany(PosTransaction::class);
+    }
+
+    public function scopeCheckedIn(Builder $query): Builder
+    {
+        return $query->where('status', 'checked_in');
+    }
+
+    public function scopeCheckedOut(Builder $query): Builder
+    {
+        return $query->where('status', 'checked_out');
+    }
+
+    public function getCustomerAttribute(): ?Customer
+    {
+        return $this->booking?->customer;
+    }
+
+    public function getRoomAttribute(): ?Room
+    {
+        return $this->booking?->room;
+    }
+
+    public function getGuestNameAttribute(): string
+    {
+        return $this->booking?->customer?->full_name ?? 'Unknown Guest';
+    }
 }

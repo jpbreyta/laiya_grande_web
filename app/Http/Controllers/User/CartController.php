@@ -3,120 +3,87 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\CartAddRequest;
+use App\Services\Booking\CartService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Models\Room;
+use Illuminate\View\View;
 
 class CartController extends Controller
 {
-    public function add(Request $request)
+    public function __construct(
+        private readonly CartService $cart
+    ) {
+    }
+
+    /**
+     * Add a server-validated room rate to the cart.
+     */
+    public function add(CartAddRequest $request): JsonResponse
     {
-        $room = Room::findOrFail($request->room_id);
-
-        $cart = session()->get('cart', []);
-
-        // 1. Prepare the image URL just like you did in HomeController
-        $roomImage = $room->image ? asset($room->image) : asset('images/user/luxury-ocean-view-suite-hotel-room.jpg');
-
-        if (isset($cart[$room->id])) {
-
-            if ($cart[$room->id]['quantity'] + 1 > $room->availability) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Only {$room->availability} room(s) available."
-                ]);
-            }
-
-            $cart[$room->id]['quantity'] += 1;
-            // Update image in case it changed
-            $cart[$room->id]['room_image'] = $roomImage;
-
-            session()->put('cart', $cart);
-
-            return response()->json([
-                'success' => true,
-                'message' => "Room quantity updated."
-            ]);
-        }
-
-        // 2. Add 'room_image' to the session array here
-        $cart[$room->id] = [
-            'room_id'      => $room->id,
-            'room_name'    => $room->name,
-            'room_price'   => $room->price,
-            'room_image'   => $roomImage, // <--- CRITICAL FIX HERE
-            'quantity'     => 1,
-            'availability' => $room->availability,
-        ];
-
-        session()->put('cart', $cart);
+        $items = $this->cart->add(
+            roomId: $request->integer('room_id'),
+            roomRateId: $request->filled('room_rate_id') ? $request->integer('room_rate_id') : null,
+            quantity: $request->integer('quantity', 1)
+        );
 
         return response()->json([
             'success' => true,
-            'message' => "Room added to cart."
+            'message' => 'Room added to cart.',
+            'cart' => $items,
         ]);
     }
 
-    public function index()
+    public function index(): View
     {
-        $cart = session()->get('cart', []);
-        return view('user.cart.index', compact('cart'));
+        return view('user.cart.index', [
+            'cart' => $this->cart->all(),
+        ]);
     }
 
-    public function remove($roomId)
+    public function remove(int $roomId): JsonResponse
     {
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$roomId])) {
-            unset($cart[$roomId]);
-            session()->put('cart', $cart);
-        }
-
-        return response()->json(['success' => true, 'message' => 'Room removed from cart.']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Room removed from cart.',
+            'cart' => $this->cart->remove($roomId),
+        ]);
     }
 
-    public function increment(Request $request)
+    public function increment(Request $request): JsonResponse
     {
-        $cart = session()->get('cart', []);
-        $roomId = $request->room_id;
+        $validated = $request->validate([
+            'room_id' => ['required', 'integer'],
+        ]);
 
-        if (isset($cart[$roomId])) {
-            $cart[$roomId]['quantity'] += 1;
-            session(['cart' => $cart]);
-        }
-
-        return response()->json(['success' => true, 'quantity' => $cart[$roomId]['quantity']]);
-    }
-
-    public function decrement(Request $request)
-    {
-        $cart = session()->get('cart', []);
-        $roomId = $request->room_id;
-
-        if (isset($cart[$roomId]) && $cart[$roomId]['quantity'] > 1) {
-            $cart[$roomId]['quantity'] -= 1;
-            session(['cart' => $cart]);
-        }
-
-        return response()->json(['success' => true, 'quantity' => $cart[$roomId]['quantity']]);
-    }
-
-    public function getCartDetails()
-    {
-        $cart = session()->get('cart', []);
-
-        $totalQuantity = 0;
-        $totalPrice = 0;
-
-        foreach ($cart as $details) {
-            $totalQuantity += $details['quantity'];
-            $totalPrice += $details['room_price'] * $details['quantity'];
-        }
+        $roomId = (int) $validated['room_id'];
+        $current = (int) ($this->cart->all()[$roomId]['quantity'] ?? 0);
+        $items = $this->cart->setQuantity($roomId, $current + 1);
 
         return response()->json([
-            'cart' => $cart,
-            'total_count' => $totalQuantity,
-            'total_price' => $totalPrice,
-            'count' => \count($cart)
+            'success' => true,
+            'quantity' => $items[$roomId]['quantity'] ?? 0,
         ]);
+    }
+
+    public function decrement(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'room_id' => ['required', 'integer'],
+        ]);
+
+        $roomId = (int) $validated['room_id'];
+        $current = (int) ($this->cart->all()[$roomId]['quantity'] ?? 0);
+        $items = $this->cart->setQuantity($roomId, $current - 1);
+
+        return response()->json([
+            'success' => true,
+            'quantity' => $items[$roomId]['quantity'] ?? 0,
+        ]);
+    }
+
+    public function getCartDetails(): JsonResponse
+    {
+        return response()->json($this->cart->summary());
     }
 }

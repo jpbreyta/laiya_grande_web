@@ -2,28 +2,36 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class Booking extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'room_id',
+        'booking_number',
+        'reservation_number',
         'customer_id',
+        'room_id',
+        'room_rate_id',
+        'source',
         'check_in',
         'check_out',
         'number_of_guests',
         'special_request',
-        'payment_method',
-        'total_price',
         'status',
-        'source',
-        'reservation_number',
+        'quoted_total',
+        'total_price',
+        'expires_at',
         'actual_check_in_time',
         'actual_check_out_time',
         'created_by',
@@ -31,102 +39,156 @@ class Booking extends Model
     ];
 
     protected $casts = [
-        'check_in' => 'datetime',
-        'check_out' => 'datetime',
+        'check_in' => 'date',
+        'check_out' => 'date',
+        'quoted_total' => 'decimal:2',
+        'expires_at' => 'datetime',
         'actual_check_in_time' => 'datetime',
         'actual_check_out_time' => 'datetime',
-        'payment' => 'string',
-        'total_price' => 'float',
     ];
 
-    // Relationships
-    public function room()
+    protected static function booted(): void
     {
-        return $this->belongsTo(Room::class);
+        static::creating(function (self $booking): void {
+            $booking->booking_number ??= static::generateBookingNumber();
+            $booking->created_by ??= Auth::id();
+        });
+
+        static::updating(function (self $booking): void {
+            if (Auth::check()) {
+                $booking->updated_by = Auth::id();
+            }
+        });
     }
 
-    public function customer()
+    public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
-    public function paymentRecord()
+    public function room(): BelongsTo
     {
-        return $this->hasOne(Payment::class);
+        return $this->belongsTo(Room::class);
     }
 
-    public function payments()
+    public function roomRate(): BelongsTo
+    {
+        return $this->belongsTo(RoomRate::class);
+    }
+
+    public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
     }
 
-    public function guestStay()
+    public function paymentRecord(): HasOne
+    {
+        return $this->hasOne(Payment::class)->latestOfMany();
+    }
+
+    public function guestStay(): HasOne
     {
         return $this->hasOne(GuestStay::class);
     }
 
-    // Accessors
-    public function getFullNameAttribute()
+    public function rating(): HasOne
     {
-        return $this->customer 
-            ? "{$this->customer->firstname} {$this->customer->lastname}" 
-            : 'Walk-in / Unknown';
+        return $this->hasOne(RoomRating::class);
     }
 
-    public function getFirstnameAttribute()
+    public function otpChallenges(): HasMany
     {
-        return $this->customer ? $this->customer->firstname : '';
+        return $this->hasMany(Otp::class);
     }
 
-    public function getLastnameAttribute()
-    {
-        return $this->customer ? $this->customer->lastname : '';
-    }
-
-    public function getEmailAttribute()
-    {
-        return $this->customer ? $this->customer->email : '';
-    }
-
-    public function getPhoneNumberAttribute()
-    {
-        return $this->customer ? $this->customer->phone_number : '';
-    }
-
-    // Auto-format reservation number
-    public static function generateReservationNumber(): string
-    {
-        $date = Carbon::now()->format('YmdHis');
-        $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
-        return "RSV-{$date}-{$random}";
-    }
-
-    // Audit trail relationships
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function updater()
+    public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
 
-    // Boot method to auto-track who created/updated
-    protected static function boot()
+    public function scopeActive(Builder $query): Builder
     {
-        parent::boot();
+        return $query->whereIn('status', ['confirmed', 'checked_in']);
+    }
 
-        static::creating(function ($model) {
-            if (Auth::check()) {
-                $model->created_by = Auth::id();
-            }
-        });
+    public function scopeUpcoming(Builder $query): Builder
+    {
+        return $query->whereDate('check_in', '>=', today());
+    }
 
-        static::updating(function ($model) {
-            if (Auth::check()) {
-                $model->updated_by = Auth::id();
-            }
-        });
+    public function getFullNameAttribute(): string
+    {
+        return $this->customer?->full_name ?? 'Unknown Guest';
+    }
+
+    public function getFirstnameAttribute(): string
+    {
+        return $this->customer?->first_name ?? '';
+    }
+
+    public function getLastnameAttribute(): string
+    {
+        return $this->customer?->last_name ?? '';
+    }
+
+    public function getEmailAttribute(): string
+    {
+        return $this->customer?->email ?? '';
+    }
+
+    public function getPhoneNumberAttribute(): string
+    {
+        return $this->customer?->phone_number ?? '';
+    }
+
+    public function getReservationNumberAttribute(): string
+    {
+        return (string) $this->booking_number;
+    }
+
+    public function setReservationNumberAttribute($value): void
+    {
+        $this->attributes['booking_number'] = $value;
+    }
+
+    public function getTotalPriceAttribute(): string
+    {
+        return (string) $this->quoted_total;
+    }
+
+    public function setTotalPriceAttribute($value): void
+    {
+        $this->attributes['quoted_total'] = $value;
+    }
+
+    public function getPaymentMethodAttribute(): ?string
+    {
+        return $this->payments()->latest('paid_at')->value('payment_method');
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at instanceof CarbonInterface
+            && $this->expires_at->isPast()
+            && $this->status === 'pending';
+    }
+
+    public static function generateBookingNumber(string $prefix = 'BKG'): string
+    {
+        do {
+            $number = $prefix . '-' . now()->format('YmdHis') . '-' . Str::upper(Str::random(8));
+        } while (static::withTrashed()->where('booking_number', $number)->exists());
+
+        return $number;
+    }
+
+    public static function generateReservationNumber(): string
+    {
+        return static::generateBookingNumber('RSV');
     }
 }

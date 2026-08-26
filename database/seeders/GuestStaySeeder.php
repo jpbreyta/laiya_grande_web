@@ -2,41 +2,53 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\GuestStay;
-use App\Models\Booking;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class GuestStaySeeder extends Seeder
 {
-    /**
-     * Seed guest stays from existing bookings.
-     * Guest stays are created when a booking transitions to 'active' or 'completed' status.
-     */
     public function run(): void
     {
-        // Get bookings that should have guest stays (active or completed)
-        $bookings = Booking::whereIn('status', ['active', 'completed'])
-            ->with(['customer', 'room'])
+        $staffUserId = DB::table('users')
+            ->join('role_user', 'users.id', '=', 'role_user.user_id')
+            ->join('roles', 'role_user.role_id', '=', 'roles.id')
+            ->whereIn('roles.name', ['admin', 'manager', 'receptionist'])
+            ->orderBy('users.id')
+            ->value('users.id');
+
+        $bookings = DB::table('bookings')
+            ->whereNull('deleted_at')
+            ->whereIn('status', ['checked_in', 'completed'])
+            ->orderBy('id')
             ->get();
 
         foreach ($bookings as $booking) {
-            // Determine status based on booking status
-            $status = $booking->status === 'completed' ? 'checked-out' : 'checked-in';
-            
-            // Create guest stay
-            GuestStay::create([
-                'booking_id' => $booking->id,
-                'room_id' => $booking->room_id,
-                'customer_id' => $booking->customer_id,
-                'status' => $status,
-                'check_in_time' => $booking->actual_check_in_time ?? $booking->check_in,
-                'check_out_time' => $status === 'checked-out' 
-                    ? ($booking->actual_check_out_time ?? $booking->check_out) 
-                    : null,
-            ]);
-        }
+            $checkedOut = $booking->status === 'completed';
 
-        $this->command->info('Guest stays seeded successfully from bookings.');
+            $checkInTime = $booking->actual_check_in_time
+                ?? Carbon::parse($booking->check_in)->setTime(14, 0);
+
+            $checkOutTime = $checkedOut
+                ? (
+                    $booking->actual_check_out_time
+                    ?? Carbon::parse($booking->check_out)->setTime(11, 0)
+                )
+                : null;
+
+            DB::table('guest_stays')->updateOrInsert(
+                ['booking_id' => $booking->id],
+                [
+                    'status' => $checkedOut ? 'checked_out' : 'checked_in',
+                    'check_in_time' => $checkInTime,
+                    'checked_in_by' => $staffUserId,
+                    'check_out_time' => $checkOutTime,
+                    'checked_out_by' => $checkedOut ? $staffUserId : null,
+                    'notes' => 'Generated from the current booking status.',
+                    'created_at' => $checkInTime,
+                    'updated_at' => now(),
+                ]
+            );
+        }
     }
 }
